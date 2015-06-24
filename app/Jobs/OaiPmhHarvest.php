@@ -7,9 +7,23 @@ use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Events\OaiPmhHarvestError;
+use Colligator\Collection;
+use Colligator\Document;
+use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class OaiPmhHarvest extends Job implements SelfHandling
 {
+    use DispatchesJobs;
+
+    public $name;
+    public $url;
+    public $schema;
+    public $set;
+    public $start;
+    public $until;
+    public $resume;
+    public $maxRetries;
+    public $sleepTimeOnError;
 
     /**
      * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
@@ -41,6 +55,11 @@ class OaiPmhHarvest extends Job implements SelfHandling
         $this->sleepTimeOnError = array_get($config, 'sleep-time-on-error', 60);
     }
 
+    public function error($msg)
+    {
+        \Event::fire(new OaiPmhHarvestError($msg));
+    }
+
     /**
      * Execute the job.
      */
@@ -57,9 +76,15 @@ class OaiPmhHarvest extends Job implements SelfHandling
             'sleep-time-on-error' => $this->sleepTimeOnError,
         ));
 
-        $client->on('request.error', function($err) {
-            \Event::fire(new OaiPmhHarvestError($err));
+        $client->on('request.error', function($msg) {
+            $this->error($msg);
         });
+
+        $collection = Collection::where('name', '=', $this->name)->first();
+        if (is_null($collection)) {
+            $this->error("Collection '$this->name' not found in DB");
+            return;
+        }
 
         // For each response
         $client->on('request.complete', function($verb, $args, $body) use ($latest) {
@@ -97,6 +122,10 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 rename($latest, $dest_path . sprintf('/response_%08d.xml', $currentIndex));
             }
 
+            $this->dispatch(new ImportMarc21Record($record));
+
+            // TODO: Add document to collection!
+
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
                     \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $records->numberOfRecords));
@@ -111,7 +140,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
                     $records->next();
                     break 1;
                 } catch (Scriptotek\Oai\BadRequestError $e) {
-                    \Event::fire(new OaiPmhHarvestError('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.'));
+                    $this->error('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.');
                     if ($attempt > 500) {
                         throw $e;
                     }
@@ -123,74 +152,5 @@ class OaiPmhHarvest extends Job implements SelfHandling
         return true;
     }
 
-    /**
-     * Store a single record
-     *
-     */
-    public function store($record, $oaiSet)
-    {
-        $status = 'unchanged';
-        // ex.: oai:bibsys.no:collection:901028711
-        $bibsys_id = $record->data->text('.//marc:record[@type="Bibliographic"]/marc:controlfield[@tag="001"]');
-        if (strlen($bibsys_id) != 9) {
-            Log::error("[$record->identifier] Invalid record id: $bibsys_id");
-            // $this->progress->clear();
-            $this->output->writeln("\n<error>[$record->identifier] Invalid record id: $bibsys_id</error>");
-            // $this->progress->display();
-            return 'errored';
-        }
-        $doc = Document::where('bibsys_id', '=', $bibsys_id)->first();
-        if (is_null($doc)) {
-            Log::info(sprintf('[%s] CREATE document', $bibsys_id));
-            $status = 'added';
-            $doc = new Document;
-            $doc->bibsys_id = $bibsys_id;
-            $doc->save();
-        } else {
-            // Log::info(sprintf('[%s] UPDATE document', $bibsys_id));
-        }
-        try {
-            $doc->import($record->data, $this->output);
-        } catch (Exception $e) {
-            Log::error("[$record->identifier] Import failed: Invalid record. Exception '" . $e->getMessage() . "' in: " . $e->getFile() . ":" . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
-               //kk var_export($e->getTrace(), true) );
-            // $this->progress->clear();
-            $this->output->writeln("\n<error>[$record->identifier] Import failed: Invalid record, see log for details.</error>");
-            // $this->progress->display();
-            return 'errored';
-        }
-        if (!isset($doc->sets)) {
-            $doc->sets = array();
-        }
-        if (!in_array($oaiSet, $doc->sets)) {
-            $sets = $doc->sets;
-            $sets[] = $oaiSet;
-            $doc->sets = $sets;
-        }
-        if ($status == 'unchanged' && $doc->isDirty()) {
-            $status = 'changed';
-            $msg = sprintf("[%s] UPDATE document\n", $bibsys_id);
-            foreach ($doc->getAttributes() as $key => $val) {
-                 if ($doc->isDirty($key)) {
-                     $original = $doc->getOriginal($key);
-                     if ($original) {
-                         $current = $val;
-                         $msg .= "Key: $key\n";
-                         $msg .= "Old: " . json_encode($original) . "\n";
-                         $msg .= "New: " . json_encode($current) . "\n";
-                         $msg .= "-------------------------------------------\n";
-                     }
-                 }
-             }
-             Log::info($msg);
-        }
-        if (!$doc->save()) {  // No action done if record not dirty
-            $err = "[$record->identifier] Document $id could not be saved!";
-            Log::error($err);
-            $this->output->writeln("<error>$err</error>");
-            return 'errored';
-        }
-        return $status;
-    }
 
 }
