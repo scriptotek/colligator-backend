@@ -6,12 +6,13 @@ This is the backend for the [Colligator frontend](https://github.com/scriptotek/
 
 Fetch deps:
 
-	composer update
+	composer install
+	cp .env.example .env
+	php artisan key:generate
 
-Run dev server:
+and modify `.env` as needed.
 
 	php artisan serve
-
 
 ## CLI
 
