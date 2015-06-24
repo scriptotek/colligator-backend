@@ -132,11 +132,21 @@ POST /api/collections/<collection-id>/<document-id>
 
 ### DB
 
+	collections
+	---------
+	id int
+	name
+	caption
+
+	collection_documents
+	-----------------
+	collection_id
+	document_id
 
 	documents
 	---------
 	id int
-	bs_id 
+	bs_id
 	data JSON blurb
 
 	subjects
