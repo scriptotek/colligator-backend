@@ -14,7 +14,7 @@ return [
 
     'harvests' => [
         'samling42' => [
-            'url' => 'http://utvikle-a.bibsys.no/oai/repository',
+            'url' => 'http://oai.bibsys.no/oai2/repository',  # http://utvikle-a.bibsys.no/oai/repository
             'set' => 'urealSamling42',
             'schema' => 'marcxchange'
         ]
