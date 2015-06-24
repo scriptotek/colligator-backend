@@ -6,6 +6,7 @@ use Colligator\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
+use Colligator\Events\OaiPmhHarvestError;
 
 class StoreOaiPmhRecords extends Job implements SelfHandling
 {
@@ -16,7 +17,7 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
      *
      * @var int
      */
-    protected $statusUpdateEvery = 500;
+    protected $statusUpdateEvery = 50;
 
     /**
      * Create a new job instance.
@@ -57,11 +58,11 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
         ));
 
         $client->on('request.error', function($err) {
-            $this->errorMsg($err);
+            \Event::fire(new OaiPmhHarvestError($err));
         });
 
         // For each response
-        $client->on('request.complete', function($verb, $args, $body) {
+        $client->on('request.complete', function($verb, $args, $body) use ($latest) {
             file_put_contents($latest, $body);
         });
 
@@ -97,7 +98,7 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
             }
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
-                Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
+                \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
             }
 
             $attempt = 1;
@@ -106,7 +107,7 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
                     $records->next();
                     break 1;
                 } catch (Scriptotek\Oai\BadRequestError $e) {
-                    $this->errorMsg('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.');
+                    \Event::fire(new OaiPmhHarvestError('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.'));
                     if ($attempt > 500) {
                         throw $e;
                     }

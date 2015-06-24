@@ -112,25 +112,35 @@ class HarvestOaiPmh extends Command
             return $this->listConfigurations();
         }
 
-        $this->info('');
-        $this->info('============================================================');
-        $this->info(sprintf('%s: Starting OAI harvest "%s"',
+        $this->comment('');
+        $this->comment('============================================================');
+        $this->comment(sprintf('%s: Starting OAI harvest "%s"',
             strftime('%Y-%m-%d %H:%M:%S'),
             $harvestName
         ));
+
+        $this->comment(' - Repo: ' . $harvestConfig['url']);
+        $this->comment(' - Schema: ' . $harvestConfig['schema']);
+        $this->comment(' - Set: ' . $harvestConfig['set']);
+
         foreach (array('from', 'until', 'resume') as $key) {
             if (!is_null($this->option($key))) {
                 $this->info(sprintf('- %s: %s', $key, $this->option($key)));
             }
         }
-        $this->info('------------------------------------------------------------');
+        $this->comment('------------------------------------------------------------');
 
         // For timing
         $this->t0 = $this->t1 = microtime(true) - 1;
 
-        \Event::listen('App\Events\OaiPmhHarvestStatus', function($event)
+        \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function($event)
         {
-            $this->info('Yo!');
+            $this->info(" [ $event->harvested $event->position $event->total ] ");
+        });
+
+        \Event::listen('Colligator\Events\OaiPmhHarvestError', function($event)
+        {
+            $this->error($event->msg);
         });
 
         $this->dispatch(

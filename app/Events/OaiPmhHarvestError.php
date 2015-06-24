@@ -6,7 +6,7 @@ use Colligator\Events\Event;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class OaiPmhHarvestStatus extends Event
+class OaiPmhHarvestError extends Event
 {
     use SerializesModels;
 
@@ -15,11 +15,9 @@ class OaiPmhHarvestStatus extends Event
      *
      * @return void
      */
-    public function __construct($harvested, $position, $total)
+    public function __construct($msg)
     {
-        $this->harvested = $harvested;
-        $this->position = $position;
-        $this->total = $total;
+        $this->msg = $msg;
     }
 
     /**
