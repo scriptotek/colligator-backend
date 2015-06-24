@@ -3,11 +3,12 @@
 namespace Colligator\Console\Commands;
 
 use Illuminate\Console\Command;
-use Colligator\Commands\StoreOaiPmhRecords;
-
+use Illuminate\Foundation\Bus\DispatchesJobs;
+use Colligator\Jobs\StoreOaiPmhRecords;
 
 class HarvestOaiPmh extends Command
 {
+    use DispatchesJobs;
 
     /**
      * Start time for the full harvest.
@@ -28,7 +29,11 @@ class HarvestOaiPmh extends Command
      *
      * @var string
      */
-    protected $signature = 'harvest:oaipmh';
+    protected $signature = 'harvest:oaipmh
+                            {name?     : Name of the harvest config defined in the config file}
+                            {--from=   : Start date on ISO format YYYY-MM-DD}
+                            {--until=  : End date on ISO format YYYY-MM-DD}
+                            {--resume= : Resumption token}';
 
     /**
      * The console command description.
@@ -55,7 +60,7 @@ class HarvestOaiPmh extends Command
     protected function getArguments()
     {
         return array(
-            array('name', InputArgument::REQUIRED, 'Name of the harvest, as defined in configs/oaipmh.php'),
+            array('name', InputArgument::OPTIONAL, 'Name of the harvest, as defined in configs/oaipmh.php'),
         );
     }
 
@@ -73,6 +78,16 @@ class HarvestOaiPmh extends Command
         );
     }
 
+    public function listConfigurations()
+    {
+        $this->comment('');
+        $this->comment('Available configurations:');
+        $config = \Config::get('oaipmh.harvests', null);
+        foreach (array_keys($config) as $key) {
+            $this->comment(' - ' . $key);
+        }
+    }
+
     /**
      * Execute the console command.
      *
@@ -80,16 +95,21 @@ class HarvestOaiPmh extends Command
      */
     public function handle()
     {
+        $name = $this->argument('name');
+
+        if (is_null($name)) {
+            return $this->listConfigurations();
+        }
 
         // The query log is kept in memory, so we should disable it for long-running
         // tasks to prevent memory usage from increasing linearly over time
         \DB::connection()->disableQueryLog();
 
         $harvestName = $this->argument('name');
-        $harvestConfig = Config::get('oaipmh.' . $harvestName, null);
+        $harvestConfig = \Config::get('oaipmh.harvests.' . $harvestName, null);
         if (is_null($harvestConfig)) {
-            $this->error('Uh oh, unknown harvest specified.');
-            die;
+            $this->error('Unknown configuration specified.');
+            return $this->listConfigurations();
         }
 
         $this->info('');

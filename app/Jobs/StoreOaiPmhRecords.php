@@ -1,13 +1,13 @@
 <?php
 
-namespace Colligator\Commands;
+namespace Colligator\Jobs;
 
-use Colligator\Commands\Command;
+use Colligator\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
 
-class StoreOaiPmhRecords extends Command implements SelfHandling
+class StoreOaiPmhRecords extends Job implements SelfHandling
 {
 
     /**
@@ -19,35 +19,41 @@ class StoreOaiPmhRecords extends Command implements SelfHandling
     protected $statusUpdateEvery = 500;
 
     /**
-     * Create a new command instance.
+     * Create a new job instance.
      *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Execute the command.
-     * 
      * @param  string  $name  Harvest name from config
      * @param  array   $config  Harvest config array (url, set, schema)
      * @param  string  $start  Start date (optional)
      * @param  string  $until  End date (optional)
      * @param  string  $resume  Resumption token for continuing an aborted harvest (optional)
      */
-    public function handle($name, $config, $start, $until, $resume = null)
+    public function __construct($name, $config, $start = null, $until = null, $resume = null)
     {
-        $dest_path = storage_path('harvests/' . $name);
+        $this->name = $name;
+        $this->url = $config['url'];
+        $this->schema = $config['schema'];
+        $this->set = $config['set'];
+        $this->start = $start;
+        $this->until = $until;
+        $this->resume = $resume;
+        $this->maxRetries = array_get($config, 'max-retries', 1000);
+        $this->sleepTimeOnError = array_get($config, 'sleep-time-on-error', 60);
+    }
+
+    /**
+     * Execute the job.
+     */
+    public function handle()
+    {
+        $dest_path = storage_path('harvests/' . $this->name);
         if (!file_exists($dest_path)) mkdir($dest_path, 0777, true);
         $latest = $dest_path . '/latest.xml';
 
-        $client = new OaiPmhClient($config['url'], array(
-            'schema' => $config['schema'],
+        $client = new OaiPmhClient($this->url, array(
+            'schema' => $this->schema,
             'user-agent' => 'Colligator/0.1',
-            'max-retries' => array_get($config, 'max-retries', 1000),
-            'sleep-time-on-error' => array_get($config, 'sleep-time-on-error', 60),
+            'max-retries' => $this->maxRetries,
+            'sleep-time-on-error' => $this->sleepTimeOnError,
         ));
 
         $client->on('request.error', function($err) {
@@ -63,7 +69,7 @@ class StoreOaiPmhRecords extends Command implements SelfHandling
 
         // Loop over all records using an iterator that pulls in more data when
         // the buffer is exhausted.
-        $records = $client->records($start, $until, $config['set'], $resume);
+        $records = $client->records($this->start, $this->until, $this->set, $this->resume);
         while (true) {
 
             // If no records included in the last response
@@ -75,9 +81,9 @@ class StoreOaiPmhRecords extends Command implements SelfHandling
             $recordsHarvested++;
 
             // In case of a crash, it can be useful to have the resumption_token
-            if ($resume != $records->getResumptionToken()) {
-                $resume = $records->getResumptionToken();
-                file_put_contents($dest_path . '/resumption_token', $resume); 
+            if ($this->resume != $records->getResumptionToken()) {
+                $this->resume = $records->getResumptionToken();
+                file_put_contents($dest_path . '/resumption_token', $this->resume);
             }
 
             // Note that Bibsys doesn't start counting on 0, as given in the spec,
@@ -181,5 +187,5 @@ class StoreOaiPmhRecords extends Command implements SelfHandling
         }
         return $status;
     }
-    }
+
 }
