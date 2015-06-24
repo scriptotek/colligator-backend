@@ -98,7 +98,11 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
             }
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
-                \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
+                if (is_null($this->start)) {
+                    \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $records->numberOfRecords));
+                } else {
+                    \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
+                }
             }
 
             $attempt = 1;

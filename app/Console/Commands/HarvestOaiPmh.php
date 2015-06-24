@@ -13,16 +13,23 @@ class HarvestOaiPmh extends Command
     /**
      * Start time for the full harvest.
      *
-     * @var string
+     * @var int
      */
-    protected $t0;
+    protected $startTime;
 
     /**
      * Start time for the current batch.
      *
-     * @var string
+     * @var int
      */
-    protected $t1;
+    protected $batchTime;
+
+    /**
+     * Harvest position.
+     *
+     * @var int
+     */
+    protected $batchPos = 0;
 
     /**
      * The name and signature of the console command.
@@ -113,8 +120,8 @@ class HarvestOaiPmh extends Command
         }
 
         $this->comment('');
-        $this->comment('============================================================');
-        $this->comment(sprintf('%s: Starting OAI harvest "%s"',
+        $this->info('============================================================');
+        $this->info(sprintf('%s: Starting OAI harvest "%s"',
             strftime('%Y-%m-%d %H:%M:%S'),
             $harvestName
         ));
@@ -128,14 +135,14 @@ class HarvestOaiPmh extends Command
                 $this->info(sprintf('- %s: %s', $key, $this->option($key)));
             }
         }
-        $this->comment('------------------------------------------------------------');
+        $this->info('------------------------------------------------------------');
 
         // For timing
-        $this->t0 = $this->t1 = microtime(true) - 1;
+        $this->startTime = $this->batchTime = microtime(true) - 1;
 
         \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function($event)
         {
-            $this->info(" [ $event->harvested $event->position $event->total ] ");
+            $this->status($event->harvested, $event->position, $event->total);
         });
 
         \Event::listen('Colligator\Events\OaiPmhHarvestError', function($event)
@@ -154,38 +161,41 @@ class HarvestOaiPmh extends Command
         );
     }
 
-    public function status($current, $total)
+    public function status($fetched, $current, $total)
     {
         $batch = 1000;
-        if ($recordsHarvested % $batch == 0) {
-            // Time for a status update                
-            $dt = microtime(true) - $this->t1;
-            $dt2 = microtime(true) - $this->t0;
-            $mem = round(memory_get_usage()/1024/102.4)/10;
-            $this->t1 = microtime(true);
-            $percentage = $current / $total;
-            $eta = '';  
-            if ($percentage < 1.0) {
-                $et = $dt2 / $percentage - $dt2;
-                $h = floor($et / 3600);
-                $m = floor(($et - ($h * 3600)) / 60);
-                $s = round($et - $h * 3600 - $m * 60);
-                $eta = 'ETA: ' . sprintf("%02d:%02d:%02d", $h, $m, $s) . ', ';
-            }
-            $recsPerSecCur = $batch/$dt;
-            $recsPerSec = $recordsHarvested / $dt2;
-            $this->info(sprintf(
-                '%s %d / %d records (%.2f %%), %sCurrent speed: %.1f recs/s, Avg speed: %.1f recs/s, Mem: %.1f MB.',
-                strftime('%Y-%m-%d %H:%M:%S'),
-                $current,
-                $total,
-                $percentage * 100,
-                $eta,
-                $recsPerSecCur,
-                $recsPerSec,
-                $mem
-            ));
+        $totalTime = microtime(true) - $this->startTime;
+        $batchTime = microtime(true) - $this->batchTime;
+        $mem = round(memory_get_usage()/1024/102.4)/10;
+        $percentage = $current / $total;
+        $remaining = $total - $current;
+
+        $currentSpeed = ($fetched - $this->batchPos) / $batchTime;
+        $avgSpeed = $fetched / $totalTime;
+
+        $this->batchTime = microtime(true);
+        $this->batchPos = $fetched;
+
+        $eta = '';
+        if ($remaining > 0) {   # Can be negative
+
+            $et = $remaining / $avgSpeed;
+            $h = floor($et / 3600);
+            $m = floor(($et - ($h * 3600)) / 60);
+            $s = round($et - $h * 3600 - $m * 60);
+            $eta = 'ETA: ' . sprintf("%02d:%02d:%02d", $h, $m, $s) . ', ';
         }
+        $this->comment(sprintf(
+            '[%s] %d / %d records (%.2f %%) - %sRecs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
+            strftime('%Y-%m-%d %H:%M:%S'),
+            $current,
+            $total,
+            $percentage * 100,
+            $eta,
+            $currentSpeed,
+            $avgSpeed,
+            $mem
+        ));
     }
 
 }
