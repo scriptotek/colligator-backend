@@ -8,7 +8,7 @@ use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Events\OaiPmhHarvestError;
 
-class StoreOaiPmhRecords extends Job implements SelfHandling
+class OaiPmhHarvest extends Job implements SelfHandling
 {
 
     /**
@@ -122,10 +122,10 @@ class StoreOaiPmhRecords extends Job implements SelfHandling
         }
         return true;
     }
+
     /**
      * Store a single record
      *
-     * @return 'added', 'changed', 'unchanged' or 'removed'
      */
     public function store($record, $oaiSet)
     {

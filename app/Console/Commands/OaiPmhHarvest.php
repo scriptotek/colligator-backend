@@ -4,9 +4,9 @@ namespace Colligator\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Colligator\Jobs\StoreOaiPmhRecords;
+use Colligator\Jobs\OaiPmhHarvest as OaiPmhHarvestJob;
 
-class HarvestOaiPmh extends Command
+class OaiPmhHarvest extends Command
 {
     use DispatchesJobs;
 
@@ -151,7 +151,7 @@ class HarvestOaiPmh extends Command
         });
 
         $this->dispatch(
-            new StoreOaiPmhRecords(
+            new OaiPmhHarvestJob(
                 $harvestName,
                 $harvestConfig,
                 $this->option('from'),
