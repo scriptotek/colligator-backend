@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \Colligator\Console\Commands\OaiPmhHarvest::class,
+        \Colligator\Console\Commands\OaiPmhHarvestInfo::class,
     ];
 
     /**
