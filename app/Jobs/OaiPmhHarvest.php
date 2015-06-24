@@ -2,6 +2,8 @@
 
 namespace Colligator\Jobs;
 
+use Storage;
+use Event;
 use Colligator\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
@@ -57,7 +59,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
     public function error($msg)
     {
-        \Event::fire(new OaiPmhHarvestError($msg));
+        Event::fire(new OaiPmhHarvestError($msg));
     }
 
     /**
@@ -65,9 +67,8 @@ class OaiPmhHarvest extends Job implements SelfHandling
      */
     public function handle()
     {
-        $dest_path = storage_path('harvests/' . $this->name);
-        if (!file_exists($dest_path)) mkdir($dest_path, 0777, true);
-        $latest = $dest_path . '/latest.xml';
+        $dest_path = 'harvests/' . $this->name . '/';
+        $latest = $dest_path . 'latest.xml';
 
         $client = new OaiPmhClient($this->url, array(
             'schema' => $this->schema,
@@ -86,9 +87,9 @@ class OaiPmhHarvest extends Job implements SelfHandling
             return;
         }
 
-        // For each response
+        // Store each response to disk just in case
         $client->on('request.complete', function($verb, $args, $body) use ($latest) {
-            file_put_contents($latest, $body);
+            Storage::disk('local')->put($latest, $body);
         });
 
         $recordsHarvested = 0;
@@ -109,7 +110,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
             // In case of a crash, it can be useful to have the resumption_token
             if ($this->resume != $records->getResumptionToken()) {
                 $this->resume = $records->getResumptionToken();
-                file_put_contents($dest_path . '/resumption_token', $this->resume);
+                Storage::disk('local')->put($dest_path . '/resumption_token', $this->resume);
             }
 
             // Note that Bibsys doesn't start counting on 0, as given in the spec,
@@ -119,18 +120,18 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
             // Move to stable location
             if (is_file($latest)) {
-                rename($latest, $dest_path . sprintf('/response_%08d.xml', $currentIndex));
+                Storage::disk('local')->move($latest, sprintf('%s/response_%08d.xml', $dest_path, $currentIndex));
             }
 
-            $this->dispatch(new ImportMarc21Record($record));
+            $this->dispatch(new ImportMarc21Record($record->data));
 
             // TODO: Add document to collection!
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
-                    \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $records->numberOfRecords));
+                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $records->numberOfRecords));
                 } else {
-                    \Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
+                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex, $records->numberOfRecords));
                 }
             }
 
