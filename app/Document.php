@@ -30,4 +30,12 @@ class Document extends Model
         return $this->belongsToMany('Colligator\Subject');
     }
 
+    /**
+     * The collections the document belongs to
+     */
+    public function collections()
+    {
+        return $this->belongsToMany('Colligator\Collection');
+    }
+
 }

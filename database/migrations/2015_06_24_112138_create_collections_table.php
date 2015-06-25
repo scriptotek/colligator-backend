@@ -16,7 +16,7 @@ class CreateCollectionsTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->string('name');
-            $table->string('caption');
+            $table->string('label');
         });
     }
 
