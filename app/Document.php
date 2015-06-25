@@ -4,6 +4,11 @@ namespace Colligator;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string bibsys_id
+ * @property array bibliographic
+ * @property array holdings
+ */
 class Document extends Model
 {
 
