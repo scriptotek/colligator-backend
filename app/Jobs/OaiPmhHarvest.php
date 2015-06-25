@@ -85,6 +85,14 @@ class OaiPmhHarvest extends Job implements SelfHandling
             Storage::disk('local')->put($latest, $body);
         });
 
+        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection)
+        {
+            $doc_id = $event->id;
+            if (!$collection->documents->contains($doc_id)) {
+                $collection->documents()->attach($doc_id);
+            }
+        });
+
         $recordsHarvested = 0;
 
         // Loop over all records using an iterator that pulls in more data when
@@ -117,8 +125,6 @@ class OaiPmhHarvest extends Job implements SelfHandling
             }
 
             $this->dispatch(new ImportMarc21Record($record->data));
-
-            // TODO: Add document to collection!
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {

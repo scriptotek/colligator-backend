@@ -22,9 +22,9 @@ class CreateDocumentsTable extends Migration
 
         Schema::create('collection_document', function (Blueprint $table) {
             $table->increments('id');
-
             $table->integer('collection_id')->unsigned();
             $table->integer('document_id')->unsigned();
+            $table->unique(['collection_id', 'document_id']);
 
             $table->foreign('collection_id')
                 ->references('id')->on('collections')

@@ -3,8 +3,10 @@
 namespace Colligator\Jobs;
 
 use Colligator\Document;
+use Colligator\Events\Marc21RecordImported;
 use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
+use Event;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\ParserException;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
@@ -75,10 +77,8 @@ class ImportMarc21Record extends Job implements SelfHandling
         $doc->holdings = $holdings;
 
         if (!$doc->save()) {  // No action done if record not dirty
-            $err = "Document $biblio->id could not be saved!";
-            $this->error($err);
-            //$this->output->writeln("<error>$err</error>");
-            return 'errored';
+            $this->error("Document $biblio->id could not be saved!");
+            return;
         }
 
         $subject_ids = [];
@@ -90,6 +90,8 @@ class ImportMarc21Record extends Job implements SelfHandling
             $subject_ids[] = $subject->id;
         }
         $doc->subjects()->sync($subject_ids);
+
+        Event::fire(new Marc21RecordImported($doc->id));
     }
 
 }
