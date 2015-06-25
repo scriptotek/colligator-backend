@@ -38,7 +38,7 @@ class OaiPmhHarvest extends Command
      *
      * @var string
      */
-    protected $signature = 'harvest:oaipmh
+    protected $signature = 'colligator:harvest-oaipmh
                             {name?     : Name of the harvest config defined in the config file}
                             {--from=   : Start date on ISO format YYYY-MM-DD}
                             {--until=  : End date on ISO format YYYY-MM-DD}

@@ -18,9 +18,8 @@ and modify `.env` as needed.
 
 Create a collection and harvest bibliographic records, etc. (draft)
 
-	php artisan collection:create samling42 "Samling 42"
-	php artisan harvest:bibsys --url http://oai.bibsys.no/repository --set urealSamling42 
-	php artisan import:bibsys --collection=samling42 
+	php artisan colligator:create-collection samling42 "Samling 42"
+	php artisan colligator:harvest-oaipmh samling42
 
 	php artisan import:ontosaur
 	php artisan cache:covers ?

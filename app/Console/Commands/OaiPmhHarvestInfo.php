@@ -18,7 +18,7 @@ class OaiPmhHarvestInfo extends Command
      *
      * @var string
      */
-    protected $signature = 'harvest:info {name}';
+    protected $signature = 'colligator:harvest-info {name}';
 
     /**
      * The console command description.

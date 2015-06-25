@@ -13,7 +13,7 @@ class CreateCollection extends Command
      *
      * @var string
      */
-    protected $signature = 'collection:create {name} {label}';
+    protected $signature = 'colligator:create-collection {name} {label}';
 
     /**
      * The console command description.
