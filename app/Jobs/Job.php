@@ -2,6 +2,8 @@
 
 namespace Colligator\Jobs;
 
+use Colligator\Events\JobError;
+use Event;
 use Illuminate\Bus\Queueable;
 
 abstract class Job
@@ -18,4 +20,10 @@ abstract class Job
     */
 
     use Queueable;
+
+    protected function error($msg)
+    {
+        Event::fire(new JobError($msg));
+    }
+
 }

@@ -5,6 +5,8 @@ namespace Colligator\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Colligator\Jobs\OaiPmhHarvest as OaiPmhHarvestJob;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 
 class OaiPmhHarvest extends Command
 {
@@ -51,8 +53,6 @@ class OaiPmhHarvest extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -85,6 +85,9 @@ class OaiPmhHarvest extends Command
         );
     }
 
+    /**
+     * Output a list of the configurations.
+     */
     public function listConfigurations()
     {
         $this->comment('');
@@ -97,15 +100,14 @@ class OaiPmhHarvest extends Command
 
     /**
      * Execute the console command.
-     *
-     * @return mixed
      */
     public function handle()
     {
         $name = $this->argument('name');
 
         if (is_null($name)) {
-            return $this->listConfigurations();
+            $this->listConfigurations();
+            return;
         }
 
         // The query log is kept in memory, so we should disable it for long-running
@@ -116,7 +118,8 @@ class OaiPmhHarvest extends Command
         $harvestConfig = \Config::get('oaipmh.harvests.' . $harvestName, null);
         if (is_null($harvestConfig)) {
             $this->error('Unknown configuration specified.');
-            return $this->listConfigurations();
+            $this->listConfigurations();
+            return;
         }
 
         $this->comment('');
@@ -145,7 +148,7 @@ class OaiPmhHarvest extends Command
             $this->status($event->harvested, $event->position, $event->total);
         });
 
-        \Event::listen('Colligator\Events\OaiPmhHarvestError', function($event)
+        \Event::listen('Colligator\Events\JobError', function($event)
         {
             $this->error($event->msg);
         });
@@ -161,9 +164,15 @@ class OaiPmhHarvest extends Command
         );
     }
 
+    /**
+     * Output a status message.
+     *
+     * @param $fetched
+     * @param $current
+     * @param $total
+     */
     public function status($fetched, $current, $total)
     {
-        $batch = 1000;
         $totalTime = microtime(true) - $this->startTime;
         $batchTime = microtime(true) - $this->batchTime;
         $mem = round(memory_get_usage()/1024/102.4)/10;

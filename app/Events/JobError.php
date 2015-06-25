@@ -6,7 +6,7 @@ use Colligator\Events\Event;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class OaiPmhHarvestError extends Event
+class JobError extends Event
 {
     use SerializesModels;
 

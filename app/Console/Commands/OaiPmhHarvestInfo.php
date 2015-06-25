@@ -2,11 +2,14 @@
 
 namespace Colligator\Console\Commands;
 
+use Danmichaelo\QuiteSimpleXMLElement\InvalidXMLException;
 use Illuminate\Console\Command;
 use Scriptotek\OaiPmh\ListRecordsResponse;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
+use Storage;
+use Symfony\Component\Console\Input\InputArgument;
 
 class OaiPmhHarvestInfo extends Command
 {
@@ -27,7 +30,6 @@ class OaiPmhHarvestInfo extends Command
     /**
      * Create a new command instance.
      *
-     * @return void
      */
     public function __construct()
     {
@@ -56,8 +58,8 @@ class OaiPmhHarvestInfo extends Command
         $name = $this->argument('name');
         $parser = new MarcParser;
 
-        $dest_path = storage_path('harvests/' . $name);
-        $files = glob("$dest_path/*.xml");
+        $files = Storage::disk('local')->files('harvests/' . $name);
+
         $info = [
             'count' => 0,
             'isbn_count' => [],
@@ -65,13 +67,17 @@ class OaiPmhHarvestInfo extends Command
             'local_holdings_count' => [],
         ];
 
-        $this->output->progressStart(count($files), 'Reading files...');
+        $this->output->write('Reading files...');
+        $this->output->progressStart(count($files));
         foreach ($files as $filename)
         {
             $this->output->progressAdvance();
+
+            if (!preg_match('/.xml$/', $filename)) continue;
+
             try {
 
-                $response = new ListRecordsResponse(file_get_contents($filename));
+                $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
                 foreach ($response->records as $record) {
 
                     $biblio = null;
@@ -104,7 +110,7 @@ class OaiPmhHarvestInfo extends Command
                     }
 
                 }
-            } catch (Danmichaelo\QuiteSimpleXMLElement\InvalidXMLException $e) {
+            } catch (InvalidXMLException $e) {
                 $this->error('Invalid XML found! Skipping file: ' . $filename);
             }
         }

@@ -10,7 +10,6 @@ use Scriptotek\SimpleMarcParser\ParserException;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
 use Illuminate\Contracts\Bus\SelfHandling;
-use Colligator\Jobs\Job;
 
 class ImportMarc21Record extends Job implements SelfHandling
 {
@@ -61,7 +60,7 @@ class ImportMarc21Record extends Job implements SelfHandling
             list($biblio, $holdings) = $this->parseRecord($this->record);
         } catch (ParserException $e) {
             $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
-            return false;
+            return;
         }
 
         // Find existing Document or create a new one

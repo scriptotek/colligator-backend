@@ -4,13 +4,11 @@ namespace Colligator\Jobs;
 
 use Storage;
 use Event;
-use Colligator\Jobs\Job;
 use Illuminate\Contracts\Bus\SelfHandling;
+use Scriptotek\OaiPmh\BadRequestError;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
-use Colligator\Events\OaiPmhHarvestError;
 use Colligator\Collection;
-use Colligator\Document;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class OaiPmhHarvest extends Job implements SelfHandling
@@ -55,11 +53,6 @@ class OaiPmhHarvest extends Job implements SelfHandling
         $this->resume = $resume;
         $this->maxRetries = array_get($config, 'max-retries', 1000);
         $this->sleepTimeOnError = array_get($config, 'sleep-time-on-error', 60);
-    }
-
-    public function error($msg)
-    {
-        Event::fire(new OaiPmhHarvestError($msg));
     }
 
     /**
@@ -140,7 +133,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 try {
                     $records->next();
                     break 1;
-                } catch (Scriptotek\Oai\BadRequestError $e) {
+                } catch (BadRequestError $e) {
                     $this->error('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.');
                     if ($attempt > 500) {
                         throw $e;
