@@ -2,6 +2,7 @@
 
 namespace Colligator\Jobs;
 
+use Colligator\Document;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\ParserException;
@@ -18,22 +19,11 @@ class ImportMarc21Record extends Job implements SelfHandling
     /**
      * Create a new job instance.
      *
-     * @return void
+     * @param $record
      */
     public function __construct($record)
     {
         $this->record = $record;
-    }
-
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
-    public function handle()
-    {
-
-
     }
 
      /**
@@ -50,49 +40,46 @@ class ImportMarc21Record extends Job implements SelfHandling
         foreach ($data->xpath('.//marc:record') as $rec) {
             $parsed = $parser->parse($rec);
             if ($parsed instanceof BibliographicRecord) {
-                $biblio = $parsed;
+                $biblio = $parsed->toArray();
             } elseif ($parsed instanceof HoldingsRecord) {
-                $holdings[] = $parsed;
+                $holdings[] = $parsed->toArray();
             }
         }
+
         return array($biblio, $holdings);
     }
 
     /**
-     * Store a single record
+     * Execute the job.
      *
+     * @return void
      */
-    public function store()
+    public function handle()
     {
-        $status = 'none';
         try {
-            list($biblio, $holdings) = $this->parseRecord($record->data);
+            list($biblio, $holdings) = $this->parseRecord($this->record);
         } catch (ParserException $e) {
-            $this->error('Failed to parse OAI record "' . $record->identifier . '". Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
+            $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
             return false;
         }
 
         // Find existing Document or create a new one
-        $doc = Document::where('bibsys_id', '=', $biblio->id)->first();
+        $doc = Document::where('bibsys_id', '=', $biblio['id'])->first();
         if (is_null($doc)) {
             // \Log::info(sprintf('[%s] CREATE document', $biblio->id));
             $doc = new Document;
-            $doc->bibsys_id = $biblio->id;
         }
 
-        $holdings = array_map(function($holding) {
-            return $holding->toArray();
-        }, $holdings);
-
-        $doc->data = json_encode(['bibliographic' => $biblio->toArray(), 'holdings' => $holdings]);
+        $doc->bibliographic = $biblio;
+        $doc->bibsys_id = $biblio['id'];
+        $doc->holdings = $holdings;
 
         if (!$doc->save()) {  // No action done if record not dirty
-            $err = "[$record->identifier] Document $id could not be saved!";
+            $err = "Document $biblio->id could not be saved!";
             $this->error($err);
             //$this->output->writeln("<error>$err</error>");
             return 'errored';
         }
-        return $status;
-    }
 
+    }
 }

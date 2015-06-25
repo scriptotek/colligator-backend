@@ -16,7 +16,8 @@ class CreateDocumentsTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->string('bibsys_id', 12)->unique();
-            $table->json('data');
+            $table->json('bibliographic');
+            $table->json('holdings');
         });
 
         Schema::create('collection_document', function (Blueprint $table) {
