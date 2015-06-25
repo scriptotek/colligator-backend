@@ -3,6 +3,7 @@
 namespace Colligator\Jobs;
 
 use Colligator\Document;
+use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\ParserException;
@@ -81,5 +82,15 @@ class ImportMarc21Record extends Job implements SelfHandling
             return 'errored';
         }
 
+        $subject_ids = [];
+        foreach ($biblio['subjects'] as $value) {
+            $subject = Subject::lookup($value['vocabulary'], $value['term']);
+            if (is_null($subject)) {
+                $subject = Subject::create($value);
+            }
+            $subject_ids[] = $subject->id;
+        }
+        $doc->subjects()->sync($subject_ids);
     }
+
 }

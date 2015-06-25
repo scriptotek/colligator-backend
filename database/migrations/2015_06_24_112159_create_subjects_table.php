@@ -15,6 +15,10 @@ class CreateSubjectsTable extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
+            $table->string('vocabulary')->nullable();
+            $table->string('term');
+            $table->string('uri')->nullable();
+            $table->index('vocabulary', 'term');
         });
 
         Schema::create('document_subject', function (Blueprint $table) {

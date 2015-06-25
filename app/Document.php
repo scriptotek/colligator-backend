@@ -17,4 +17,12 @@ class Document extends Model
         'holdings' => 'array',
     ];
 
+    /**
+     * The subjects belonging to the document
+     */
+    public function subjects()
+    {
+        return $this->belongsToMany('Colligator\Subject');
+    }
+
 }

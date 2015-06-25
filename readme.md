@@ -152,10 +152,9 @@ POST /api/collections/<collection-id>/<document-id>
 	subjects
 	--------
 	id int
-	vocabulary_id
-	vocabulary_code
-	uri
-	term
+	vocabulary string
+	term string
+	uri string
 	data JSON blurb ?
 
 	document_subjects
