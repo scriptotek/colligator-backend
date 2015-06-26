@@ -9,7 +9,9 @@
         "laravel/framework": "5.1.*",
         "scriptotek/oai-pmh-client": "dev-master",
         "scriptotek/simplemarcparser": "dev-master",
-        "danmichaelo/quitesimplexmlelement": "~0.2"
+        "danmichaelo/quitesimplexmlelement": "~0.2",
+        "elasticsearch/elasticsearch": "~1.0",
+        "shift31/laravel-elasticsearch": "~1.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

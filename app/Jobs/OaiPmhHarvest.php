@@ -9,6 +9,7 @@ use Scriptotek\OaiPmh\BadRequestError;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Collection;
+use Colligator\Document;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class OaiPmhHarvest extends Job implements SelfHandling
@@ -87,10 +88,13 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
         Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection)
         {
-            $doc_id = $event->id;
-            if (!$collection->documents->contains($doc_id)) {
-                $collection->documents()->attach($doc_id);
+            $doc = Document::find($event->id);
+            if (!$collection->documents->contains($doc->id)) {
+                $collection->documents()->attach($doc->id);
             }
+
+            $this->dispatch(new IndexDocument($doc));
+
         });
 
         $recordsHarvested = 0;

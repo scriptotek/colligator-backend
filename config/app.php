@@ -138,6 +138,11 @@ return [
         Illuminate\View\ViewServiceProvider::class,
 
         /*
+         * Package Providers...
+         */
+        Shift31\LaravelElasticsearch\ElasticsearchServiceProvider::class,
+
+        /*
          * Application Service Providers...
          */
         Colligator\Providers\AppServiceProvider::class,
