@@ -7,6 +7,7 @@ php:
 before_script:
  - echo "extension = mcrypt.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
  - composer install --dev -o -n
+ - php artisan key:generate
 
 script:
  - vendor/bin/phpunit
