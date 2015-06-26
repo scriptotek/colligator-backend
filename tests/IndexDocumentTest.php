@@ -24,7 +24,7 @@ class IndexDocumentTest extends TestCase
         $subj = new Subject(['term' => 'TestTerm', 'vocabulary' => 'noubomn']);
         $doc->subjects()->save($subj);
 
-        $job = new IndexDocument($doc->id);
+        $job = new IndexDocument($doc);
         $pl = $job->generateElasticSearchPayload();
         $this->assertContains('isbn1', $pl['isbn']);
     }
