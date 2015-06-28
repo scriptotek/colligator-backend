@@ -15,5 +15,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::resource('collections', 'CollectionsController');
+
 Route::resource('documents', 'DocumentsController',
                 ['only' => ['index', 'show']]);
