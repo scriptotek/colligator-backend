@@ -10,6 +10,7 @@ use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Collection;
 use Colligator\Document;
+use Colligator\SearchEngine;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 
 class OaiPmhHarvest extends Job implements SelfHandling
@@ -59,7 +60,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
     /**
      * Execute the job.
      */
-    public function handle()
+    public function handle(SearchEngine $searchEngine)
     {
         $dest_path = 'harvests/' . $this->name . '/';
         $latest = $dest_path . 'latest.xml';
@@ -86,15 +87,15 @@ class OaiPmhHarvest extends Job implements SelfHandling
             Storage::disk('local')->put($latest, $body);
         });
 
-        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection)
+        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection, $searchEngine)
         {
             $doc = Document::find($event->id);
             if (!$collection->documents->contains($doc->id)) {
                 $collection->documents()->attach($doc->id);
             }
 
-            $this->dispatch(new IndexDocument($doc));
-
+            // Add/update ElasticSearch
+            $searchEngine->indexDocument($doc);
         });
 
         $recordsHarvested = 0;
