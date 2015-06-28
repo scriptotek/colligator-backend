@@ -125,7 +125,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
             $currentIndex = $records->key();
 
             // Move to stable location
-            if (is_file($latest)) {
+            if (Storage::disk('local')->exists($latest)) {
                 Storage::disk('local')->move($latest, sprintf('%s/response_%08d.xml', $dest_path, $currentIndex));
             }
 
