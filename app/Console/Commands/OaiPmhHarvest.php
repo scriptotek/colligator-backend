@@ -39,10 +39,11 @@ class OaiPmhHarvest extends Command
      * @var string
      */
     protected $signature = 'colligator:harvest-oaipmh
-                            {name?     : Name of the harvest config defined in the config file}
-                            {--from=   : Start date on ISO format YYYY-MM-DD}
-                            {--until=  : End date on ISO format YYYY-MM-DD}
-                            {--resume= : Resumption token}';
+                            {name?       : Name of the harvest config defined in the config file}
+                            {--from=     : Start date on ISO format YYYY-MM-DD}
+                            {--until=    : End date on ISO format YYYY-MM-DD}
+                            {--resume=   : Resumption token}
+                            {--from-dump : Just re-index from dump}';
 
     /**
      * The console command description.
@@ -79,9 +80,10 @@ class OaiPmhHarvest extends Command
     protected function getOptions()
     {
         return array(
-            array('from', null, InputOption::VALUE_REQUIRED, 'From date (YYYY-MM-DD)'),
-            array('until', null, InputOption::VALUE_REQUIRED, 'Until date (YYYY-MM-DD)'),
-            array('resume', null, InputOption::VALUE_REQUIRED, 'Resumption token'),
+            array('from', null, InputOption::VALUE_OPTIONAL, 'From date (YYYY-MM-DD)'),
+            array('until', null, InputOption::VALUE_OPTIONAL, 'Until date (YYYY-MM-DD)'),
+            array('resume', null, InputOption::VALUE_OPTIONAL, 'Resumption token'),
+            array('from-dump', null, InputOption::VALUE_OPTIONAL, 'Re-index from local dump'),
         );
     }
 
@@ -123,22 +125,27 @@ class OaiPmhHarvest extends Command
         }
 
         $this->comment('');
-        $this->info('============================================================');
-        $this->info(sprintf('%s: Starting OAI harvest "%s"',
+        $this->info(sprintf('[%s] Starting harvest "%s"',
             strftime('%Y-%m-%d %H:%M:%S'),
             $harvestName
         ));
 
-        $this->comment(' - Repo: ' . $harvestConfig['url']);
-        $this->comment(' - Schema: ' . $harvestConfig['schema']);
-        $this->comment(' - Set: ' . $harvestConfig['set']);
+        if ($this->option('from-dump')) {
 
-        foreach (array('from', 'until', 'resume') as $key) {
-            if (!is_null($this->option($key))) {
-                $this->info(sprintf('- %s: %s', $key, $this->option($key)));
+            $this->comment(' - From local dump');
+
+        } else {
+
+            $this->comment(' - Repo: ' . $harvestConfig['url']);
+            $this->comment(' - Schema: ' . $harvestConfig['schema']);
+            $this->comment(' - Set: ' . $harvestConfig['set']);
+
+            foreach (array('from', 'until', 'resume') as $key) {
+                if (!is_null($this->option($key))) {
+                    $this->comment(sprintf(' - %s: %s', ucfirst($key), $this->option($key)));
+                }
             }
         }
-        $this->info('------------------------------------------------------------');
 
         // For timing
         $this->startTime = $this->batchTime = microtime(true) - 1;
@@ -146,6 +153,14 @@ class OaiPmhHarvest extends Command
         \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function($event)
         {
             $this->status($event->harvested, $event->position, $event->total);
+        });
+
+        \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function($event)
+        {
+            $this->info(sprintf('[%s] Harvest complete, got %d records',
+                strftime('%Y-%m-%d %H:%M:%S'),
+                $event->count
+            ));
         });
 
         \Event::listen('Colligator\Events\JobError', function($event)
@@ -159,7 +174,8 @@ class OaiPmhHarvest extends Command
                 $harvestConfig,
                 $this->option('from'),
                 $this->option('until'),
-                $this->option('resume')
+                $this->option('resume'),
+                $this->option('from-dump')
             )
         );
     }

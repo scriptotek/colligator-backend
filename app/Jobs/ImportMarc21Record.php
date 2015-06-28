@@ -23,7 +23,7 @@ class ImportMarc21Record extends Job implements SelfHandling
      *
      * @param $record
      */
-    public function __construct($record)
+    public function __construct(QuiteSimpleXMLElement $record)
     {
         $this->record = $record;
     }

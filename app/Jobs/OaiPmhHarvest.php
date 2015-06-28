@@ -2,6 +2,8 @@
 
 namespace Colligator\Jobs;
 
+use Colligator\Events\OaiPmhHarvestComplete;
+use Scriptotek\OaiPmh\ListRecordsResponse;
 use Storage;
 use Event;
 use Illuminate\Contracts\Bus\SelfHandling;
@@ -24,6 +26,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public $start;
     public $until;
     public $resume;
+    public $fromDump;
     public $maxRetries;
     public $sleepTimeOnError;
 
@@ -44,7 +47,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
      * @param  string  $until  End date (optional)
      * @param  string  $resume  Resumption token for continuing an aborted harvest (optional)
      */
-    public function __construct($name, $config, $start = null, $until = null, $resume = null)
+    public function __construct($name, $config, $start = null, $until = null, $resume = null, $fromDump = false)
     {
         $this->name = $name;
         $this->url = $config['url'];
@@ -53,8 +56,32 @@ class OaiPmhHarvest extends Job implements SelfHandling
         $this->start = $start;
         $this->until = $until;
         $this->resume = $resume;
+        $this->fromDump = $fromDump;
         $this->maxRetries = array_get($config, 'max-retries', 1000);
         $this->sleepTimeOnError = array_get($config, 'sleep-time-on-error', 60);
+    }
+
+    /**
+     * Import local XML dump rather than talking to the OAI-PMH server
+     */
+    public function fromDump()
+    {
+        $files = Storage::disk('local')->files('harvests/' . $this->name);
+        $recordsHarvested = 0;
+        foreach ($files as $filename)
+        {
+            if (!preg_match('/.xml$/', $filename)) continue;
+            $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
+            foreach ($response->records as $record) {
+                $this->dispatch(new ImportMarc21Record($record->data));
+                $recordsHarvested++;
+                if ($recordsHarvested % $this->statusUpdateEvery == 0) {
+                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
+                }
+
+            }
+        }
+        Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }
 
     /**
@@ -63,6 +90,31 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public function handle(SearchEngine $searchEngine)
     {
         $dest_path = 'harvests/' . $this->name . '/';
+
+        $collection = Collection::where('name', '=', $this->name)->first();
+        if (is_null($collection)) {
+            $this->error("Collection '$this->name' not found in DB");
+            return;
+        }
+
+        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection, $searchEngine)
+        {
+            $doc = Document::find($event->id);
+            if (!$collection->documents->contains($doc->id)) {
+                $collection->documents()->attach($doc->id);
+            }
+
+            // Add/update ElasticSearch
+            $searchEngine->indexDocument($doc);
+        });
+
+        if ($this->fromDump) {
+            $this->fromDump();
+            return;
+        }
+
+        Storage::disk('local')->deleteDir($dest_path);
+
         $latest = $dest_path . 'latest.xml';
 
         $client = new OaiPmhClient($this->url, array(
@@ -76,26 +128,9 @@ class OaiPmhHarvest extends Job implements SelfHandling
             $this->error($msg);
         });
 
-        $collection = Collection::where('name', '=', $this->name)->first();
-        if (is_null($collection)) {
-            $this->error("Collection '$this->name' not found in DB");
-            return;
-        }
-
         // Store each response to disk just in case
         $client->on('request.complete', function($verb, $args, $body) use ($latest) {
             Storage::disk('local')->put($latest, $body);
-        });
-
-        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection, $searchEngine)
-        {
-            $doc = Document::find($event->id);
-            if (!$collection->documents->contains($doc->id)) {
-                $collection->documents()->attach($doc->id);
-            }
-
-            // Add/update ElasticSearch
-            $searchEngine->indexDocument($doc);
         });
 
         $recordsHarvested = 0;
@@ -113,10 +148,15 @@ class OaiPmhHarvest extends Job implements SelfHandling
             $record = $records->current();
             $recordsHarvested++;
 
-            // In case of a crash, it can be useful to have the resumption_token
+            // In case of a crash, it can be useful to have the resumption_token,
+            // but delete it when the harvest is complete
             if ($this->resume != $records->getResumptionToken()) {
                 $this->resume = $records->getResumptionToken();
-                Storage::disk('local')->put($dest_path . '/resumption_token', $this->resume);
+                if (is_null($this->resume)) {
+                    Storage::disk('local')->delete($dest_path . '/resumption_token');
+                } else {
+                    Storage::disk('local')->put($dest_path . '/resumption_token', $this->resume);
+                }
             }
 
             // Note that Bibsys doesn't start counting on 0, as given in the spec,
@@ -154,7 +194,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 }
             }
         }
-        return true;
+        Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }
 
 
