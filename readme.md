@@ -7,12 +7,20 @@ This is the backend for the [Colligator frontend](https://github.com/scriptotek/
 Fetch deps:
 
 	composer install
+	npm install
 	cp .env.example .env
 	php artisan key:generate
 
 and modify `.env` as needed.
 
 	php artisan serve
+
+This project adheres to the PSR-2 style guide,
+so you might want to use to install
+[php-cs-fixer](https://github.com/FriendsOfPHP/PHP-CS-Fixer)
+to
+
+	php-cs-fixer fix $file --level=psr2
 
 ## CLI
 
