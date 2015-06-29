@@ -3,6 +3,7 @@
 namespace Colligator\Http\Controllers;
 
 use Colligator\Collection;
+use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\SearchEngine;
 use Colligator\Http\Requests;
@@ -76,7 +77,16 @@ class DocumentsController extends Controller
      */
     public function show($id)
     {
-        //
+        $document = Document::find($id);
+        if (is_null($document)) {
+            return response()->json([
+                'error' => 'Document not found.'
+            ]);
+        } else {
+            return response()->json([
+                'document' => $document
+            ]);
+        }
     }
 
     /**
