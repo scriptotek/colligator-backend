@@ -16,6 +16,7 @@ class Kernel extends ConsoleKernel
         Commands\OaiPmhHarvest::class,
         Commands\OaiPmhHarvestInfo::class,
         Commands\CreateCollection::class,
+        Commands\Reindex::class,
     ];
 
     /**

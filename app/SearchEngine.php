@@ -91,11 +91,28 @@ class SearchEngine
      */
     public function indexDocument(Document $doc)
     {
+        \Log::info('Search engine: Indexing document ' . $doc->id);
         $this->client->index([
             'index' => 'documents',
             'type' => 'document',
             'id' => $doc->id,
             'body' => $this->indexDocumentPayload($doc),
+        ]);
+    }
+
+    public function createDocumentsIndex()
+    {
+        $this->client->indices()->create([
+            'index' => 'documents'
+        ]);
+
+        // TODO : Add some mappings
+    }
+
+    public function dropDocumentsIndex()
+    {
+        $this->client->indices()->delete([
+            'index' => 'documents'
         ]);
     }
 

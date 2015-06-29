@@ -1,6 +1,6 @@
 <?php
 
-use Shift31\LaravelElasticsearch\Facades\Es;
+use Colligator\SearchEngine;
 
 class CreateElasticsearchDocumentsIndex
 {
@@ -13,9 +13,8 @@ class CreateElasticsearchDocumentsIndex
     {
         // Not sure if we should test ElasticSearch or just mock it
         if (env('APP_ENV') == 'testing') return;
-        Es::indices()->create([
-            'index' => 'documents'
-        ]);
+        $se = app('Colligator\SearchEngine');
+        $se->createDocumentsIndex();
     }
 
     /**
@@ -26,8 +25,7 @@ class CreateElasticsearchDocumentsIndex
     public function down()
     {
         if (env('APP_ENV') == 'testing') return;
-        Es::indices()->delete([
-            'index' => 'documents'
-        ]);
+        $se = app('Colligator\SearchEngine');
+        $se->dropDocumentsIndex();
     }
 }
