@@ -50,6 +50,12 @@ class SearchEngine
         $body['id'] = $doc->id;
         $body['bibsys_id'] = $doc->bibsys_id;
 
+        // Remove some stuff we don't need
+        foreach (['agency', 'catalogingRules', 'debug', 'modified', 'is_series', 'is_multivolume', 'extent'] as $key)
+        {
+            unset($body[$key]);
+        }
+
         // Add local collections
         $body['collections'] = [];
         foreach ($doc->collections as $collection) {
@@ -73,7 +79,9 @@ class SearchEngine
         }
 
         // Add holdings
-        $body['holdings'] = $doc->holdings;
+        $body['holdings'] = array_filter($doc->holdings, function($holding) {
+            return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
+        });
 
         // Plural to singular, oh my!
         // $body['isbn'] = array_get($body, 'isbns', []);
