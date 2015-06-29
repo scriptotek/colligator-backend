@@ -11,13 +11,13 @@
 |
 */
 
-Route::get('/', function () {
+Route::get('api/', function () {
     return view('welcome');
 });
 
-Route::resource('collections', 'CollectionsController');
+Route::resource('api/collections', 'CollectionsController');
 
-Route::resource('documents', 'DocumentsController',
+Route::resource('api/documents', 'DocumentsController',
                 ['only' => ['index', 'show']]);
 
-Route::resource('documents.covers', 'CoversController');
+Route::resource('api/documents.covers', 'CoversController');
