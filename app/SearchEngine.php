@@ -104,11 +104,24 @@ class SearchEngine
 
     public function createDocumentsIndex()
     {
-        $this->client->indices()->create([
-            'index' => 'documents'
-        ]);
-
-        // TODO : Add some mappings
+        $indexParams = ['index' => 'documents'];
+        $indexParams['body']['mappings']['document'] = [
+            '_source' => [
+                'enabled' => true
+            ],
+            'properties' => [
+                'id' => ['type' => 'integer'],
+                'created' => ['type' => 'date'],
+                'modified' => ['type' => 'date'],
+                'holdings' => [
+                    'properties' => [
+                        'created' => ['type' => 'date'],
+                        'acquired' => ['type' => 'date'],
+                    ]
+                ]
+            ]
+        ];
+        $this->client->indices()->create($indexParams);
     }
 
     public function dropDocumentsIndex()

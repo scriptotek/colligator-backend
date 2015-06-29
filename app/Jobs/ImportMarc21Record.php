@@ -23,9 +23,10 @@ class ImportMarc21Record extends Job implements SelfHandling
      *
      * @param $record
      */
-    public function __construct(QuiteSimpleXMLElement $record)
+    public function __construct(QuiteSimpleXMLElement $record, MarcParser $parser = null)
     {
         $this->record = $record;
+        $this->parser = $parser ?: new MarcParser;
     }
 
      /**
@@ -36,11 +37,10 @@ class ImportMarc21Record extends Job implements SelfHandling
      */
     public function parseRecord(QuiteSimpleXMLElement $data)
     {
-        $parser = new MarcParser;
         $biblio = null;
         $holdings = array();
         foreach ($data->xpath('.//marc:record') as $rec) {
-            $parsed = $parser->parse($rec);
+            $parsed = $this->parser->parse($rec);
             if ($parsed instanceof BibliographicRecord) {
                 $biblio = $parsed->toArray();
             } elseif ($parsed instanceof HoldingsRecord) {
@@ -65,15 +65,23 @@ class ImportMarc21Record extends Job implements SelfHandling
             return;
         }
 
-        // Find existing Document or create a new one
-        $doc = Document::where('bibsys_id', '=', $biblio['id'])->first();
-        if (is_null($doc)) {
-            // \Log::info(sprintf('[%s] CREATE document', $biblio->id));
-            $doc = new Document;
+        // Convert Carbon date objects to ISO8601 strings
+        $biblio['created'] = $biblio['created']->toIso8601String();
+        $biblio['modified'] = $biblio['modified']->toIso8601String();
+        foreach ($holdings as &$holding)
+        {
+            $holding['created'] = $holding['created']->toIso8601String();
+            if (isset($holding['acquired']))
+            {
+                $holding['acquired'] = $holding['acquired']->toIso8601String();
+            }
         }
 
+        // Find existing Document or create a new one
+        $doc = Document::firstOrNew(['bibsys_id' => $biblio['id']]);
+
+        // Update Document
         $doc->bibliographic = $biblio;
-        $doc->bibsys_id = $biblio['id'];
         $doc->holdings = $holdings;
 
         if (!$doc->save()) {  // No action done if record not dirty
