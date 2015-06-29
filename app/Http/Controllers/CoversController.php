@@ -20,6 +20,12 @@ class CoversController extends Controller
     {
         $doc = Document::findOrFail($document_id);
         $cover = $doc->covers()->firstOrCreate(['url' => $request->url]);
+        if (!$cover->isCached() && !$cover->cache()) {
+            return response()->json([
+                'result' => 'error',
+                'error' => 'Failed to cache cover. Is it a valid image file?',
+            ]);
+        }
 
         return response()->json([
             'result' => 'ok',

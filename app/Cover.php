@@ -3,6 +3,7 @@
 namespace Colligator;
 
 use Illuminate\Database\Eloquent\Model;
+use Colligator\Facades\CoverCache;
 
 class Cover extends Model
 {
@@ -41,17 +42,12 @@ class Cover extends Model
      */
     public function getCachedAttribute()
     {
-        return \URL::to('/covers/' . sha1($this->id) . '.jpg');
-    }
-
-    public function getCachedPath()
-    {
-        return public_path('covers/' . sha1($this->id) . '.jpg');
+        return CoverCache::url($this->id);
     }
 
     public function isCached()
     {
-        return file_exists($this->getCachedPath());
+        return $this->width && CoverCache::has($this->id);
     }
 
     public function cache()
@@ -60,22 +56,21 @@ class Cover extends Model
             die('no URL');
         }
 
-        $cachedPath = $this->getCachedPath();
-
-        file_put_contents($cachedPath, fopen($this->url, 'r'));
-
-        $dim = getimagesize($cachedPath);
+        CoverCache::store($this->id, $this->url);
+        $dim = CoverCache::getDimensions($this->id);
+        if (is_null($dim[0])) {
+            return false;
+        }
         $this->width = $dim[0];
         $this->height = $dim[1];
         $this->mime = $dim['mime'];
         $this->save();
 
-        \Log::info('Cached cover from ' . $this->url . ' as ' . $cachedPath);
-
         // $fs = \Storage::disk('local');
         // $fs->put($localName, );
         // $size = $fs->getSize($localName);
         // dd($size);
+        return true;
     }
 
 }
