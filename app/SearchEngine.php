@@ -79,9 +79,9 @@ class SearchEngine
         }
 
         // Add holdings
-        $body['holdings'] = array_filter($doc->holdings, function($holding) {
+        $body['holdings'] = array_values(array_filter($doc->holdings, function($holding) {
             return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
-        });
+        }));
 
         // Plural to singular, oh my!
         // $body['isbn'] = array_get($body, 'isbns', []);
