@@ -141,6 +141,7 @@ return [
          * Package Providers...
          */
         Shift31\LaravelElasticsearch\ElasticsearchServiceProvider::class,
+        Barryvdh\Cors\ServiceProvider::class,
 
         /*
          * Application Service Providers...

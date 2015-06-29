@@ -11,7 +11,8 @@
         "scriptotek/simplemarcparser": "dev-master",
         "danmichaelo/quitesimplexmlelement": "~0.2",
         "elasticsearch/elasticsearch": "~1.0",
-        "shift31/laravel-elasticsearch": "~1.0"
+        "shift31/laravel-elasticsearch": "~1.0",
+        "barryvdh/laravel-cors": "0.7.*@dev"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
