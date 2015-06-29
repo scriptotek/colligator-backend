@@ -50,14 +50,6 @@ class SearchEngine
         $body['id'] = $doc->id;
         $body['bibsys_id'] = $doc->bibsys_id;
 
-        // Add top-level field for Realfagstermer
-        $body['real'] = [];
-        foreach ($doc->subjects as $subject) {
-            if (array_get($subject, 'vocabulary') == 'noubomn') {
-                $body['real'][] = $subject['term'];
-            }
-        }
-
         // Add local collections
         $body['collections'] = [];
         foreach ($doc->collections as $collection) {
@@ -68,6 +60,16 @@ class SearchEngine
         $body['covers'] = [];
         foreach ($doc->covers as $cover) {
             $body['covers'][] = $cover->toArray();
+        }
+
+        // Add subjects
+        $body['subjects'] = [];
+        foreach ($doc->bibliographic['subjects'] as $subject) {
+            $body['subjects'][$subject['vocabulary'] ?: 'keywords'][] = [
+                'id' => array_get($subject, 'id'),
+                'prefLabel' => array_get($subject, 'term'),
+                'type' => array_get($subject, 'type'),
+            ];
         }
 
         // Add holdings

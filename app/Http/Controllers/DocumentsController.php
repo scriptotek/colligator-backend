@@ -24,7 +24,7 @@ class DocumentsController extends Controller
             $col = Collection::find($request->collection);
             $query[] = 'collections:' . $col->name;
         }
-        if ($request->has('real')) $query[] = 'real:' . $request->real;
+        if ($request->has('real')) $query[] = 'subjects.noubomn.prefLabel:' . $request->real;
         $query = count($query) ? implode(' AND ', $query) : null;
 
         // Query ElasticSearch
