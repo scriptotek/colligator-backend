@@ -48,9 +48,8 @@ class Reindex extends Command
             $se->dropDocumentsIndex();
             $se->createDocumentsIndex();
 
-            // TODO: Optimize
             $this->output->progressStart(Document::count());
-            foreach (Document::all() as $doc) {
+            foreach (Document::with('subjects','covers')->get() as $doc) {
                 $se->indexDocument($doc);
                 $this->output->progressAdvance();
             }

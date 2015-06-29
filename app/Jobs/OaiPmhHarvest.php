@@ -99,7 +99,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
         Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection, $searchEngine)
         {
-            $doc = Document::find($event->id);
+            $doc = Document::with('subjects', 'covers')->find($event->id);
             if (!$collection->documents->contains($doc->id)) {
                 $collection->documents()->attach($doc->id);
             }
