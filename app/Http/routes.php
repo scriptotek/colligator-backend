@@ -11,13 +11,17 @@
 |
 */
 
-Route::get('api/', function () {
-    return view('welcome');
+Route::group(['middleware' => 'cors'], function(){
+
+    Route::get('api/', function () {
+        return view('welcome');
+    });
+
+    Route::resource('api/collections', 'CollectionsController');
+
+    Route::resource('api/documents', 'DocumentsController',
+                    ['only' => ['index', 'show']]);
+
+    Route::resource('api/documents.covers', 'CoversController');
+
 });
-
-Route::resource('api/collections', 'CollectionsController');
-
-Route::resource('api/documents', 'DocumentsController',
-                ['only' => ['index', 'show']]);
-
-Route::resource('api/documents.covers', 'CoversController');
