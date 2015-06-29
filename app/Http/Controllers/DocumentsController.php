@@ -22,7 +22,7 @@ class DocumentsController extends Controller
         if ($request->has('q')) $query[] = $request->q;
         if ($request->has('collection')) {
             $col = Collection::find($request->collection);
-            $query[] = 'collection:' . $col->name;
+            $query[] = 'collections:' . $col->name;
         }
         if ($request->has('real')) $query[] = 'real:' . $request->real;
         $query = count($query) ? implode(' AND ', $query) : null;

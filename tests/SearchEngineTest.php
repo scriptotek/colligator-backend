@@ -25,13 +25,13 @@ class SearchEngineTest extends TestCase
 
         $pl = $se->indexDocumentPayload($doc);
 
-        $this->assertEquals($doc->id, $pl['id']);
+        $this->assertSame($doc->id, $pl['id']);
 
-        $this->assertEquals($doc->bibsys_id, $pl['bibsys_id']);
-        $this->assertEquals($doc->bibliographic['title'], $pl['title']);
+        $this->assertSame($doc->bibsys_id, $pl['bibsys_id']);
+        $this->assertSame($doc->bibliographic['title'], $pl['title']);
 
         $this->assertCount(5, $pl['real']);
-        $this->assertCount(count($doc->bibliographic['isbns']), $pl['isbn']);
+        $this->assertCount(count($doc->bibliographic['isbns']), $pl['isbns']);
 
         // Original array should not be modified
         $this->assertArrayNotHasKey('real', $doc->bibliographic);

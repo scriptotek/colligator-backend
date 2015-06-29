@@ -49,7 +49,6 @@ class SearchEngine
 
         $body['id'] = $doc->id;
         $body['bibsys_id'] = $doc->bibsys_id;
-        $body['holdings'] = $doc->holdings;
 
         // Add top-level field for Realfagstermer
         $body['real'] = [];
@@ -60,16 +59,20 @@ class SearchEngine
         }
 
         // Add local collections
-        $body['collection'] = [];
+        $body['collections'] = [];
         foreach ($doc->collections as $collection) {
-            $body['collection'][] = $collection['name'];
+            $body['collections'][] = $collection['name'];
+        }
         }
 
+        // Add holdings
+        $body['holdings'] = $doc->holdings;
+
         // Plural to singular, oh my!
-        $body['isbn'] = array_get($body, 'isbns', []);
-        unset($body['isbns']);
-        $body['creator'] = array_get($body, 'creators', []);
-        unset($body['creators']);
+        // $body['isbn'] = array_get($body, 'isbns', []);
+        // unset($body['isbns']);
+        // $body['creator'] = array_get($body, 'creators', []);
+        // unset($body['creators']);
 
         // TODO: Add covers, description, etc.
 
