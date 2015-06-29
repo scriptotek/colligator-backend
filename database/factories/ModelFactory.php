@@ -39,3 +39,9 @@ $factory->define(Colligator\Subject::class, function (\Faker\Generator $faker) {
         'term' => $faker->sentence(3),
     ];
 });
+
+$factory->define(Colligator\Cover::class, function (\Faker\Generator $faker) {
+    return [
+        'url' => $faker->url(),
+    ];
+});

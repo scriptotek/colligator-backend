@@ -31,6 +31,14 @@ class Document extends Model
     }
 
     /**
+     * The covers belonging to the document
+     */
+    public function covers()
+    {
+        return $this->hasMany('Colligator\Cover');
+    }
+
+    /**
      * The collections the document belongs to
      */
     public function collections()
