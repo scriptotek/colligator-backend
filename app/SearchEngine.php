@@ -63,6 +63,11 @@ class SearchEngine
         foreach ($doc->collections as $collection) {
             $body['collections'][] = $collection['name'];
         }
+
+        // Add covers
+        $body['covers'] = [];
+        foreach ($doc->covers as $cover) {
+            $body['covers'][] = $cover->toArray();
         }
 
         // Add holdings
