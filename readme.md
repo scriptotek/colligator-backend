@@ -1,4 +1,4 @@
-# Colligator backend
+# 🐊 Colligator backend 🐊
 
 This is the backend for the [Colligator frontend](https://github.com/scriptotek/colligator-frontend)
 
