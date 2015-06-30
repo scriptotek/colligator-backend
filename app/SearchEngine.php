@@ -76,13 +76,10 @@ class SearchEngine
             return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
         }));
 
-        // Plural to singular, oh my!
-        // $body['isbn'] = array_get($body, 'isbns', []);
-        // unset($body['isbns']);
-        // $body['creator'] = array_get($body, 'creators', []);
-        // unset($body['creators']);
+        // Add xisbns
+        $body['xisbns'] = (new XisbnResponse($doc->xisbn))->getSimpleRepr();
 
-        // TODO: Add covers, description, etc.
+        // TODO: Add description, etc.
 
         return $body;
     }

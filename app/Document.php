@@ -27,6 +27,7 @@ class Document extends Model
     protected $casts = [
         'bibliographic' => 'array',
         'holdings' => 'array',
+        'xisbn' => 'array',
     ];
 
     /**
