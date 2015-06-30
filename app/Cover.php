@@ -3,7 +3,6 @@
 namespace Colligator;
 
 use Illuminate\Database\Eloquent\Model;
-use Colligator\Facades\CoverCache;
 
 class Cover extends Model
 {
@@ -42,12 +41,12 @@ class Cover extends Model
      */
     public function getCachedAttribute()
     {
-        return CoverCache::url($this->id);
+        return \CoverCache::url($this->id);
     }
 
     public function isCached()
     {
-        return $this->width && CoverCache::has($this->id);
+        return $this->width && \CoverCache::has($this->id);
     }
 
     public function cache()
@@ -56,8 +55,14 @@ class Cover extends Model
             die('no URL');
         }
 
-        CoverCache::store($this->id, $this->url);
-        $dim = CoverCache::getDimensions($this->id);
+        try {
+            \CoverCache::store($this->id, $this->url);
+        } catch (\ErrorException $e) {
+            // 'ErrorException' with message 'fopen(http://innhold.bibsys.no/bilde/forside/?size=stor&id=STOR_150058460.jpg): failed to open stream: HTTP request failed! HTTP/1.1 404 Not Found
+            \Log::error('Failed to fetch cover ' . $this->url . '. Got error: ' . $e->getMessage());
+            return false;
+        }
+        $dim = \CoverCache::getDimensions($this->id);
         if (is_null($dim[0])) {
             return false;
         }
