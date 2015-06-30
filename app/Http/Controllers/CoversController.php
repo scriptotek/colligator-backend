@@ -7,6 +7,7 @@ use Colligator\Http\Requests;
 use Colligator\Http\Controllers\Controller;
 use Colligator\Cover;
 use Colligator\Document;
+use Colligator\SearchEngine;
 
 class CoversController extends Controller
 {
@@ -16,7 +17,7 @@ class CoversController extends Controller
      *
      * @return Response
      */
-    public function store($document_id, Request $request)
+    public function store($document_id, Request $request, SearchEngine $se)
     {
         $doc = Document::findOrFail($document_id);
         $cover = $doc->covers()->firstOrCreate(['url' => $request->url]);
@@ -26,6 +27,7 @@ class CoversController extends Controller
                 'error' => 'Failed to cache cover. Is it a valid image file?',
             ]);
         }
+        $se->indexDocument($doc);
 
         return response()->json([
             'result' => 'ok',
