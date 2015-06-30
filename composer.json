@@ -12,7 +12,8 @@
         "danmichaelo/quitesimplexmlelement": "~0.2",
         "elasticsearch/elasticsearch": "~1.0",
         "shift31/laravel-elasticsearch": "~1.0",
-        "barryvdh/laravel-cors": "0.7.*@dev"
+        "barryvdh/laravel-cors": "0.7.*@dev",
+        "barryvdh/laravel-ide-helper": "~2.0@dev"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

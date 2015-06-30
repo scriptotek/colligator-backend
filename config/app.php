@@ -150,6 +150,7 @@ return [
         Colligator\Providers\EventServiceProvider::class,
         Colligator\Providers\RouteServiceProvider::class,
         Colligator\Providers\CoverCacheServiceProvider::class,
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
 
     ],
 

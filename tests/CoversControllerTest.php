@@ -5,23 +5,19 @@ use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Colligator\Document;
 use Colligator\Cover;
-use Colligator\Facades\CoverCache;
 
 class CoversControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public function setUp()
-    {
-        parent::setUp();
-        CoverCache::shouldReceive('has')->andReturn(false);
-        CoverCache::shouldReceive('url')->andReturn('some-url');
-        CoverCache::shouldReceive('store')->andReturn('some-path');
-        CoverCache::shouldReceive('getDimensions')->andReturn([0 => 200, 1 => 200, 'mime' => 'image/jpeg']);
-    }
-
     public function testPost()
     {
+        \Es::shouldReceive('index')->times(1);
+        \CoverCache::shouldReceive('store')->once()->andReturn('some-path');
+        \CoverCache::shouldReceive('has')->andReturn(false);
+        \CoverCache::shouldReceive('url')->andReturn('some-url');
+        \CoverCache::shouldReceive('getDimensions')->andReturn([0 => 200, 1 => 200, 'mime' => 'image/jpeg']);
+
         // Generate dummy data
         $doc = factory(Document::class)->create();
 
@@ -33,6 +29,8 @@ class CoversControllerTest extends TestCase
 
     public function testIndex()
     {
+        \Es::shouldReceive('index')->times(0);
+
         // Generate dummy data
         $doc = factory(Document::class)->create();
         factory(Cover::class, 2)

@@ -2,15 +2,8 @@
 
 namespace Colligator;
 
-use Elasticsearch\Client as EsClient;
-
 class SearchEngine
 {
-
-    public function __construct(EsClient $client)
-    {
-        $this->client = $client;
-    }
 
     /**
      * Search for documents in ElasticSearch
@@ -34,7 +27,7 @@ class SearchEngine
             $payload['body']['query']['query_string']['query'] = $query;
         }
 
-        return $this->client->search($payload);
+        return \Es::search($payload);
     }
 
     /**
@@ -70,7 +63,7 @@ class SearchEngine
 
         // Add subjects
         $body['subjects'] = [];
-        foreach ($doc->bibliographic['subjects'] as $subject) {
+        foreach ($doc->subjects as $subject) {
             $body['subjects'][$subject['vocabulary'] ?: 'keywords'][] = [
                 'id' => array_get($subject, 'id'),
                 'prefLabel' => array_get($subject, 'term'),
@@ -101,8 +94,8 @@ class SearchEngine
      */
     public function indexDocument(Document $doc)
     {
-        \Log::info('Search engine: Indexing document ' . $doc->id);
-        $this->client->index([
+        // \Log::debug('Search engine: Indexing document ' . $doc->id);
+        \Es::index([
             'index' => 'documents',
             'type' => 'document',
             'id' => $doc->id,
@@ -129,12 +122,12 @@ class SearchEngine
                 ]
             ]
         ];
-        $this->client->indices()->create($indexParams);
+        \Es::indices()->create($indexParams);
     }
 
     public function dropDocumentsIndex()
     {
-        $this->client->indices()->delete([
+        \Es::indices()->delete([
             'index' => 'documents'
         ]);
     }

@@ -23,6 +23,8 @@ class SearchEngineTest extends TestCase
                 $doc->subjects()->save($subject);
             });
 
+        $doc = Document::with('subjects')->first();
+
         $pl = $se->indexDocumentPayload($doc);
 
         $this->assertSame($doc->id, $pl['id']);
@@ -30,7 +32,7 @@ class SearchEngineTest extends TestCase
         $this->assertSame($doc->bibsys_id, $pl['bibsys_id']);
         $this->assertSame($doc->bibliographic['title'], $pl['title']);
 
-        $this->assertCount(5, $pl['real']);
+        $this->assertArrayHasKey('noubomn', $pl['subjects']);
         $this->assertCount(count($doc->bibliographic['isbns']), $pl['isbns']);
 
         // Original array should not be modified

@@ -23,7 +23,7 @@ class ImportMarc21Record extends Job implements SelfHandling
      *
      * @param $record
      */
-    public function __construct(QuiteSimpleXMLElement $record, MarcParser $parser = null)
+    public function __construct(QuiteSimpleXMLElement $record = null, MarcParser $parser = null)
     {
         $this->record = $record;
         $this->parser = $parser ?: new MarcParser;
@@ -51,23 +51,15 @@ class ImportMarc21Record extends Job implements SelfHandling
         return array($biblio, $holdings);
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
-    public function handle()
+    public function import(array $biblio, array $holdings = [])
     {
-        try {
-            list($biblio, $holdings) = $this->parseRecord($this->record);
-        } catch (ParserException $e) {
-            $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
-            return;
-        }
-
         // Convert Carbon date objects to ISO8601 strings
-        $biblio['created'] = $biblio['created']->toIso8601String();
-        $biblio['modified'] = $biblio['modified']->toIso8601String();
+        if (isset($biblio['created'])) {
+            $biblio['created'] = $biblio['created']->toIso8601String();
+        }
+        if (isset($biblio['modified'])) {
+            $biblio['modified'] = $biblio['modified']->toIso8601String();
+        }
         foreach ($holdings as &$holding)
         {
             $holding['created'] = $holding['created']->toIso8601String();
@@ -89,6 +81,7 @@ class ImportMarc21Record extends Job implements SelfHandling
             return;
         }
 
+        // Sync subjects
         $subject_ids = [];
         foreach ($biblio['subjects'] as $value) {
             $subject = Subject::lookup($value['vocabulary'], $value['term']);
@@ -103,6 +96,24 @@ class ImportMarc21Record extends Job implements SelfHandling
         if (isset($biblio['cover_image'])) {
             $doc->covers()->firstOrCreate(['url' => $biblio['cover_image']]);
         }
+    }
+
+    /**
+     * Execute the job.
+     *
+     * @return void
+     */
+    public function handle()
+    {
+        try {
+            list($biblio, $holdings) = $this->parseRecord($this->record);
+        } catch (ParserException $e) {
+            $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
+            return;
+        }
+
+        $this->import($biblio, $holdings);
+
         Event::fire(new Marc21RecordImported($doc->id));
     }
 
