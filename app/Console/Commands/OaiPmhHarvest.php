@@ -15,14 +15,14 @@ class OaiPmhHarvest extends Command
     /**
      * Start time for the full harvest.
      *
-     * @var int
+     * @var double
      */
     protected $startTime;
 
     /**
      * Start time for the current batch.
      *
-     * @var int
+     * @var double
      */
     protected $batchTime;
 
@@ -183,9 +183,9 @@ class OaiPmhHarvest extends Command
     /**
      * Output a status message.
      *
-     * @param $fetched
-     * @param $current
-     * @param $total
+     * @param int $fetched
+     * @param int $current
+     * @param int $total
      */
     public function status($fetched, $current, $total)
     {

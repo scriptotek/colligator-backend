@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -22,11 +21,10 @@ class Subject extends Model
         return $this->belongsToMany('Colligator\Document');
     }
 
-    static function lookup($vocabulary, $term)
+    public static function lookup($vocabulary, $term)
     {
         return Subject::where('vocabulary', '=', $vocabulary)
             ->where('term', '=', $term)
             ->first();
     }
-
 }

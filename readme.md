@@ -22,6 +22,14 @@ to
 
 	php-cs-fixer fix $file --level=psr2
 
+If you want support files for PhpStorm,
+run [laravel-ide-helper](https://github.com/barryvdh/laravel-ide-helper):
+
+	php artisan clear-compiled
+	php artisan ide-helper:generate
+	php artisan ide-helper:models -N
+	php artisan optimize
+
 ## CLI
 
 Create a collection and harvest bibliographic records, etc. (draft)
@@ -29,9 +37,16 @@ Create a collection and harvest bibliographic records, etc. (draft)
 	php artisan colligator:create-collection samling42 "Samling 42"
 	php artisan colligator:harvest-oaipmh samling42
 
-	php artisan import:ontosaur
-	php artisan cache:covers ?
+	php artisan import:ontosaur [TODO]
 
+Gather extra isbns from xisbn:
+
+	php artisan colligator:harvest-xisbn
+
+
+Drop and re-create the ElasticSearch index:
+
+	php artisan colligator:reindex
 
 Daily updates:
 

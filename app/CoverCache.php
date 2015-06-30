@@ -2,10 +2,8 @@
 
 namespace Colligator;
 
-
 class CoverCache
 {
-
     protected function path($key)
     {
         return public_path('covers/' . sha1($key) . '.jpg');
@@ -33,5 +31,4 @@ class CoverCache
     {
         return getimagesize($this->path($key));
     }
-
 }

@@ -4,13 +4,8 @@ namespace Colligator;
 
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @property string name
- * @property string label
- */
 class Collection extends Model
 {
-
     /**
      * The attributes that are mass assignable.
      *
@@ -25,5 +20,4 @@ class Collection extends Model
     {
         return $this->belongsToMany('Colligator\Document');
     }
-
 }

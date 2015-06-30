@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cover extends Model
 {
-
     /**
      * The attributes that should be visible in arrays.
      *
@@ -52,7 +51,7 @@ class Cover extends Model
     public function cache()
     {
         if (!isset($this->url)) {
-            die('no URL');
+            return false;
         }
 
         try {
@@ -71,11 +70,6 @@ class Cover extends Model
         $this->mime = $dim['mime'];
         $this->save();
 
-        // $fs = \Storage::disk('local');
-        // $fs->put($localName, );
-        // $size = $fs->getSize($localName);
-        // dd($size);
         return true;
     }
-
 }

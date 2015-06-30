@@ -2,18 +2,21 @@
 
 namespace Colligator\Events;
 
-use Colligator\Events\Event;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class JobError extends Event
 {
     use SerializesModels;
 
     /**
+     * @var string
+     */
+    public $msg;
+
+    /**
      * Create a new event instance.
      *
-     * @return void
+     * @param $msg
      */
     public function __construct($msg)
     {

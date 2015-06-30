@@ -5,7 +5,6 @@ namespace Colligator\Console\Commands;
 use Colligator\Document;
 use Colligator\SearchEngine;
 use Illuminate\Console\Command;
-use Elasticsearch\Client as EsClient;
 
 class Reindex extends Command
 {
@@ -25,8 +24,6 @@ class Reindex extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {

@@ -2,10 +2,8 @@
 
 namespace Colligator;
 
-
 class XisbnResponse
 {
-
     protected $data;
 
     public $formats = array(
@@ -56,14 +54,19 @@ class XisbnResponse
     public function getSimpleRepr()
     {
         $items = [];
-        foreach ($this->data as $sourceIsbn => $response)
-        {
-            if ($response['stat'] != 'ok') continue;
+        foreach ($this->data as $sourceIsbn => $response) {
+            if ($response['stat'] != 'ok') {
+                continue;
+            }
             foreach ($response['list'] as $item) {
                 foreach ($item['isbn'] as $isbn) {
                     $desc = [];
-                    if (isset($item['ed'])) $desc[] = str_replace(['[', ']'], ['',''], $item['ed']);
-                    if (isset($item['form'])) $desc[] = $this->getForm($item);
+                    if (isset($item['ed'])) {
+                        $desc[] = str_replace(['[', ']'], ['', ''], $item['ed']);
+                    }
+                    if (isset($item['form'])) {
+                        $desc[] = $this->getForm($item);
+                    }
                     $desc = implode(', ', $desc);
                     $items[$isbn] = $desc;
                 }
@@ -71,5 +74,4 @@ class XisbnResponse
         }
         return $items;
     }
-
 }

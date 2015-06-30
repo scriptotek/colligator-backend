@@ -4,7 +4,6 @@ namespace Colligator;
 
 class SearchEngine
 {
-
     /**
      * Search for documents in ElasticSearch
      *
@@ -44,8 +43,7 @@ class SearchEngine
         $body['bibsys_id'] = $doc->bibsys_id;
 
         // Remove some stuff we don't need
-        foreach (['agency', 'catalogingRules', 'debug', 'modified', 'is_series', 'is_multivolume', 'extent', 'cover_image'] as $key)
-        {
+        foreach (['agency', 'catalogingRules', 'debug', 'modified', 'is_series', 'is_multivolume', 'extent', 'cover_image'] as $key) {
             unset($body[$key]);
         }
 
@@ -72,7 +70,7 @@ class SearchEngine
         }
 
         // Add holdings
-        $body['holdings'] = array_values(array_filter($doc->holdings, function($holding) {
+        $body['holdings'] = array_values(array_filter($doc->holdings, function ($holding) {
             return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
         }));
 
@@ -128,5 +126,4 @@ class SearchEngine
             'index' => 'documents'
         ]);
     }
-
 }

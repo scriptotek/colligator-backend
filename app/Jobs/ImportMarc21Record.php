@@ -17,6 +17,7 @@ class ImportMarc21Record extends Job implements SelfHandling
 {
 
     public $record;
+    public $parser;
 
     /**
      * Create a new job instance.
@@ -51,6 +52,11 @@ class ImportMarc21Record extends Job implements SelfHandling
         return array($biblio, $holdings);
     }
 
+    /**
+     * @param array $biblio
+     * @param array $holdings
+     * @return null|Document
+     */
     public function import(array $biblio, array $holdings = [])
     {
         // Convert Carbon date objects to ISO8601 strings
@@ -76,9 +82,9 @@ class ImportMarc21Record extends Job implements SelfHandling
         $doc->bibliographic = $biblio;
         $doc->holdings = $holdings;
 
-        if (!$doc->save()) {  // No action done if record not dirty
+        if (!$doc->save()) {
             $this->error("Document $biblio->id could not be saved!");
-            return;
+            return null;
         }
 
         // Sync subjects
@@ -96,6 +102,8 @@ class ImportMarc21Record extends Job implements SelfHandling
         if (isset($biblio['cover_image'])) {
             $doc->covers()->firstOrCreate(['url' => $biblio['cover_image']]);
         }
+
+        return $doc;
     }
 
     /**
@@ -112,9 +120,11 @@ class ImportMarc21Record extends Job implements SelfHandling
             return;
         }
 
-        $this->import($biblio, $holdings);
+        $doc = $this->import($biblio, $holdings);
 
-        Event::fire(new Marc21RecordImported($doc->id));
+        if (!is_null($doc)) {
+            Event::fire(new Marc21RecordImported($doc->id));
+        }
     }
 
 }

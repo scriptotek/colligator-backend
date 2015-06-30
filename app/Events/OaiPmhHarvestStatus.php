@@ -2,18 +2,33 @@
 
 namespace Colligator\Events;
 
-use Colligator\Events\Event;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class OaiPmhHarvestStatus extends Event
 {
     use SerializesModels;
 
     /**
+     * @var int
+     */
+    public $harvested;
+
+    /**
+     * @var int
+     */
+    public $position;
+
+    /**
+     * @var int
+     */
+    public $total;
+
+    /**
      * Create a new event instance.
      *
-     * @return void
+     * @param int $harvested
+     * @param int $position
+     * @param int $total
      */
     public function __construct($harvested, $position, $total)
     {

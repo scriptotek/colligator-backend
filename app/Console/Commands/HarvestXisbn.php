@@ -20,7 +20,7 @@ class HarvestXisbn extends Command
      *
      * @var string
      */
-    protected $description = 'Command description.';
+    protected $description = 'Adds additional isbn numbers from the xisbn service.';
 
     /**
      * Create a new command instance.
@@ -44,18 +44,19 @@ class HarvestXisbn extends Command
 
         $this->output->progressStart(count($docs));
         foreach ($docs as $doc) {
-            $this->output->progressAdvance();
             $response = $client->checkIsbns($doc->bibliographic['isbns']);
             if ($response->overLimit()) {
+                $this->output->progressFinish();
                 $this->error('Reached daily limit. Aborting.');
                 break;
             }
             $doc->xisbn = $response->toArray();
             $doc->save();
 
+            $this->output->progressAdvance();
             sleep(5);
         }
         $this->output->progressFinish();
-
     }
+
 }
