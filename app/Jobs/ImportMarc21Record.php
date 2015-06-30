@@ -99,6 +99,10 @@ class ImportMarc21Record extends Job implements SelfHandling
         }
         $doc->subjects()->sync($subject_ids);
 
+        // Extract cover, if any
+        if (isset($biblio['cover_image'])) {
+            $doc->covers()->firstOrCreate(['url' => $biblio['cover_image']]);
+        }
         Event::fire(new Marc21RecordImported($doc->id));
     }
 
