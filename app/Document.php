@@ -22,6 +22,7 @@ class Document extends Model
         'bibliographic' => 'array',
         'holdings' => 'array',
         'xisbn' => 'array',
+        'description' => 'array',
     ];
 
     /**

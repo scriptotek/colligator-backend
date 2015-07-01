@@ -69,21 +69,9 @@ Returns list of collections
 		]
 	}
 
-### GET /api/collections/{collection-id}
+### GET /api/documents?{collection=collection-id}&{q=query}
 
-Returns a specific collection
-
-	{
-		"id": {collection-id},
-		"name": "Samling 42",
-		"created_at": {date-time},
-	}
-
-
-### GET /api/documents?{query}
-
-Returns list of all documents, optionally filtered by a query such as "collection={collection-id}"
-or "subject={subject-id}":
+Returns list of all documents, optionally filtered by a {collection-id} and a {query}:
 
 	{
 		"documents": [
@@ -116,16 +104,13 @@ Returns a specific document
 				"prefLabel": "OST"
 			}
 		],
-		"covers": [
-			{
-				"url": "…",
-				"origUrl": "",
-				"width": "",
-				"height": "",
-				"rank": 1
-			}
-		]
-		"authors": [
+		"cover": {
+			"url": "…",
+			"cached": "",
+			"width": "",
+			"height": "",
+		},
+		"creators": [
 			{
 				"role": "primary"
 			}
@@ -148,8 +133,20 @@ Get list of documents related
 
 ### Authenticated
 
-POST /api/collections/<collection-id>/<document-id>
+Store cover:
 
+	POST /api/documents/<document-id>/cover
+	{ url: "<url>", "source": }
+	{
+		result: "ok",
+		url: ""
+	}
+
+Store description:
+
+	POST /api/documents/<document-id>/description
+	{ text: "<text>", "source": "<source>", "source_url": "<source-url>" }
+	{ result: "ok" }
 
 
 ### DB
@@ -158,7 +155,7 @@ POST /api/collections/<collection-id>/<document-id>
 	---------
 	id int
 	name
-	caption
+	label
 
 	collection_documents
 	-----------------
@@ -168,9 +165,12 @@ POST /api/collections/<collection-id>/<document-id>
 	documents
 	---------
 	id int
-	bs_id
-	data JSON blurb
-
+	bibsys_id
+	bibliographic (JSON blurb) the bibliographic record
+	holdings (JSON blurb) array of holdings records
+	xisbn (JSON blurb) extra ISBN numbers
+	description  (JSON blurb)  descriptionw
+	
 	subjects
 	--------
 	id int
@@ -188,8 +188,10 @@ POST /api/collections/<collection-id>/<document-id>
 	covers
 	------
 	document_id
-	uri
-
+	url
+	width
+	height
+	mime
 
 
 ## License

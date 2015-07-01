@@ -40,4 +40,27 @@ class DocumentsControllerTest extends TestCase
             ->seeJSON(['url' => $cover->url]);
     }
 
+    public function testPostDescription()
+    {
+        \Es::shouldReceive('index')->times(1);
+
+        // Generate dummy data
+        factory(Document::class)->create();
+
+        $this->post('/api/documents/1/description', ['text' => 'Some description', 'source' => 'Selfmade'])
+            ->assertResponseOk();
+    }
+
+    public function testPostDescriptionInvalidRequest()
+    {
+        \Es::shouldReceive('index')->times(0);
+
+        // Generate dummy data
+        factory(Document::class)->create();
+
+        $response = $this->post('/api/documents/1/description', ['text' => 'Some description'], ['Accept' => 'application/json']);
+        $response->assertResponseStatus(422);
+        $response->seeJSON(['source' => ['The source field is required.']]);
+    }
+
 }

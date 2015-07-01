@@ -5,6 +5,7 @@ namespace Colligator\Http\Controllers;
 use Colligator\Collection;
 use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
+use Colligator\Http\Requests\StoreDescriptionRequest;
 use Colligator\SearchEngine;
 use Colligator\Http\Requests;
 use Illuminate\Http\Request;
@@ -165,5 +166,33 @@ class DocumentsController extends Controller
         ]);
     }
 
+    /**
+     * Store description
+     *
+     * @return Response
+     */
+    public function storeDescription($document_id, Request $request, SearchEngine $se)
+    {
+        $this->validate($request, [
+            'text' => 'required',
+            'source' => 'required',
+            'source_url' => 'url',
+        ]);
 
+        $doc = Document::findOrFail($document_id);
+        $doc->description = [
+            'text' => $request->description,
+            'source' => $request->source,
+            'source_url' => $request->source_url,
+        ];
+        $doc->save();
+
+        \Log::info('Stored new description for ' . $document_id);
+
+        $se->indexDocument($doc);
+
+        return response()->json([
+            'result' => 'ok',
+        ]);
+    }
 }
