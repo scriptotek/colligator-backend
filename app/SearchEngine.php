@@ -2,6 +2,8 @@
 
 namespace Colligator;
 
+use Elasticsearch\Common\Exceptions\Missing404Exception;
+
 class SearchEngine
 {
     /**
@@ -27,6 +29,27 @@ class SearchEngine
         }
 
         return \Es::search($payload);
+    }
+
+    /**
+     * Return a single document identified by ID
+     *
+     * @param $documentId
+     * @return array
+     */
+    public function getDocument($id)
+    {
+        $payload = [
+            'index' => 'documents',
+            'type' => 'document',
+            'id' => $id,
+        ];
+        try {
+            $response = \Es::get($payload);
+        } catch (Missing404Exception $e) {
+            return null;
+        }
+        return $response['_source'];
     }
 
     /**

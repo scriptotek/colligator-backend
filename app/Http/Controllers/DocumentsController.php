@@ -7,6 +7,7 @@ use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\SearchEngine;
 use Colligator\Http\Requests;
+use Illuminate\Http\Request;
 
 class DocumentsController extends Controller
 {
@@ -72,19 +73,25 @@ class DocumentsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param SearchEngine $se
+     * @param  int $id
      * @return Response
      */
-    public function show($id)
+    public function show(Request $request, SearchEngine $se, $id)
     {
-        $document = Document::find($id);
-        if (is_null($document)) {
+        if ($request->raw) {
+            $doc = Document::find($id);
+        } else {
+            $doc = $se->getDocument($id);
+        }
+
+        if (is_null($doc)) {
             return response()->json([
                 'error' => 'Document not found.'
             ]);
         } else {
             return response()->json([
-                'document' => $document
+                'document' => $doc
             ]);
         }
     }
