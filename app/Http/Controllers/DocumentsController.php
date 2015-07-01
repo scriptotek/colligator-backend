@@ -150,6 +150,10 @@ class DocumentsController extends Controller
      */
     public function storeCover($document_id, Request $request, SearchEngine $se)
     {
+        $this->validate($request, [
+            'url' => 'required|url',
+        ]);
+
         $doc = Document::findOrFail($document_id);
         $cover = $doc->cover()->firstOrCreate(['url' => $request->url]);
         if (!$cover->isCached() && !$cover->cache()) {

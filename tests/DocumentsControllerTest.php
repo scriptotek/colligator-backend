@@ -27,6 +27,20 @@ class DocumentsControllerTest extends TestCase
             ->seeJson(['url' => $exampleUrl]);
     }
 
+    public function testPostCoverInvalidRequest()
+    {
+        \Es::shouldReceive('index')->times(0);
+        \CoverCache::shouldReceive('store')->times(0);
+
+        // Generate dummy data
+        factory(Document::class)->create();
+
+        $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
+        $response = $this->post('/api/documents/1/cover', ['urls' => $exampleUrl], ['Accept' => 'application/json']);
+        $response->assertResponseStatus(422);
+        $response->seeJSON(['url' => ['The url field is required.']]);
+    }
+
     public function testShowCover()
     {
         \Es::shouldReceive('index')->times(0);
