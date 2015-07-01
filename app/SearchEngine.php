@@ -34,7 +34,7 @@ class SearchEngine
     /**
      * Return a single document identified by ID
      *
-     * @param $documentId
+     * @param int $id
      * @return array
      */
     public function getDocument($id)
@@ -76,11 +76,8 @@ class SearchEngine
             $body['collections'][] = $collection['name'];
         }
 
-        // Add covers
-        $body['covers'] = [];
-        foreach ($doc->covers as $cover) {
-            $body['covers'][] = $cover->toArray();
-        }
+        // Add cover
+        $body['cover'] = $doc->cover ? $doc->cover->toArray() : null;
 
         // Add subjects
         $body['subjects'] = [];

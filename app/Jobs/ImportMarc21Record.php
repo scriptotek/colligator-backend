@@ -100,7 +100,7 @@ class ImportMarc21Record extends Job implements SelfHandling
 
         // Extract cover, if any
         if (isset($biblio['cover_image'])) {
-            $doc->covers()->firstOrCreate(['url' => $biblio['cover_image']]);
+            $doc->cover()->firstOrCreate(['url' => $biblio['cover_image']]);
         }
 
         return $doc;

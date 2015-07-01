@@ -46,7 +46,7 @@ class Reindex extends Command
             $se->createDocumentsIndex();
 
             $this->output->progressStart(Document::count());
-            foreach (Document::with('subjects','covers')->get() as $doc) {
+            foreach (Document::with('subjects','cover')->get() as $doc) {
                 $se->indexDocument($doc);
                 $this->output->progressAdvance();
             }

@@ -128,4 +128,42 @@ class DocumentsController extends Controller
     {
         //
     }
+
+    /**
+     * Show cover.
+     *
+     * @return Response
+     */
+    public function cover($document_id)
+    {
+        $doc = Document::findOrFail($document_id);
+        return response()->json([
+            'cover' => $doc->cover,
+        ]);
+    }
+
+    /**
+     * Store cover
+     *
+     * @return Response
+     */
+    public function storeCover($document_id, Request $request, SearchEngine $se)
+    {
+        $doc = Document::findOrFail($document_id);
+        $cover = $doc->cover()->firstOrCreate(['url' => $request->url]);
+        if (!$cover->isCached() && !$cover->cache()) {
+            return response()->json([
+                'result' => 'error',
+                'error' => 'Failed to cache cover. Is it a valid image file?',
+            ]);
+        }
+        $se->indexDocument($doc);
+
+        return response()->json([
+            'result' => 'ok',
+            'cover' => $cover->toArray(),
+        ]);
+    }
+
+
 }

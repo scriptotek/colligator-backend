@@ -6,11 +6,11 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Colligator\Document;
 use Colligator\Cover;
 
-class CoversControllerTest extends TestCase
+class DocumentsControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public function testPost()
+    public function testPostCover()
     {
         \Es::shouldReceive('index')->times(1);
         \CoverCache::shouldReceive('store')->once()->andReturn('some-path');
@@ -22,31 +22,22 @@ class CoversControllerTest extends TestCase
         $doc = factory(Document::class)->create();
 
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
-        $this->post('/api/documents/1/covers', ['url' => $exampleUrl])
+        $this->post('/api/documents/1/cover', ['url' => $exampleUrl])
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url' => $exampleUrl]);
     }
 
-    public function testIndex()
+    public function testShowCover()
     {
         \Es::shouldReceive('index')->times(0);
 
         // Generate dummy data
         $doc = factory(Document::class)->create();
-        factory(Cover::class, 2)
-            ->make()
-            ->each(function($cover) use ($doc) {
-                $doc->covers()->save($cover);
-            });
+        $cover = factory(Cover::class)->make();
+        $doc->cover()->save($cover);
 
-        $urls = [];
-        foreach ($doc->covers as $c) {
-            $urls[] = $c->url;
-        }
-
-        $this->get('/api/documents/1/covers')
-            ->seeJSON(['url' => $urls[0]])
-            ->seeJSON(['url' => $urls[1]]);
+        $this->get('/api/documents/1/cover')
+            ->seeJSON(['url' => $cover->url]);
     }
 
 }

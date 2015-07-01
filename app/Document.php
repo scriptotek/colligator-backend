@@ -33,11 +33,11 @@ class Document extends Model
     }
 
     /**
-     * The covers belonging to the document
+     * The cover belonging to the document
      */
-    public function covers()
+    public function cover()
     {
-        return $this->hasMany('Colligator\Cover');
+        return $this->hasOne('Colligator\Cover');
     }
 
     /**

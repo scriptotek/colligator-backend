@@ -22,6 +22,9 @@ Route::group(['middleware' => 'cors'], function(){
     Route::resource('api/documents', 'DocumentsController',
                     ['only' => ['index', 'show']]);
 
-    Route::resource('api/documents.covers', 'CoversController');
+    Route::get('api/documents/{documents}/cover',
+        ['as' => 'api.documents.cover.show', 'uses' => 'DocumentsController@cover']);
+    Route::post('api/documents/{documents}/cover',
+        ['as' => 'api.documents.cover.store', 'uses' => 'DocumentsController@storeCover']);
 
 });

@@ -28,7 +28,7 @@ class Cover extends Model
     protected $fillable = ['url'];
 
     /**
-     * The documents indexed with the subject
+     * The document the cover belongs to.
      */
     public function document()
     {
