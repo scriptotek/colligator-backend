@@ -24,6 +24,7 @@ class SearchEngineTest extends TestCase
             });
 
         $doc = Document::with('subjects')->first();
+        $doc->description = ['text' => 'Bla bla bla', 'source' => 'Selfmade'];
 
         $pl = $se->indexDocumentPayload($doc);
 
@@ -37,6 +38,8 @@ class SearchEngineTest extends TestCase
 
         // Original array should not be modified
         $this->assertArrayNotHasKey('real', $doc->bibliographic);
+
+        $this->assertSame('Bla bla bla', $pl['description']['text']);
 
     }
 }

@@ -97,7 +97,8 @@ class SearchEngine
         // Add xisbns
         $body['xisbns'] = (new XisbnResponse($doc->xisbn))->getSimpleRepr();
 
-        // TODO: Add description, etc.
+        // Add description
+        $body['description'] = $doc->description;
 
         return $body;
     }
