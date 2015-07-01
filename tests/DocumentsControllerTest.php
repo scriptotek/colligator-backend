@@ -56,13 +56,24 @@ class DocumentsControllerTest extends TestCase
 
     public function testPostDescription()
     {
+        $faker = \Faker\Factory::create();
         \Es::shouldReceive('index')->times(1);
 
         // Generate dummy data
         factory(Document::class)->create();
+        $postData = [
+            'text' => $faker->text,
+            'source' => $faker->sentence(),
+            'source_url' => $faker->url,
+        ];
 
-        $this->post('/api/documents/1/description', ['text' => 'Some description', 'source' => 'Selfmade'])
+        $this->post('/api/documents/1/description', $postData)
             ->assertResponseOk();
+
+        $doc = Document::find(1);
+        $this->assertSame($postData['text'], $doc->description['text']);
+        $this->assertSame($postData['source'], $doc->description['source']);
+        $this->assertSame($postData['source_url'], $doc->description['source_url']);
     }
 
     public function testPostDescriptionInvalidRequest()

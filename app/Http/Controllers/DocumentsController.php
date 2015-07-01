@@ -185,7 +185,7 @@ class DocumentsController extends Controller
 
         $doc = Document::findOrFail($document_id);
         $doc->description = [
-            'text' => $request->description,
+            'text' => $request->text,
             'source' => $request->source,
             'source_url' => $request->source_url,
         ];
