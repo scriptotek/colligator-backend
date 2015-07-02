@@ -46,7 +46,6 @@ class HarvestXisbn extends Command
         foreach ($docs as $doc) {
             $response = $client->checkIsbns($doc->bibliographic['isbns']);
             if ($response->overLimit()) {
-                $this->output->progressFinish();
                 $this->error('Reached daily limit. Aborting.');
                 break;
             }
