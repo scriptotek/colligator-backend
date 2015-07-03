@@ -2,6 +2,7 @@
 
 namespace Colligator;
 
+use Elasticsearch\Common\Exceptions\BadRequest400Exception;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 
 class SearchEngine
@@ -111,12 +112,18 @@ class SearchEngine
     public function indexDocument(Document $doc)
     {
         // \Log::debug('Search engine: Indexing document ' . $doc->id);
-        \Es::index([
-            'index' => 'documents',
-            'type' => 'document',
-            'id' => $doc->id,
-            'body' => $this->indexDocumentPayload($doc),
-        ]);
+        $payload = $this->indexDocumentPayload($doc);
+        try {
+            \Es::index([
+                'index' => 'documents',
+                'type' => 'document',
+                'id' => $doc->id,
+                'body' => $payload,
+            ]);
+        } catch (BadRequest400Exception $e) {
+            \Log::error('ElasticSearch returned error: ' . $e->getMessage() . ". Our request: " . var_export($payload, true));
+            throw new \ErrorException($e);
+        }
     }
 
     public function createDocumentsIndex()
