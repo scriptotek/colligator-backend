@@ -81,6 +81,9 @@ class Cover extends Model
      */
     public function invalidateCache()
     {
+        if (!is_null($this->width) && !is_null($this->height)) {
+            \Log::debug('Invalidating cache. Old version was ' . $this->width . ' x ' . $this->height);
+        }
         $this->width = null;
         $this->height = null;
         $this->cache_key = null;
