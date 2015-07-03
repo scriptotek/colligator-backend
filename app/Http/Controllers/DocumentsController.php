@@ -4,6 +4,7 @@ namespace Colligator\Http\Controllers;
 
 use Colligator\Collection;
 use Colligator\Document;
+use Colligator\Cover;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\Http\Requests\StoreDescriptionRequest;
 use Colligator\SearchEngine;
@@ -154,14 +155,18 @@ class DocumentsController extends Controller
             'url' => 'required|url',
         ]);
 
-        $doc = Document::findOrFail($document_id);
-        $cover = $doc->cover()->firstOrCreate(['url' => $request->url]);
-        if (!$cover->isCached() && !$cover->cache()) {
+        $doc = Document::with('cover')->findOrFail($document_id);
+
+        try {
+            $cover = $doc->storeCover($request->url);
+        } catch (\ErrorException $e) {
+            \Log::error('Failed to cache cover ' . $request->url . '. Got error: ' . $e->getMessage());
             return response()->json([
                 'result' => 'error',
-                'error' => 'Failed to cache cover. Is it a valid image file?',
+                'error' => 'Failed to cache the cover. Please check that the URL points to a valid image file.',
             ]);
         }
+
         $se->indexDocument($doc);
 
         return response()->json([

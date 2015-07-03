@@ -4,31 +4,40 @@ namespace Colligator;
 
 class CoverCache
 {
-    protected function path($key)
-    {
-        return public_path('covers/' . sha1($key) . '.jpg');
-    }
 
+    /**
+     * @param string $key
+     * @return string
+     */
     public function url($key)
     {
-        return \URL::to('/covers/' . sha1($key) . '.jpg');
+        return sprintf('https://s3.%s.amazonaws.com/%s/%s',
+            \Config::get('filesystems.disks.s3.region'),
+            \Config::get('filesystems.disks.s3.bucket'),
+            $key
+        );
     }
 
-    public function has($key)
+    /**
+     * @param string $url
+     * @return CachedImage
+     */
+    public function get($url)
     {
-        return file_exists($this->path($key));
+        return new CachedImage($url);
     }
 
-    public function store($key, $url)
+    /**
+     * @param string $url
+     * @param int $maxHeight
+     * @return CachedImage
+     * @throws \ErrorException
+     */
+    public function put($url, $maxHeight = 0)
     {
-        $path = $this->path($key);
-        file_put_contents($path, fopen($url, 'r'));
-        \Log::info('Cached cover from ' . $url . ' as ' . $path);
-        return $path;
+        $item = new CachedImage($url, $maxHeight);
+        $item->store();
+        return $item;
     }
 
-    public function getDimensions($key)
-    {
-        return getimagesize($this->path($key));
-    }
 }

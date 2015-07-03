@@ -10,19 +10,79 @@ class DocumentsControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
-    public function testPostCover()
+    public function testPostingSmallCoverShouldNotCauseThumbnailGeneration()
     {
+        $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
+
         \Es::shouldReceive('index')->times(1);
-        \CoverCache::shouldReceive('store')->once()->andReturn('some-path');
-        \CoverCache::shouldReceive('has')->andReturn(false);
-        \CoverCache::shouldReceive('url')->andReturn('some-url');
-        \CoverCache::shouldReceive('getDimensions')->andReturn([0 => 200, 1 => 200, 'mime' => 'image/jpeg']);
+
+        $mock = \Mockery::mock('Colligator\CachedImage');
+        $mock->shouldReceive('width')->once()->andReturn(300);
+        $mock->shouldReceive('height')->twice()->andReturn(500);
+        $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
+        $mock->shouldReceive('basename')->once()->andReturn('random');
+        $mock->shouldReceive('thumb')->times(0);
+
+        \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
+        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
 
         // Generate dummy data
         $doc = factory(Document::class)->create();
 
+        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+            ->seeJSON(['result' => 'ok'])
+            ->seeJson(['url' => $exampleUrl]);
+    }
+
+    public function testPostigLargeCoverShouldCauseThumbnailGeneration()
+    {
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
-        $this->post('/api/documents/1/cover', ['url' => $exampleUrl])
+
+        \Es::shouldReceive('index')->times(1);
+
+        $mock2 = \Mockery::mock('Colligator\CachedImage');
+        $mock2->shouldReceive('width')->once()->andReturn(600);
+        $mock2->shouldReceive('height')->once()->andReturn(1200);
+        $mock2->shouldReceive('mime')->times(0);
+        $mock2->shouldReceive('basename')->once()->andReturn('random2');
+
+        $mock = \Mockery::mock('Colligator\CachedImage');
+        $mock->shouldReceive('width')->once()->andReturn(600);
+        $mock->shouldReceive('height')->twice()->andReturn(1200);
+        $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
+        $mock->shouldReceive('basename')->once()->andReturn('random');
+        $mock->shouldReceive('thumb')->once()->andReturn($mock2);
+
+        \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
+        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
+
+        // Generate dummy data
+        $doc = factory(Document::class)->create();
+
+        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+            ->seeJSON(['result' => 'ok'])
+            ->seeJson(['url' => $exampleUrl]);
+    }
+
+    public function testPostingTheSameCoverTwiceShouldNotCauseTwoCachingRequests()
+    {
+        $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
+        \Es::shouldReceive('index')->times(2);
+        $mock = \Mockery::mock('Colligator\CachedImage');
+        $mock->shouldReceive('width')->once()->andReturn(300);
+        $mock->shouldReceive('height')->twice()->andReturn(500);
+        $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
+        $mock->shouldReceive('basename')->once()->andReturn('random');
+        $mock->shouldReceive('thumb')->times(0);
+        \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
+        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
+        $doc = factory(Document::class)->create();
+
+        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+            ->seeJSON(['result' => 'ok'])
+            ->seeJson(['url' => $exampleUrl]);
+
+        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url' => $exampleUrl]);
     }

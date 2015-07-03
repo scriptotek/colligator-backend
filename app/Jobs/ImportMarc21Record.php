@@ -100,7 +100,11 @@ class ImportMarc21Record extends Job implements SelfHandling
 
         // Extract cover, if any
         if (isset($biblio['cover_image'])) {
-            $doc->cover()->firstOrCreate(['url' => $biblio['cover_image']]);
+            try {
+                $doc->storeCover($biblio['cover_image']);
+            } catch (\ErrorException $e) {
+                \Log::error('Failed to store cover: ' . $biblio['cover_image']);
+            }
         }
 
         return $doc;

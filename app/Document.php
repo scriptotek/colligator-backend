@@ -48,4 +48,16 @@ class Document extends Model
     {
         return $this->belongsToMany('Colligator\Collection');
     }
+
+    public function storeCover($url)
+    {
+        $cover = $this->cover;
+        if (is_null($cover)) {
+            $cover = new Cover(['document_id' => $this->id]);
+        }
+        $cover->url = $url;
+        $cover->cache();
+        $cover->save();
+        return $cover;
+    }
 }
