@@ -98,8 +98,8 @@ class ImportMarc21Record extends Job implements SelfHandling
         }
         $doc->subjects()->sync($subject_ids);
 
-        // Extract cover, if any
-        if (isset($biblio['cover_image'])) {
+        // Extract cover from bibliographic record if no local cover exists
+        if (isset($biblio['cover_image']) && is_null($doc->cover)) {
             try {
                 $doc->storeCover($biblio['cover_image']);
             } catch (\ErrorException $e) {
