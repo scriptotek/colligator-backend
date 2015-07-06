@@ -36,12 +36,12 @@ class DocumentsController extends Controller
         // Build response, include pagination data
         $out = [
             'warnings' => $request->warnings,
-            'from' => $request->from ?: 0,
+            'offset' => $request->offset ?: 0,
             'total' => intval($response['hits']['total']),
         ];
         $hits = count($response['hits']['hits']);
-        if ($request->from + $hits < $out['total']) {
-            $out['continue'] = $request->from + $hits;
+        if ($request->offset + $hits < $out['total']) {
+            $out['continue'] = $request->offset + $hits;
         }
 
         $out['documents'] = [];
