@@ -108,6 +108,7 @@ class SearchEngine
      * Add or update a document in the ElasticSearch index, making it searchable
      *
      * @param Document $doc
+     * @throws \ErrorException
      */
     public function indexDocument(Document $doc)
     {
@@ -124,6 +125,17 @@ class SearchEngine
             \Log::error('ElasticSearch returned error: ' . $e->getMessage() . ". Our request: " . var_export($payload, true));
             throw new \ErrorException($e);
         }
+    }
+
+    /**
+     * Add or update a document in the ElasticSearch index, making it searchable
+     *
+     * @param integer $docId
+     * @throws \ErrorException
+     */
+    public function indexDocumentById($docId)
+    {
+        $this->indexDocument(Document::with('subjects','cover')->findOrFail($docId));
     }
 
     public function createDocumentsIndex()

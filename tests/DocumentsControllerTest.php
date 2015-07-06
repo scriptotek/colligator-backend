@@ -14,7 +14,12 @@ class DocumentsControllerTest extends TestCase
     {
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
 
-        \Es::shouldReceive('index')->times(1);
+        \Es::shouldReceive('index')
+            ->once()
+            ->with(\Mockery::on(function($doc) use ($exampleUrl) {
+                $this->assertSame($exampleUrl, array_get($doc, 'body.cover.url'));
+                return true;
+            }));
 
         $mock = \Mockery::mock('Colligator\CachedImage');
         $mock->shouldReceive('width')->once()->andReturn(300);
@@ -30,6 +35,7 @@ class DocumentsControllerTest extends TestCase
         $doc = factory(Document::class)->create();
 
         $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+            ->seeStatusCode(200)
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url' => $exampleUrl]);
     }

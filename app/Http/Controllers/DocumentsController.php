@@ -167,7 +167,7 @@ class DocumentsController extends Controller
             ]);
         }
 
-        $se->indexDocument($doc);
+        $se->indexDocumentById($document_id);
 
         return response()->json([
             'result' => 'ok',
@@ -198,7 +198,7 @@ class DocumentsController extends Controller
 
         \Log::info('Stored new description for ' . $document_id);
 
-        $se->indexDocument($doc);
+        $se->indexDocumentById($document_id);
 
         return response()->json([
             'result' => 'ok',
