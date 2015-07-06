@@ -2,6 +2,7 @@
 
 namespace Colligator\Jobs;
 
+use Colligator\DescriptionScraper;
 use Colligator\Document;
 use Colligator\Events\Marc21RecordImported;
 use Colligator\Subject;
@@ -75,12 +76,19 @@ class ImportMarc21Record extends Job implements SelfHandling
             }
         }
 
+        $scraper = new DescriptionScraper();
+
         // Find existing Document or create a new one
         $doc = Document::firstOrNew(['bibsys_id' => $biblio['id']]);
 
         // Update Document
         $doc->bibliographic = $biblio;
         $doc->holdings = $holdings;
+
+        // Extract description from bibliographic record if no description exists
+        if (isset($biblio['description']) && is_null($doc->description)) {
+            $scraper->updateDocument($doc, $biblio['description']);
+        }
 
         if (!$doc->save()) {
             $this->error("Document $biblio->id could not be saved!");
