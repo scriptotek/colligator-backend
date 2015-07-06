@@ -3,7 +3,6 @@
 namespace Colligator\Http\Requests;
 
 use Colligator\Collection;
-use Colligator\Http\Requests\Request;
 
 class SearchDocumentsRequest extends Request
 {
@@ -47,6 +46,25 @@ class SearchDocumentsRequest extends Request
         $this->replace($input);
 
         return $this->all();
+    }
+
+
+    /**
+     * Builds a ElasticSearch query string query
+     *
+     * @return string
+     */
+    public function buildQuery()
+    {
+        $query = [];
+        if ($this->has('q')) $query[] = $this->q;
+        if ($this->has('collection')) {
+            $col = Collection::find($this->collection);
+            $query[] = 'collections:' . $col->name;
+        }
+        if ($this->has('real')) $query[] = 'subjects.noubomn.prefLabel:' . $this->real;
+        $query = count($query) ? implode(' AND ', $query) : '';
+        return $query;
     }
 
     /**

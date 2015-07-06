@@ -20,18 +20,8 @@ class DocumentsController extends Controller
      */
     public function index(SearchDocumentsRequest $request, SearchEngine $se)
     {
-        // Build query
-        $query = [];
-        if ($request->has('q')) $query[] = $request->q;
-        if ($request->has('collection')) {
-            $col = Collection::find($request->collection);
-            $query[] = 'collections:' . $col->name;
-        }
-        if ($request->has('real')) $query[] = 'subjects.noubomn.prefLabel:' . $request->real;
-        $query = count($query) ? implode(' AND ', $query) : null;
-
         // Query ElasticSearch
-        $response = $se->searchDocuments($query, $request->offset, $request->limit);
+        $response = $se->searchDocuments($request->buildQuery(), $request->offset, $request->limit);
 
         // Build response, include pagination data
         $out = [

@@ -15,7 +15,7 @@ class SearchEngine
      * @param int $limit
      * @return array
      */
-    public function searchDocuments($query = null, $offset = 0, $limit = 25)
+    public function searchDocuments($query = '', $offset = 0, $limit = 25)
     {
         $payload = [
              'index' => 'documents',
@@ -25,7 +25,7 @@ class SearchEngine
              'size' => $limit,
          ];
 
-        if (!is_null($query)) {
+        if (!empty($query)) {
             $payload['body']['query']['query_string']['query'] = $query;
         }
 
