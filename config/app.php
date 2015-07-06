@@ -143,6 +143,7 @@ return [
         Shift31\LaravelElasticsearch\ElasticsearchServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
+        Maknz\Slack\SlackServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -202,6 +203,7 @@ return [
         'View'      => Illuminate\Support\Facades\View::class,
         'CoverCache' => Colligator\Facades\CoverCache::class,
         'Image'     => Intervention\Image\Facades\Image::class,
+        'Slack'     => Maknz\Slack\Facades\Slack::class,
 
     ],
 
