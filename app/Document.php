@@ -26,7 +26,7 @@ class Document extends Model
     ];
 
     /**
-     * The subjects belonging to the document
+     * The subjects belonging to the document.
      */
     public function subjects()
     {
@@ -34,7 +34,7 @@ class Document extends Model
     }
 
     /**
-     * The cover belonging to the document
+     * The cover belonging to the document.
      */
     public function cover()
     {
@@ -42,7 +42,7 @@ class Document extends Model
     }
 
     /**
-     * The collections the document belongs to
+     * The collections the document belongs to.
      */
     public function collections()
     {
@@ -58,6 +58,7 @@ class Document extends Model
         $cover->url = $url;
         $cover->cache();
         $cover->save();
+
         return $cover;
     }
 }

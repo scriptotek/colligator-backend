@@ -2,13 +2,10 @@
 
 namespace Colligator\Http\Controllers;
 
-use Colligator\Collection;
-use Colligator\Document;
 use Colligator\Cover;
+use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
-use Colligator\Http\Requests\StoreDescriptionRequest;
 use Colligator\SearchEngine;
-use Colligator\Http\Requests;
 use Illuminate\Http\Request;
 
 class DocumentsController extends Controller
@@ -66,7 +63,8 @@ class DocumentsController extends Controller
      * Display the specified resource.
      *
      * @param SearchEngine $se
-     * @param  int $id
+     * @param int          $id
+     *
      * @return Response
      */
     public function show(Request $request, SearchEngine $se, $id)
@@ -79,11 +77,11 @@ class DocumentsController extends Controller
 
         if (is_null($doc)) {
             return response()->json([
-                'error' => 'Document not found.'
+                'error' => 'Document not found.',
             ]);
         } else {
             return response()->json([
-                'document' => $doc
+                'document' => $doc,
             ]);
         }
     }
@@ -91,7 +89,8 @@ class DocumentsController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function edit($id)
@@ -102,7 +101,8 @@ class DocumentsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function update($id)
@@ -113,7 +113,8 @@ class DocumentsController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function destroy($id)
@@ -129,13 +130,14 @@ class DocumentsController extends Controller
     public function cover($document_id)
     {
         $doc = Document::findOrFail($document_id);
+
         return response()->json([
             'cover' => $doc->cover,
         ]);
     }
 
     /**
-     * Store cover
+     * Store cover.
      *
      * @return Response
      */
@@ -151,6 +153,7 @@ class DocumentsController extends Controller
             $cover = $doc->storeCover($request->url);
         } catch (\ErrorException $e) {
             \Log::error('Failed to cache cover ' . $request->url . '. Got error: ' . $e->getMessage());
+
             return response()->json([
                 'result' => 'error',
                 'error' => 'Failed to cache the cover. Please check that the URL points to a valid image file.',
@@ -166,7 +169,7 @@ class DocumentsController extends Controller
     }
 
     /**
-     * Store description
+     * Store description.
      *
      * @return Response
      */

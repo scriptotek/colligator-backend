@@ -14,7 +14,7 @@ class XisbnResponse
         'DA' => 'digital',
         'FA' => 'film/transp.',
         'MA' => 'microform',
-        'VA' => 'video'
+        'VA' => 'video',
     );
 
     public function __construct(array $data = null)
@@ -29,6 +29,7 @@ class XisbnResponse
                 return true;
             }
         }
+
         return false;
     }
 
@@ -43,6 +44,7 @@ class XisbnResponse
             return 'ebook';
         }
         \Log::error(sprintf('Unknown form: %s %s', $form, $form2));
+
         return sprintf('%s %s', $this->formats[$form], $this->formats[$form2]);
     }
 
@@ -72,6 +74,7 @@ class XisbnResponse
                 }
             }
         }
+
         return $items;
     }
 }

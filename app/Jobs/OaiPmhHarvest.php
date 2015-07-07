@@ -2,18 +2,18 @@
 
 namespace Colligator\Jobs;
 
-use Colligator\Events\OaiPmhHarvestComplete;
-use Scriptotek\OaiPmh\ListRecordsResponse;
-use Storage;
-use Event;
-use Illuminate\Contracts\Bus\SelfHandling;
-use Scriptotek\OaiPmh\BadRequestError;
-use Scriptotek\OaiPmh\Client as OaiPmhClient;
-use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Collection;
 use Colligator\Document;
+use Colligator\Events\OaiPmhHarvestComplete;
+use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\SearchEngine;
+use Event;
+use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Scriptotek\OaiPmh\BadRequestError;
+use Scriptotek\OaiPmh\Client as OaiPmhClient;
+use Scriptotek\OaiPmh\ListRecordsResponse;
+use Storage;
 
 class OaiPmhHarvest extends Job implements SelfHandling
 {
@@ -32,7 +32,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
     /**
      * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
-     * A too small number will cause CPU overhead
+     * A too small number will cause CPU overhead.
      *
      * @var int
      */
@@ -41,11 +41,11 @@ class OaiPmhHarvest extends Job implements SelfHandling
     /**
      * Create a new job instance.
      *
-     * @param  string  $name  Harvest name from config
-     * @param  array   $config  Harvest config array (url, set, schema)
-     * @param  string  $start  Start date (optional)
-     * @param  string  $until  End date (optional)
-     * @param  string  $resume  Resumption token for continuing an aborted harvest (optional)
+     * @param string $name   Harvest name from config
+     * @param array  $config Harvest config array (url, set, schema)
+     * @param string $start  Start date (optional)
+     * @param string $until  End date (optional)
+     * @param string $resume Resumption token for continuing an aborted harvest (optional)
      */
     public function __construct($name, $config, $start = null, $until = null, $resume = null, $fromDump = false)
     {
@@ -62,23 +62,23 @@ class OaiPmhHarvest extends Job implements SelfHandling
     }
 
     /**
-     * Import local XML dump rather than talking to the OAI-PMH server
+     * Import local XML dump rather than talking to the OAI-PMH server.
      */
     public function fromDump()
     {
         $files = Storage::disk('local')->files('harvests/' . $this->name);
         $recordsHarvested = 0;
-        foreach ($files as $filename)
-        {
-            if (!preg_match('/.xml$/', $filename)) continue;
+        foreach ($files as $filename) {
+            if (!preg_match('/.xml$/', $filename)) {
+                continue;
+            }
             $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
             foreach ($response->records as $record) {
                 $this->dispatch(new ImportMarc21Record($record->data));
-                $recordsHarvested++;
+                ++$recordsHarvested;
                 if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                     Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
                 }
-
             }
         }
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
@@ -94,11 +94,11 @@ class OaiPmhHarvest extends Job implements SelfHandling
         $collection = Collection::where('name', '=', $this->name)->first();
         if (is_null($collection)) {
             $this->error("Collection '$this->name' not found in DB");
+
             return;
         }
 
-        Event::listen('Colligator\Events\Marc21RecordImported', function($event) use ($collection, $searchEngine)
-        {
+        Event::listen('Colligator\Events\Marc21RecordImported', function ($event) use ($collection, $searchEngine) {
             $doc = Document::with('subjects', 'cover')->find($event->id);
             if (!$collection->documents->contains($doc->id)) {
                 $collection->documents()->attach($doc->id);
@@ -110,6 +110,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
         if ($this->fromDump) {
             $this->fromDump();
+
             return;
         }
 
@@ -124,12 +125,12 @@ class OaiPmhHarvest extends Job implements SelfHandling
             'sleep-time-on-error' => $this->sleepTimeOnError,
         ));
 
-        $client->on('request.error', function($msg) {
+        $client->on('request.error', function ($msg) {
             $this->error($msg);
         });
 
         // Store each response to disk just in case
-        $client->on('request.complete', function($verb, $args, $body) use ($latest) {
+        $client->on('request.complete', function ($verb, $args, $body) use ($latest) {
             Storage::disk('local')->put($latest, $body);
         });
 
@@ -146,7 +147,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
             }
 
             $record = $records->current();
-            $recordsHarvested++;
+            ++$recordsHarvested;
 
             // In case of a crash, it can be useful to have the resumption_token,
             // but delete it when the harvest is complete
@@ -189,13 +190,11 @@ class OaiPmhHarvest extends Job implements SelfHandling
                     if ($attempt > 500) {
                         throw $e;
                     }
-                    $attempt++;
+                    ++$attempt;
                     sleep(60);
                 }
             }
         }
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }
-
-
 }

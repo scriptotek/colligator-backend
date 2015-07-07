@@ -19,7 +19,7 @@ class SearchEngineTest extends TestCase
         $doc = factory(Document::class)->create();
         factory(Subject::class, 5)
             ->make()
-            ->each(function($subject) use ($doc) {
+            ->each(function ($subject) use ($doc) {
                 $doc->subjects()->save($subject);
             });
 
@@ -40,6 +40,5 @@ class SearchEngineTest extends TestCase
         $this->assertArrayNotHasKey('real', $doc->bibliographic);
 
         $this->assertSame('Bla bla bla', $pl['description']['text']);
-
     }
 }

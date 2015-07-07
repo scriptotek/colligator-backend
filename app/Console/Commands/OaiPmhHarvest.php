@@ -2,9 +2,9 @@
 
 namespace Colligator\Console\Commands;
 
+use Colligator\Jobs\OaiPmhHarvest as OaiPmhHarvestJob;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\DispatchesJobs;
-use Colligator\Jobs\OaiPmhHarvest as OaiPmhHarvestJob;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 
@@ -15,14 +15,14 @@ class OaiPmhHarvest extends Command
     /**
      * Start time for the full harvest.
      *
-     * @var double
+     * @var float
      */
     protected $startTime;
 
     /**
      * Start time for the current batch.
      *
-     * @var double
+     * @var float
      */
     protected $batchTime;
 
@@ -109,6 +109,7 @@ class OaiPmhHarvest extends Command
 
         if (is_null($name)) {
             $this->listConfigurations();
+
             return;
         }
 
@@ -121,6 +122,7 @@ class OaiPmhHarvest extends Command
         if (is_null($harvestConfig)) {
             $this->error('Unknown configuration specified.');
             $this->listConfigurations();
+
             return;
         }
 
@@ -131,11 +133,8 @@ class OaiPmhHarvest extends Command
         ));
 
         if ($this->option('from-dump')) {
-
             $this->comment(' - From local dump');
-
         } else {
-
             $this->comment(' - Repo: ' . $harvestConfig['url']);
             $this->comment(' - Schema: ' . $harvestConfig['schema']);
             $this->comment(' - Set: ' . $harvestConfig['set']);
@@ -150,21 +149,18 @@ class OaiPmhHarvest extends Command
         // For timing
         $this->startTime = $this->batchTime = microtime(true) - 1;
 
-        \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function($event)
-        {
+        \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function ($event) {
             $this->status($event->harvested, $event->position, $event->total);
         });
 
-        \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function($event)
-        {
+        \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function ($event) {
             $this->info(sprintf('[%s] Harvest complete, got %d records',
                 strftime('%Y-%m-%d %H:%M:%S'),
                 $event->count
             ));
         });
 
-        \Event::listen('Colligator\Events\JobError', function($event)
-        {
+        \Event::listen('Colligator\Events\JobError', function ($event) {
             $this->error($event->msg);
         });
 
@@ -191,7 +187,7 @@ class OaiPmhHarvest extends Command
     {
         $totalTime = microtime(true) - $this->startTime;
         $batchTime = microtime(true) - $this->batchTime;
-        $mem = round(memory_get_usage()/1024/102.4)/10;
+        $mem = round(memory_get_usage() / 1024 / 102.4) / 10;
         $percentage = $current / $total;
         $remaining = $total - $current;
 
@@ -208,7 +204,7 @@ class OaiPmhHarvest extends Command
             $h = floor($et / 3600);
             $m = floor(($et - ($h * 3600)) / 60);
             $s = round($et - $h * 3600 - $m * 60);
-            $eta = 'ETA: ' . sprintf("%02d:%02d:%02d", $h, $m, $s) . ', ';
+            $eta = 'ETA: ' . sprintf('%02d:%02d:%02d', $h, $m, $s) . ', ';
         }
         $this->comment(sprintf(
             '[%s] %d / %d records (%.2f %%) - %sRecs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
@@ -222,5 +218,4 @@ class OaiPmhHarvest extends Command
             $mem
         ));
     }
-
 }

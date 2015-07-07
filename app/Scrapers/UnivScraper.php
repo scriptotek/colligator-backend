@@ -6,13 +6,12 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class UnivScraper extends Scraper implements ScraperInterface
 {
-
     public function recognizes($url)
     {
-    	return strpos($url, 'universitetsforlaget.no');
+        return strpos($url, 'universitetsforlaget.no');
     }
 
-	public function scrape(Crawler $crawler)
+    public function scrape(Crawler $crawler)
     {
         $texts = $crawler->filter('.book-details > div')->each(function (Crawler $node) {
             if (strpos($node->attr('class'), 'row') === false) {
@@ -23,5 +22,4 @@ class UnivScraper extends Scraper implements ScraperInterface
 
         return $this->returnResult($text, 'Universitetsforlaget');
     }
-
 }

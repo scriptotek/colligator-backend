@@ -1,10 +1,8 @@
 <?php
 
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
-use Colligator\Document;
 use Colligator\Cover;
+use Colligator\Document;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 
 class DocumentsControllerTest extends TestCase
 {
@@ -16,8 +14,9 @@ class DocumentsControllerTest extends TestCase
 
         \Es::shouldReceive('index')
             ->once()
-            ->with(\Mockery::on(function($doc) use ($exampleUrl) {
+            ->with(\Mockery::on(function ($doc) use ($exampleUrl) {
                 $this->assertSame($exampleUrl, array_get($doc, 'body.cover.url'));
+
                 return true;
             }));
 
@@ -153,5 +152,4 @@ class DocumentsControllerTest extends TestCase
         $response->assertResponseStatus(422);
         $response->seeJSON(['source' => ['The source field is required.']]);
     }
-
 }

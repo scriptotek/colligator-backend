@@ -42,16 +42,16 @@ class Reindex extends Command
         $this->info(' Laravel will be put in maintenance mode.');
         // if ($this->confirm('Do you wish to continue? [Y|n]', true)) {
             \Artisan::call('down');
-            $se->dropDocumentsIndex();
-            $se->createDocumentsIndex();
+        $se->dropDocumentsIndex();
+        $se->createDocumentsIndex();
 
-            $this->output->progressStart(Document::count());
-            foreach (Document::with('subjects','cover')->get() as $doc) {
-                $se->indexDocument($doc);
-                $this->output->progressAdvance();
-            }
-            $this->output->progressFinish();
-            \Artisan::call('up');
+        $this->output->progressStart(Document::count());
+        foreach (Document::with('subjects', 'cover')->get() as $doc) {
+            $se->indexDocument($doc);
+            $this->output->progressAdvance();
+        }
+        $this->output->progressFinish();
+        \Artisan::call('up');
         // }
     }
 }

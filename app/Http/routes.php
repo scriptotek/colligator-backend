@@ -11,7 +11,7 @@
 |
 */
 
-Route::group(['middleware' => 'cors'], function(){
+Route::group(['middleware' => 'cors'], function () {
 
     Route::get('api/', function () {
         return view('welcome');

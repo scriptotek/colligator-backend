@@ -1,19 +1,18 @@
 <?php
 
 use Carbon\Carbon;
+use Colligator\Jobs\ImportMarc21Record;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
-use Colligator\Jobs\ImportMarc21Record;
 
 class ImportMarc21RecordTest extends TestCase
 {
-
     use DatabaseMigrations;
 
     public function testImport()
     {
-        $bib = new BibliographicRecord;
-        $bib->id = "abc123";
+        $bib = new BibliographicRecord();
+        $bib->id = 'abc123';
         $bib->created = Carbon::createFromDate(1985, 3, 25);
 
         $mock = \Mockery::mock('Colligator\Document');
@@ -25,5 +24,4 @@ class ImportMarc21RecordTest extends TestCase
         // $importer->import($bib->toArray());
         // $this->assertSame('1985-03-25T00:00:00', $mockDoc->bibliographic['created']);
     }
-
 }

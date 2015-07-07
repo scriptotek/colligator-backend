@@ -2,9 +2,7 @@
 
 namespace Colligator\Events;
 
-use Colligator\Events\Event;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
 class Marc21RecordImported extends Event
 {

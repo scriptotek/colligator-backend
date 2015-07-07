@@ -14,7 +14,7 @@ class Collection extends Model
     protected $fillable = ['name', 'label'];
 
     /**
-     * The documents belonging to the collection
+     * The documents belonging to the collection.
      */
     public function documents()
     {

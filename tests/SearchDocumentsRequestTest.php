@@ -1,31 +1,26 @@
 <?php
 
-use Colligator\Collection;
-use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
-use Colligator\Subject;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class SearchDocumentsRequestTest extends TestCase
 {
-
-	protected function newReq($qs = [])
-	{
-    	$request = SearchDocumentsRequest::create('/', 'GET', $qs);
-    	$request->sanitize();
-    	return $request;
-	}
-
-	public function testEmptyQuery()
+    protected function newReq($qs = [])
     {
-    	$request = $this->newReq();
-    	$this->assertFalse($request->has('offset'));
+        $request = SearchDocumentsRequest::create('/', 'GET', $qs);
+        $request->sanitize();
+
+        return $request;
+    }
+
+    public function testEmptyQuery()
+    {
+        $request = $this->newReq();
+        $this->assertFalse($request->has('offset'));
     }
 
     public function testIntegerConversion()
     {
-    	$request = $this->newReq(['offset' => '10', 'limit' => '50']);
+        $request = $this->newReq(['offset' => '10', 'limit' => '50']);
         $this->assertSame(10, $request->offset);
         $this->assertSame(50, $request->limit);
         $this->assertCount(0, $request->warnings);
@@ -58,5 +53,4 @@ class SearchDocumentsRequestTest extends TestCase
         $this->assertSame(100, $request->limit);
         $this->assertCount(1, $request->warnings);
     }
-
 }

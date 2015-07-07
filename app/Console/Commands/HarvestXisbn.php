@@ -24,8 +24,6 @@ class HarvestXisbn extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -57,5 +55,4 @@ class HarvestXisbn extends Command
         }
         $this->output->progressFinish();
     }
-
 }

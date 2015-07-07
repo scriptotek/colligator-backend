@@ -19,7 +19,7 @@ class XisbnClient
         return http_build_query(array(
             'method' => $method,
             'format' => $format,
-            'fl' => $fields
+            'fl' => $fields,
         ));
     }
 
@@ -33,6 +33,7 @@ class XisbnClient
             // TODO: Use Guzzle, so we can mock and test
             $response[$isbn] = json_decode(file_get_contents($url), true);
         }
+
         return new XisbnResponse($response);
     }
 }

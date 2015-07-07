@@ -2,8 +2,6 @@
 
 namespace Colligator\Http\Requests;
 
-use Colligator\Http\Requests\Request;
-
 class CreateCollectionRequest extends Request
 {
     /**

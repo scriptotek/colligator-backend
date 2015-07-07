@@ -18,7 +18,7 @@ class CachedImage
         $this->filesystem = $filesystem ?: \Storage::disk('s3')->getAdapter();
         $maxAge = 3153600; // 30 days
         $this->fsConfig = new FlysystemConfig([
-            'CacheControl' => 'max-age=' . $maxAge . ', public'
+            'CacheControl' => 'max-age=' . $maxAge . ', public',
         ]);
     }
 
@@ -31,6 +31,7 @@ class CachedImage
             $img = \Image::make($contents);
             $this->setMetadata($contents, $img);
         }
+
         return $this->_metadata;
     }
 
@@ -73,7 +74,7 @@ class CachedImage
     }
 
     /**
-     * Retrieves the content of an URL
+     * Retrieves the content of an URL.
      *
      * @return string
      */
@@ -85,9 +86,10 @@ class CachedImage
     }
 
     /**
-     * Store a file in cache
+     * Store a file in cache.
      *
      * @return CachedImage
+     *
      * @throws \ErrorException
      */
     public function store()
@@ -117,15 +119,16 @@ class CachedImage
     }
 
     /**
-     * Return a representation with height no more than $maxHeight
+     * Return a representation with height no more than $maxHeight.
      *
      * @param string $maxHeight
+     *
      * @return CachedImage
+     *
      * @throws \ErrorException
      */
     public function thumb($maxHeight)
     {
         return \CoverCache::put($this->sourceUrl, $maxHeight);
     }
-
 }

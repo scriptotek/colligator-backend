@@ -6,11 +6,11 @@ use Illuminate\Foundation\Http\FormRequest;
 
 abstract class Request extends FormRequest
 {
-
     /**
      * Validate the input.
      *
-     * @param  \Illuminate\Validation\Factory  $factory
+     * @param \Illuminate\Validation\Factory $factory
+     *
      * @return \Illuminate\Validation\Validator
      */
     public function validator($factory)
@@ -22,7 +22,7 @@ abstract class Request extends FormRequest
 
     /**
      * Sanitize the input.
-     * https://laracasts.com/discuss/channels/general-discussion/laravel-5-modify-input-before-validation/replies/34366
+     * https://laracasts.com/discuss/channels/general-discussion/laravel-5-modify-input-before-validation/replies/34366.
      *
      * @return array
      */

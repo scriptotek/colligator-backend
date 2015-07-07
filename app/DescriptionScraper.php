@@ -35,7 +35,7 @@ class DescriptionScraper
         }
     }
 
-    public function notify($msg, $doc, $args, $level='warning')
+    public function notify($msg, $doc, $args, $level = 'warning')
     {
         $msg = vsprintf($msg, $args);
         $docLink = sprintf('<http://colligator.biblionaut.net/api/documents/%s|#%s> ', $doc->id, $doc->id);
@@ -53,14 +53,15 @@ class DescriptionScraper
                 return $scraper->scrape($scraper->getCrawler($url));
             }
         }
-        return null;
+
+        return;
     }
 
     /**
      * Execute the job.
      *
      * @param Document $doc
-     * @param string $url
+     * @param string   $url
      */
     public function updateDocument(Document $doc, $url)
     {
@@ -68,6 +69,7 @@ class DescriptionScraper
 
         if (preg_match('/(damm.no)/', $url)) {
             \Log::debug('[DescriptionScraper] Ignoring URL: ' . $url);
+
             return;
         }
 
@@ -76,15 +78,18 @@ class DescriptionScraper
         } catch (TransferException $e) {
             \Log::error('[DescriptionScraper] Transfer failed: ' . $e->getMessage());
             $this->notify('*DescriptionScraper* failed to fetch: %s', $doc, [$url]);
+
             return;
         } catch (Scrapers\ScrapeException $e) {
             \Log::error('[DescriptionScraper] Scraping failed: ' . $e->getMessage());
             $this->notify('*DescriptionScraper* / %s failed to find a text at: %s', $doc, [$e->getMessage(), $url]);
+
             return;
         }
         if (is_null($result)) {
             \Log::error('Encountered URL not recognized by any scraper: ' . $url);
             $this->notify('*DescriptionScraper* encountered URL not recognized by any sraper: %s', $doc, [$url]);
+
             return;
         }
 

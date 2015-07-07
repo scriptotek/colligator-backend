@@ -6,9 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Cover extends Model
 {
-
     /**
-     * Default thumbnail height
+     * Default thumbnail height.
      *
      * @var array
      */
@@ -46,7 +45,7 @@ class Cover extends Model
     }
 
     /**
-     * Returns the URL to the cached image
+     * Returns the URL to the cached image.
      *
      * @return array
      */
@@ -60,13 +59,12 @@ class Cover extends Model
     }
 
     /**
-     * Returns the URL to the cached thumb image
+     * Returns the URL to the cached thumb image.
      *
      * @return array
      */
     public function getThumbAttribute()
     {
-
         return !is_null($this->thumb_key) ? [
             'url' => \CoverCache::url($this->thumb_key),
             'width' => $this->thumb_width,
@@ -75,9 +73,7 @@ class Cover extends Model
     }
 
     /**
-     * Invalidate cache
-     *
-     * @return void
+     * Invalidate cache.
      */
     public function invalidateCache()
     {
@@ -107,7 +103,7 @@ class Cover extends Model
     }
 
     /**
-     * Checks if the cover is cached
+     * Checks if the cover is cached.
      *
      * @return bool
      */
@@ -117,7 +113,7 @@ class Cover extends Model
     }
 
     /**
-     * Cache the cover and create thumbnail
+     * Cache the cover and create thumbnail.
      *
      * @throws \ErrorException
      */
@@ -128,6 +124,7 @@ class Cover extends Model
         }
         if ($this->isCached()) {
             \Log::debug('Already cached: ' . $this->url);
+
             return;
         }
 

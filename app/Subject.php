@@ -14,7 +14,7 @@ class Subject extends Model
     protected $fillable = ['vocabulary', 'term'];
 
     /**
-     * The documents indexed with the subject
+     * The documents indexed with the subject.
      */
     public function documents()
     {
@@ -23,7 +23,7 @@ class Subject extends Model
 
     public static function lookup($vocabulary, $term)
     {
-        return Subject::where('vocabulary', '=', $vocabulary)
+        return self::where('vocabulary', '=', $vocabulary)
             ->where('term', '=', $term)
             ->first();
     }

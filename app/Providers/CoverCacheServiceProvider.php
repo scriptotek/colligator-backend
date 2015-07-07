@@ -9,8 +9,6 @@ class CoverCacheServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
-     *
-     * @return void
      */
     public function boot()
     {
@@ -19,14 +17,11 @@ class CoverCacheServiceProvider extends ServiceProvider
 
     /**
      * Register the application services.
-     *
-     * @return void
      */
     public function register()
     {
-        \App::bind('covercache', function()
-        {
-            return new CoverCache;
+        \App::bind('covercache', function () {
+            return new CoverCache();
         });
     }
 }

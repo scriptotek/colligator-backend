@@ -4,9 +4,9 @@ namespace Colligator;
 
 class CoverCache
 {
-
     /**
      * @param string $key
+     *
      * @return string
      */
     public function url($key)
@@ -20,6 +20,7 @@ class CoverCache
 
     /**
      * @param string $url
+     *
      * @return CachedImage
      */
     public function get($url)
@@ -29,15 +30,17 @@ class CoverCache
 
     /**
      * @param string $url
-     * @param int $maxHeight
+     * @param int    $maxHeight
+     *
      * @return CachedImage
+     *
      * @throws \ErrorException
      */
     public function put($url, $maxHeight = 0)
     {
         $item = new CachedImage($url, $maxHeight);
         $item->store();
+
         return $item;
     }
-
 }

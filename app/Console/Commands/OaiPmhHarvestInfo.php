@@ -5,9 +5,9 @@ namespace Colligator\Console\Commands;
 use Danmichaelo\QuiteSimpleXMLElement\InvalidXMLException;
 use Illuminate\Console\Command;
 use Scriptotek\OaiPmh\ListRecordsResponse;
-use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
+use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Storage;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -29,7 +29,6 @@ class OaiPmhHarvestInfo extends Command
 
     /**
      * Create a new command instance.
-     *
      */
     public function __construct()
     {
@@ -56,7 +55,7 @@ class OaiPmhHarvestInfo extends Command
     public function handle()
     {
         $name = $this->argument('name');
-        $parser = new MarcParser;
+        $parser = new MarcParser();
 
         $files = Storage::disk('local')->files('harvests/' . $name);
 
@@ -69,17 +68,16 @@ class OaiPmhHarvestInfo extends Command
 
         $this->output->write('Reading files...');
         $this->output->progressStart(count($files));
-        foreach ($files as $filename)
-        {
+        foreach ($files as $filename) {
             $this->output->progressAdvance();
 
-            if (!preg_match('/.xml$/', $filename)) continue;
+            if (!preg_match('/.xml$/', $filename)) {
+                continue;
+            }
 
             try {
-
                 $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
                 foreach ($response->records as $record) {
-
                     $biblio = null;
                     $holdingsCount = 0;
                     $localHoldingsCount = 0;
@@ -90,15 +88,19 @@ class OaiPmhHarvestInfo extends Command
                             $biblio = $parsed;
                             $info['count'] = array_get($info, 'count', 0) + 1;
                         } elseif ($parsed instanceof HoldingsRecord) {
-                            $holdingsCount++;
+                            ++$holdingsCount;
                             if ($parsed->location == 'UBO' && $parsed->sublocation == 'UREAL') {
-                                $localHoldingsCount++;
+                                ++$localHoldingsCount;
                             }
                         }
                     }
 
-                    if ($holdingsCount > 10) $holdingsCount = 10;
-                    if ($localHoldingsCount > 10) $localHoldingsCount = 10;
+                    if ($holdingsCount > 10) {
+                        $holdingsCount = 10;
+                    }
+                    if ($localHoldingsCount > 10) {
+                        $localHoldingsCount = 10;
+                    }
                     $info['holdings_count'][$holdingsCount] = array_get($info, 'holdings_count.' . $holdingsCount, 0) + 1;
                     $info['local_holdings_count'][$localHoldingsCount] = array_get($info, 'local_holdings_count.' . $localHoldingsCount, 0) + 1;
 
@@ -108,7 +110,6 @@ class OaiPmhHarvestInfo extends Command
                         $c = count($biblio->isbns);
                         $info['isbn_count'][$c] = array_get($info, 'isbn_count.' . $c, 0) + 1;
                     }
-
                 }
             } catch (InvalidXMLException $e) {
                 $this->error('Invalid XML found! Skipping file: ' . $filename);
@@ -130,9 +131,10 @@ class OaiPmhHarvestInfo extends Command
         $this->comment('Antall lokale holdings per dokument:');
         foreach ($keys as $key) {
             $val = $info['local_holdings_count'][$key];
-            if ($key == 10) $key = '>= 10';
+            if ($key == 10) {
+                $key = '>= 10';
+            }
             $this->comment('  - ' . $key . ': ' . $val);
         }
-
     }
 }

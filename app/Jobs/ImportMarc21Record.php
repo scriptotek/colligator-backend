@@ -8,15 +8,14 @@ use Colligator\Events\Marc21RecordImported;
 use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
-use Scriptotek\SimpleMarcParser\Parser as MarcParser;
-use Scriptotek\SimpleMarcParser\ParserException;
+use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
-use Illuminate\Contracts\Bus\SelfHandling;
+use Scriptotek\SimpleMarcParser\Parser as MarcParser;
+use Scriptotek\SimpleMarcParser\ParserException;
 
 class ImportMarc21Record extends Job implements SelfHandling
 {
-
     public $record;
     public $parser;
 
@@ -28,13 +27,14 @@ class ImportMarc21Record extends Job implements SelfHandling
     public function __construct(QuiteSimpleXMLElement $record = null, MarcParser $parser = null)
     {
         $this->record = $record;
-        $this->parser = $parser ?: new MarcParser;
+        $this->parser = $parser ?: new MarcParser();
     }
 
-     /**
+    /**
      * Parse using SimpleMarcParser and separate bibliographic and holdings.
      *
      * @param QuiteSimpleXMLElement $data
+     *
      * @return array
      */
     public function parseRecord(QuiteSimpleXMLElement $data)
@@ -56,6 +56,7 @@ class ImportMarc21Record extends Job implements SelfHandling
     /**
      * @param array $biblio
      * @param array $holdings
+     *
      * @return null|Document
      */
     public function import(array $biblio, array $holdings = [])
@@ -67,11 +68,9 @@ class ImportMarc21Record extends Job implements SelfHandling
         if (isset($biblio['modified'])) {
             $biblio['modified'] = $biblio['modified']->toIso8601String();
         }
-        foreach ($holdings as &$holding)
-        {
+        foreach ($holdings as &$holding) {
             $holding['created'] = $holding['created']->toIso8601String();
-            if (isset($holding['acquired']))
-            {
+            if (isset($holding['acquired'])) {
                 $holding['acquired'] = $holding['acquired']->toIso8601String();
             }
         }
@@ -92,7 +91,8 @@ class ImportMarc21Record extends Job implements SelfHandling
 
         if (!$doc->save()) {
             $this->error("Document $biblio->id could not be saved!");
-            return null;
+
+            return;
         }
 
         // Sync subjects
@@ -120,8 +120,6 @@ class ImportMarc21Record extends Job implements SelfHandling
 
     /**
      * Execute the job.
-     *
-     * @return void
      */
     public function handle()
     {
@@ -129,6 +127,7 @@ class ImportMarc21Record extends Job implements SelfHandling
             list($biblio, $holdings) = $this->parseRecord($this->record);
         } catch (ParserException $e) {
             $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
+
             return;
         }
 
@@ -138,5 +137,4 @@ class ImportMarc21Record extends Job implements SelfHandling
             Event::fire(new Marc21RecordImported($doc->id));
         }
     }
-
 }

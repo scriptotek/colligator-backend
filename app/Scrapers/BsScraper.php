@@ -6,15 +6,13 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class BsScraper extends Scraper implements ScraperInterface
 {
-
     public function recognizes($url)
     {
-    	return strpos($url, 'bibsys.no');
+        return strpos($url, 'bibsys.no');
     }
 
-	public function scrape(Crawler $crawler)
+    public function scrape(Crawler $crawler)
     {
-
         $texts = $crawler->filter('#accordion > *')->each(function (Crawler $node) {
             return $node->text();
         });
@@ -55,5 +53,4 @@ class BsScraper extends Scraper implements ScraperInterface
 
         return $this->returnResult($text, $source);
     }
-
 }

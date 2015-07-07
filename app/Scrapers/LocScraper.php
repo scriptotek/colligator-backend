@@ -6,13 +6,12 @@ use Symfony\Component\DomCrawler\Crawler;
 
 class LocScraper extends Scraper implements ScraperInterface
 {
-
     public function recognizes($url)
     {
-    	return strpos($url, 'loc.gov');
+        return strpos($url, 'loc.gov');
     }
 
-	public function scrape(Crawler $crawler)
+    public function scrape(Crawler $crawler)
     {
         $text = $crawler->filter('body')->first()->text();
         $texts = preg_split("/\r\n|\n\n/", $text);
@@ -20,5 +19,4 @@ class LocScraper extends Scraper implements ScraperInterface
 
         return $this->returnResult($text, 'Library of Congress');
     }
-
 }

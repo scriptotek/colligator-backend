@@ -3,10 +3,6 @@
 namespace Colligator\Http\Controllers;
 
 use Colligator\Collection;
-use Illuminate\Http\Request;
-
-use Colligator\Http\Requests;
-use Colligator\Http\Controllers\Controller;
 use Colligator\Http\Requests\CreateCollectionRequest;
 
 class CollectionsController extends Controller
@@ -19,14 +15,15 @@ class CollectionsController extends Controller
     public function index()
     {
         return response()->json([
-            'collections' => Collection::all()
+            'collections' => Collection::all(),
         ]);
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function show($id)
@@ -34,11 +31,11 @@ class CollectionsController extends Controller
         $collection = Collection::find($id);
         if (is_null($collection)) {
             return response()->json([
-                'error' => 'Collection not found.'
+                'error' => 'Collection not found.',
             ]);
         } else {
             return response()->json([
-                'collection' => $collection
+                'collection' => $collection,
             ]);
         }
     }
@@ -66,7 +63,8 @@ class CollectionsController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function edit($id)
@@ -77,7 +75,8 @@ class CollectionsController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function update($id)
@@ -88,7 +87,8 @@ class CollectionsController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return Response
      */
     public function destroy($id)

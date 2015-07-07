@@ -8,11 +8,12 @@ use Elasticsearch\Common\Exceptions\Missing404Exception;
 class SearchEngine
 {
     /**
-     * Search for documents in ElasticSearch
+     * Search for documents in ElasticSearch.
      *
      * @param string $query
-     * @param int $offset
-     * @param int $limit
+     * @param int    $offset
+     * @param int    $limit
+     *
      * @return array
      */
     public function searchDocuments($query = '', $offset = 0, $limit = 25)
@@ -33,9 +34,10 @@ class SearchEngine
     }
 
     /**
-     * Return a single document identified by ID
+     * Return a single document identified by ID.
      *
      * @param int $id
+     *
      * @return array
      */
     public function getDocument($id)
@@ -48,15 +50,17 @@ class SearchEngine
         try {
             $response = \Es::get($payload);
         } catch (Missing404Exception $e) {
-            return null;
+            return;
         }
+
         return $response['_source'];
     }
 
     /**
-     * Generate payload for indexing a document in ElasticSearch
+     * Generate payload for indexing a document in ElasticSearch.
      *
      * @param Document $doc
+     *
      * @return array
      */
     public function indexDocumentPayload(Document $doc)
@@ -105,9 +109,10 @@ class SearchEngine
     }
 
     /**
-     * Add or update a document in the ElasticSearch index, making it searchable
+     * Add or update a document in the ElasticSearch index, making it searchable.
      *
      * @param Document $doc
+     *
      * @throws \ErrorException
      */
     public function indexDocument(Document $doc)
@@ -122,20 +127,21 @@ class SearchEngine
                 'body' => $payload,
             ]);
         } catch (BadRequest400Exception $e) {
-            \Log::error('ElasticSearch returned error: ' . $e->getMessage() . ". Our request: " . var_export($payload, true));
+            \Log::error('ElasticSearch returned error: ' . $e->getMessage() . '. Our request: ' . var_export($payload, true));
             throw new \ErrorException($e);
         }
     }
 
     /**
-     * Add or update a document in the ElasticSearch index, making it searchable
+     * Add or update a document in the ElasticSearch index, making it searchable.
      *
-     * @param integer $docId
+     * @param int $docId
+     *
      * @throws \ErrorException
      */
     public function indexDocumentById($docId)
     {
-        $this->indexDocument(Document::with('subjects','cover')->findOrFail($docId));
+        $this->indexDocument(Document::with('subjects', 'cover')->findOrFail($docId));
     }
 
     public function createDocumentsIndex()
@@ -143,7 +149,7 @@ class SearchEngine
         $indexParams = ['index' => 'documents'];
         $indexParams['body']['mappings']['document'] = [
             '_source' => [
-                'enabled' => true
+                'enabled' => true,
             ],
             'properties' => [
                 'id' => ['type' => 'integer'],
@@ -153,9 +159,9 @@ class SearchEngine
                     'properties' => [
                         'created' => ['type' => 'date'],
                         'acquired' => ['type' => 'date'],
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ];
         \Es::indices()->create($indexParams);
     }
@@ -163,7 +169,7 @@ class SearchEngine
     public function dropDocumentsIndex()
     {
         \Es::indices()->delete([
-            'index' => 'documents'
+            'index' => 'documents',
         ]);
     }
 }
