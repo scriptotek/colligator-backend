@@ -5,6 +5,7 @@ namespace Colligator\Jobs;
 use Colligator\DescriptionScraper;
 use Colligator\Document;
 use Colligator\Events\Marc21RecordImported;
+use Colligator\Genre;
 use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
@@ -105,6 +106,17 @@ class ImportMarc21Record extends Job implements SelfHandling
             $subject_ids[] = $subject->id;
         }
         $doc->subjects()->sync($subject_ids);
+
+        // Sync genres
+        $genre_ids = [];
+        foreach ($biblio['genres'] as $value) {
+            $genre = Genre::lookup($value['vocabulary'], $value['term']);
+            if (is_null($genre)) {
+                $genre = Genre::create($value);
+            }
+            $genre_ids[] = $genre->id;
+        }
+        $doc->genres()->sync($genre_ids);
 
         // Extract cover from bibliographic record if no local cover exists
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {
