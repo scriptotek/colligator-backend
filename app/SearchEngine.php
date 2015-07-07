@@ -2,35 +2,63 @@
 
 namespace Colligator;
 
+use Colligator\Http\Requests\SearchDocumentsRequest;
 use Elasticsearch\Common\Exceptions\BadRequest400Exception;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 
 class SearchEngine
 {
+
+    /**
+     * Builds a query string query from a SearchDocumentsRequest.
+     *
+     * @param SearchDocumentsRequest $request
+     *
+     * @return string
+     */
+    public function queryFromRequest(SearchDocumentsRequest $request)
+    {
+        $query = [];
+        if ($request->has('q')) {
+            $query[] = $request->q;
+        }
+        if ($request->has('collection')) {
+            $col = Collection::find($request->collection);
+            $query[] = 'collections:' . $col->name;
+        }
+        if ($request->has('real')) {
+            $query[] = 'subjects.noubomn.prefLabel:' . $request->real;
+        }
+        $query = count($query) ? implode(' AND ', $query) : '';
+
+        return $query;
+    }
+
     /**
      * Search for documents in ElasticSearch.
      *
-     * @param string $query
-     * @param int    $offset
-     * @param int    $limit
+     * @param SearchDocumentsRequest $request
      *
      * @return array
      */
-    public function searchDocuments($query = '', $offset = 0, $limit = 25)
+    public function searchDocuments(SearchDocumentsRequest $request)
     {
+        $query = $this->queryFromRequest($request);
         $payload = [
              'index' => 'documents',
              'type' => 'document',
              'body' => [],
-             'from' => $offset,
-             'size' => $limit,
+             'from' => $request->offset ?: 0,
+             'size' => $request->limit ?: 25,
          ];
 
         if (!empty($query)) {
             $payload['body']['query']['query_string']['query'] = $query;
         }
 
-        return \Es::search($payload);
+        $response = \Es::search($payload);
+        $response['offset'] = $payload['from'];
+        return $response;
     }
 
     /**

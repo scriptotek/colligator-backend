@@ -18,17 +18,17 @@ class DocumentsController extends Controller
     public function index(SearchDocumentsRequest $request, SearchEngine $se)
     {
         // Query ElasticSearch
-        $response = $se->searchDocuments($request->buildQuery(), $request->offset, $request->limit);
+        $response = $se->searchDocuments($request);
 
         // Build response, include pagination data
         $out = [
             'warnings' => $request->warnings,
-            'offset' => $request->offset ?: 0,
+            'offset' => $response['offset'],
             'total' => intval($response['hits']['total']),
         ];
         $hits = count($response['hits']['hits']);
-        if ($request->offset + $hits < $out['total']) {
-            $out['continue'] = $request->offset + $hits;
+        if ($response['offset'] + $hits < $out['total']) {
+            $out['continue'] = $response['offset'] + $hits;
         }
 
         $out['documents'] = [];
