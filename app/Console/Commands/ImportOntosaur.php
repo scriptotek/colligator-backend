@@ -2,6 +2,7 @@
 
 namespace Colligator\Console\Commands;
 
+use Colligator\Genre;
 use Colligator\Ontosaur;
 use Colligator\Subject;
 use EasyRdf\Graph;
@@ -75,17 +76,22 @@ class ImportOntosaur extends Command
             'document_count' => 0,
         ];
 
-        $subject = Subject::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
-        if (is_null($subject)) {
-            $this->error('[ImportOntosaur] Subject not found: "' . $labels['nb'] . '"');
-        } else {
-            $node['local_id'] = $subject->id;
+        $authority = Subject::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
+        $field = 'subjects';
+        if (is_null($authority)) {
+            $field = 'genres';
+            $authority = Genre::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
+            if (is_null($authority)) {
+                $this->error('[ImportOntosaur] Authority not found: "' . $labels['nb'] . '"');
+            }
+        }
+        if (!is_null($authority)) {
+            $node['local_id'] = $authority->id;
             $node['documents'] = action('DocumentsController@index', [
-                'q' => 'subjects.noubomn.id:' . $subject->id,
+                'q' => $field . '.noubomn.id:' . $authority->id,
             ]);
-
             // Can be used e.g. to determine bubble size in a visualization
-            $node['document_count'] = $subject->documents()->count();
+            $node['document_count'] = $authority->documents()->count();
         }
 
         return $node;
