@@ -29,7 +29,7 @@ class BsScraper extends Scraper implements ScraperInterface
                 $sections[$next] = $t;
                 $next = '';
             }
-            if (isset($sections[$t]) {
+            if (isset($sections[$t])) {
                 // It's a section heading
                 $next = $t;
             }
