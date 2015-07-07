@@ -11,46 +11,55 @@ class BsScraper extends Scraper implements ScraperInterface
         return strpos($url, 'bibsys.no');
     }
 
+    public function getSections($texts)
+    {
+        // Secion list ordered by preference
+        $sections = [
+            'Beskrivelse fra forlaget (lang)' => '',
+            'Publisher\'s description (full)' => '',
+            'Beskrivelse fra Forlagssentralen' => '',
+            'Beskrivelse fra forlaget (kort)' => '',
+            'Publisher\'s description (brief)' => '',
+            'Innholdsfortegnelse' => '',
+        ];
+
+        $next = '';
+        foreach ($texts as $t) {
+            if ($next != '') {
+                $sections[$next] = $t;
+                $next = '';
+            }
+            if (isset($sections[$t]) {
+                // It's a section heading
+                $next = $t;
+            }
+        }
+        return $sections;
+    }
+
+    public function getFirstNonEmpty($sections)
+    {
+        $text = '';
+        $source = '';
+        foreach ($sections as $k => $v) {
+            $v = explode('©', $v);
+            if (count($v) > 1 && !empty($v[0])) {
+                $text = $v[0];
+                $source = $v[1];
+                break;
+            }
+        }
+        return [$text, $source];
+    }
+
     public function scrape(Crawler $crawler)
     {
         $texts = $crawler->filter('#accordion > *')->each(function (Crawler $node) {
             return $node->text();
         });
-        $brief = '';
-        $full = '';
-        $next = '';
 
-        foreach ($texts as $t) {
-            if ($next == 'brief') {
-                $brief = $t;
-                $next = '';
-            }
-            if ($next == 'full') {
-                $full = $t;
-                $next = '';
-            }
-            if ($t == 'Beskrivelse fra forlaget (lang)' || $t == 'Publisher\'s description (full)') {
-                $next = 'full';
-            }
-            if ($t == 'Beskrivelse fra forlaget (kort)' || $t == 'Publisher\'s description (brief)') {
-                $next = 'brief';
-            }
-        }
-        if (!empty($full)) {
-            $text = $full;
-        } else {
-            $text = $brief;
-        }
-
-        $text = explode('©', $text);
-        if (count($text) > 1) {
-            $source = $text[1];
-            $text = $text[0];
-        } else {
-            $source = 'Nielsen Book Services via Bibsys';
-            $text = $text[0];
-        }
-
+        $sections = $this->getSections($texts);
+        list($text, $source) = $this->getFirstNonEmpty($sections);
         return $this->returnResult($text, $source);
     }
 }
