@@ -94,6 +94,15 @@ class SearchEngine
             ];
         }
 
+        // Add genres
+        $body['genres'] = [];
+        foreach ($doc->genres as $genre) {
+            $body['genres'][$genre['vocabulary'] ?: 'keywords'][] = [
+                'id' => array_get($genre, 'id'),
+                'prefLabel' => array_get($genre, 'term'),
+            ];
+        }
+
         // Add holdings
         $body['holdings'] = array_values(array_filter($doc->holdings, function ($holding) {
             return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
