@@ -32,6 +32,13 @@ class Document extends Model
     {
         return $this->morphedByMany('Colligator\Subject', 'authority');
     }
+
+    /**
+     * Get genres associated with this document.
+     */
+    public function genres()
+    {
+        return $this->morphedByMany('Colligator\Genre', 'authority');
     }
 
     /**
