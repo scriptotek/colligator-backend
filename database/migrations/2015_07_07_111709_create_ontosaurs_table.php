@@ -15,8 +15,8 @@ class CreateOntosaursTable extends Migration
         Schema::create('ontosaurs', function (Blueprint $table) {
             $table->increments('id');
             $table->string('url')->unique();
-            $table->text('nodes');
-            $table->text('links');
+            $table->mediumText('nodes');
+            $table->mediumText('links');
             $table->string('topnode');
             $table->timestamps();
         });

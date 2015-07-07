@@ -3,9 +3,10 @@
 namespace Colligator\Console\Commands;
 
 use Colligator\Ontosaur;
+use Colligator\Subject;
 use EasyRdf\Graph;
+use EasyRdf\Resource;
 use Illuminate\Console\Command;
-use Mockery\CountValidator\Exception;
 
 class ImportOntosaur extends Command
 {
@@ -32,17 +33,88 @@ class ImportOntosaur extends Command
         parent::__construct();
     }
 
-    protected function append_node(&$tree, $children, $name)
+    /**
+     * @param Resource $res
+     * @return array
+     */
+    public function getLabels(Resource $res)
     {
-        $tree[$name] = array();
-        if (array_key_exists($name, $children)) {
-            foreach ($children[$name] as $child) {
-                $this->append_node($tree[$name], $children, $child);
-            }
+        $languages = ['en', 'nb'];
+
+        $spl = explode('#', $res->getUri());
+
+        // TODO: Remove this when all nodes have labels in the RDF file
+        //$defaultLabel = (count($spl) > 1) ? '[' . $spl[1] . ']' : '(no label)';
+        $defaultLabel = (count($spl) > 1) ? ucfirst(str_replace('_', ' ', $spl[1])) : '(no label)';
+
+        $labels = [];
+        foreach ($res->all('skos:prefLabel') as $label) {
+            $labels[$label->getLang()] = $label->getValue();
         }
+        foreach ($languages as $lang) {
+            $lab = array_get($labels, $lang);
+            $labels[$lang] = empty($lab) ? $defaultLabel : $lab;
+        }
+        return $labels;
     }
 
-    public function getNetwork($graph)
+    /**
+     * @param Resource $res
+     * @return array
+     */
+    public function getNode(Resource $res)
+    {
+        $labels = $this->getLabels($res);
+
+        $node = [
+            'label_nb' => $labels['nb'],
+            'label_en' => $labels['en'],
+            'id' => $res->getUri(),
+            'local_id' => null,
+            'documents' => null,
+            'document_count' => 0,
+        ];
+
+        $subject = Subject::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
+        if (is_null($subject)) {
+            $this->error('[ImportOntosaur] Subject not found: "' . $labels['nb'] . '"');
+        } else {
+            $node['local_id'] = $subject->id;
+            $node['documents'] = action('DocumentsController@index', [
+                'q' => 'subjects.noubomn.id:' . $subject->id,
+            ]);
+
+            // Can be used e.g. to determine bubble size in a visualization
+            $node['document_count'] = $subject->documents()->count();
+        }
+
+        return $node;
+    }
+
+    /**
+     * @param Resource $res
+     * @return array
+     */
+    public function getLinks(Resource $res)
+    {
+        $links = [];
+        foreach ($res->all('skos:broader') as $broader) {
+            $links[] = [
+                'source' => $broader->getUri(),
+                'target' => $res->getUri(),
+            ];
+        }
+        return $links;
+    }
+
+    /**
+     * Get arrays of nodes and links from an RDF graph.
+     *
+     * @param $graph
+     * @return array
+     * @throws \Exception
+     */
+    public function getNetwork(Graph $graph)
     {
         $nodes = [];
         $links = [];
@@ -50,33 +122,12 @@ class ImportOntosaur extends Command
 
         foreach ($graph->resources() as $res) {
             if (in_array('skos:Concept', $res->types())) {
-                $labels = [];
-                foreach ($res->all('skos:prefLabel') as $label) {
-                    if (!empty($label->getValue())) {
-                        $labels[$label->getLang()] = $label->getValue();
-                    }
-                }
-
-                $spl = explode('#', $res->getUri());
-                $noLabel = (count($spl) > 1) ? '[' . $spl[1] . ']' : '(no label)';
-
-                $nodes[] = [
-                    'label_nb' => array_get($labels, 'nb', $noLabel),
-                    'label_en' => array_get($labels, 'en', $noLabel),
-                    'id' => $res->getUri(),
-                    'usage' => 1,  // TODO: number of books, can use this for setting bubble size
-                ];
-                echo ".";
-                $broaderNodes = $res->all('skos:broader');
-                if (!count($broaderNodes)) {
+                $nodes[] = $this->getNode($res);
+                $nodeLinks = $this->getLinks($res);
+                if (!count($nodeLinks)) {
                     $topNodes[] = $res->getUri();
                 }
-                foreach ($broaderNodes as $broader) {
-                    $links[] = [
-                        'source' => $broader->getUri(),
-                        'target' => $res->getUri(),
-                    ];
-                }
+                $links = array_merge($links, $nodeLinks);
             }
         }
 
@@ -85,46 +136,6 @@ class ImportOntosaur extends Command
         }
 
         return [$nodes, $links, $topNodes[0]];
-    }
-
-    public function getTree($graph)
-    {
-        $children = array();
-        $labels = array();
-        $topNodes = [];
-
-        foreach ($graph->resources() as $res) {
-            if (in_array('skos:Concept', $res->types())) {
-                echo ".";
-                $broaderNodes = $res->all('skos:broader');
-                if (!count($broaderNodes)) {
-                    $topNodes[] = $res->getUri();
-                }
-                foreach ($broaderNodes as $broader) {
-                    $c = array_get($children, $broader->getUri(), []);
-                    $c[] = $res->getUri();
-                    $children[$broader->getUri()] = $c;
-                    $flatlist[] = $res->getUri();
-                }
-
-                foreach ($res->all('skos:prefLabel') as $label) {
-                    array_set($labels, $res->getUri() . '.' . $label->getLang(), $label->getValue());
-                }
-            }
-        }
-
-        $flatlist = array_unique($flatlist);
-
-        $this->info('Flatlist: ' . count($flatlist));
-
-
-
-        $tree = array();
-        $this->append_node($tree, $children, $topNodes[0]);
-
-        var_dump($tree);
-
-        return [$tree, $topNodes];
     }
 
     /**
@@ -143,6 +154,6 @@ class ImportOntosaur extends Command
         $saur->links = $links;
         $saur->topnode = $topnode;
         $saur->save();
-        $this->info('Yo!');
+        $this->info('[ImportOntosaur] Completed. Have ' . count($nodes) . ' nodes, ' . count($links) . ' links.');
     }
 }
