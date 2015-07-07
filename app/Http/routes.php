@@ -18,9 +18,10 @@ Route::group(['middleware' => 'cors'], function () {
     });
 
     Route::resource('api/collections', 'CollectionsController');
-
     Route::resource('api/documents', 'DocumentsController',
                     ['only' => ['index', 'show']]);
+    Route::resource('api/ontosaurs', 'OntosaurController',
+        ['only' => ['index', 'show']]);
 
     Route::get('api/documents/{documents}/cover',
         ['as' => 'api.documents.cover.show', 'uses' => 'DocumentsController@cover']);

@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         Commands\CreateCollection::class,
         Commands\Reindex::class,
         Commands\HarvestXisbn::class,
+        Commands\ImportOntosaur::class,
     ];
 
     /**

@@ -85,9 +85,15 @@ Returns list of all documents, optionally filtered by a {collection-id} and a {q
 		]
 	}
 
+Example queries:
+
+* Documents acquired since Jan 1, 2015:
+/api/documents?collection=1&q=acquired:{2015-01-01%20TO%20*}
+
+
 ### GET /api/documents/{document-id}
 
-Returns a specific document
+Returns a single document
 
 	{
 		"id": <document-id>
@@ -106,9 +112,16 @@ Returns a specific document
 		],
 		"cover": {
 			"url": "…",
-			"cached": "",
-			"width": "",
-			"height": "",
+			"cached": {
+				"url": "https://...",
+				"width": "",
+				"height": "",
+			},
+			"thumb": {
+				"url": "https://...",
+				"width": "",
+				"height": "",
+			}
 		},
 		"creators": [
 			{
@@ -117,19 +130,36 @@ Returns a specific document
 		]
 	}
 
-Get list of documents related 
+### GET /api/ontosaurs
 
-	GET /api/subjects/<subject-id>
+Returns list of all ontosaurs
+
 	{
-		"id": <document-id>
-		"collections": [
+		"ontosaurs": [
 			{
-				"id": <collection-id>,
-				"name": "Samling 42"
+				"id": <ontosaur-id>,
+				"nodes": […],
+				"links": […],
+				"topnode": "…"
+			},
+			{
+				…
 			}
-		],
+		]
 	}
 
+### GET /api/ontosaurs/{ontosaur-id}
+
+Returns a single ontosaur
+
+	{
+		"ontosaur": {
+			"id": <ontosaur-id>,
+			"nodes": […],
+			"links": […],
+			"topnode": "…"
+		}
+	}
 
 ### Authenticated
 
@@ -169,8 +199,8 @@ Store description:
 	bibliographic (JSON blurb) the bibliographic record
 	holdings (JSON blurb) array of holdings records
 	xisbn (JSON blurb) extra ISBN numbers
-	description  (JSON blurb)  descriptionw
-	
+	description  (JSON blurb)  description
+
 	subjects
 	--------
 	id int
