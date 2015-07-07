@@ -26,11 +26,12 @@ class Document extends Model
     ];
 
     /**
-     * The subjects belonging to the document.
+     * Get subjects associated with this document.
      */
     public function subjects()
     {
-        return $this->belongsToMany('Colligator\Subject');
+        return $this->morphedByMany('Colligator\Subject', 'authority');
+    }
     }
 
     /**

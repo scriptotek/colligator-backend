@@ -18,7 +18,7 @@ class Subject extends Model
      */
     public function documents()
     {
-        return $this->belongsToMany('Colligator\Document');
+        return $this->morphToMany('Colligator\Document', 'authority');
     }
 
     public static function lookup($vocabulary, $term)

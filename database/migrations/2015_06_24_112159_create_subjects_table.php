@@ -18,7 +18,7 @@ class CreateSubjectsTable extends Migration
             $table->string('vocabulary')->nullable();
             $table->string('term');
             $table->string('uri')->nullable();
-            $table->index('vocabulary', 'term');
+            $table->index(['vocabulary', 'term']);
         });
 
         Schema::create('document_subject', function (Blueprint $table) {
