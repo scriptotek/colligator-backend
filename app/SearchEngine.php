@@ -99,7 +99,7 @@ class SearchEngine
         $body['bibsys_id'] = $doc->bibsys_id;
 
         // Remove some stuff we don't need
-        foreach (['agency', 'catalogingRules', 'debug', 'modified', 'is_series', 'is_multivolume', 'extent', 'cover_image'] as $key) {
+        foreach (['agency', 'catalogingRules', 'debug', 'modified', 'extent', 'cover_image'] as $key) {
             unset($body[$key]);
         }
 
