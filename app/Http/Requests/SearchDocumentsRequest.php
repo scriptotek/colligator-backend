@@ -15,7 +15,7 @@ class SearchDocumentsRequest extends Request
     {
 
         // TODO: Move to some config file
-        $maxResultsPerRequest = 100;
+        $maxResultsPerRequest = 1000;
         $maxPaginationDepth = 10000;
 
         $input = $this->all();
