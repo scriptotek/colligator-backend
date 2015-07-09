@@ -30,6 +30,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public $fromDump;
     public $maxRetries;
     public $sleepTimeOnError;
+    public $importedDocuments;
 
     /**
      * @var Collection $collection
@@ -81,15 +82,18 @@ class OaiPmhHarvest extends Job implements SelfHandling
     /**
      *
      */
-    public function imported($doc_id)
+    public function imported($docId)
     {
-        $doc = Document::with('subjects', 'genres', 'cover')->find($doc_id);
+        $doc = Document::with('subjects', 'genres', 'cover')->find($docId);
+
         if (!$this->collection->documents->contains($doc->id)) {
             $this->collection->documents()->attach($doc->id);
         }
 
         // Add/update ElasticSearch
         $this->searchEngine->indexDocument($doc);
+
+        $this->importedDocuments[] = $docId;
     }
 
     /**
@@ -105,44 +109,20 @@ class OaiPmhHarvest extends Job implements SelfHandling
             }
             $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
             foreach ($response->records as $record) {
-                $doc_id = $this->importer->import($record->data);
-                $this->imported($doc_id);
+                $docId = $this->importer->import($record->data);
+                $this->imported($docId);
                 ++$recordsHarvested;
                 if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                     Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
                 }
             }
         }
-        Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
+        return $recordsHarvested;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @param SearchEngine $searchEngine
-     * @param Marc21Importer $importer
-     * @throws BadRequestError
-     * @throws \Exception
-     */
-    public function handle(SearchEngine $searchEngine, Marc21Importer $importer)
+    public function fromNetwork()
     {
-        $this->searchEngine = $searchEngine;
-        $this->importer = $importer;
-
         $dest_path = 'harvests/' . $this->name . '/';
-
-        $this->collection = Collection::where('name', '=', $this->name)->first();
-        if (is_null($this->collection)) {
-            $this->error("Collection '$this->name' not found in DB");
-
-            return;
-        }
-
-        if ($this->fromDump) {
-            $this->fromDump();
-
-            return;
-        }
 
         Storage::disk('local')->deleteDir($dest_path);
 
@@ -200,8 +180,8 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 Storage::disk('local')->move($latest, sprintf('%s/response_%08d.xml', $dest_path, $currentIndex));
             }
 
-            $doc_id = $this->importer->import($record->data);
-            $this->imported($doc_id);
+            $docId = $this->importer->import($record->data);
+            $this->imported($docId);
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
@@ -226,6 +206,39 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 }
             }
         }
+        return $recordsHarvested;
+    }
+
+    /**
+     * Execute the job.
+     *
+     * @param SearchEngine $searchEngine
+     * @param Marc21Importer $importer
+     * @throws BadRequestError
+     * @throws \Exception
+     */
+    public function handle(SearchEngine $searchEngine, Marc21Importer $importer)
+    {
+        $this->searchEngine = $searchEngine;
+        $this->importer = $importer;
+
+        $this->collection = Collection::where('name', '=', $this->name)->first();
+        if (is_null($this->collection)) {
+            $this->error("Collection '$this->name' not found in DB");
+
+            return;
+        }
+
+        $this->importedDocuments = [];
+
+        if ($this->fromDump) {
+            $recordsHarvested = $this->fromDump();
+        } else {
+            $recordsHarvested = $this->fromNetwork();
+        }
+
+        // $this->postProcess($this->importedDocuments);
+
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }
 }
