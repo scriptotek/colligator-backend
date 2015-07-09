@@ -184,6 +184,17 @@ class SearchEngine
     public function createDocumentsIndex()
     {
         $indexParams = ['index' => 'documents'];
+        $indexParams['body']['settings']['analysis']['char_filter']['isbn_filter'] = [
+            'type' => 'pattern_replace',
+            'pattern' => '-',
+            'replacement' => '',
+        ];
+        $indexParams['body']['settings']['analysis']['analyzer']['isbn_analyzer'] = [
+            'type' => 'custom',
+            'char_filter' => ['isbn_filter'],
+            'tokenizer' => 'keyword',
+            'filter' => ['lowercase'],
+        ];
         $indexParams['body']['mappings']['document'] = [
             '_source' => [
                 'enabled' => true,
@@ -192,6 +203,11 @@ class SearchEngine
                 'id' => ['type' => 'integer'],
                 'created' => ['type' => 'date'],
                 'modified' => ['type' => 'date'],
+                'bibsys_id' => ['type' => 'string', 'index' => 'not_analyzed'],
+                'isbns' => [
+                    'type' => 'string',
+                    'analyzer' => 'isbn_analyzer'
+                ],
                 'holdings' => [
                     'properties' => [
                         'created' => ['type' => 'date'],
