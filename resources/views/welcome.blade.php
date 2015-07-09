@@ -145,8 +145,8 @@
 <ul>
 
     <li>
-        <a href="/api/documents?collection=1&real=Havforskning">
-            /api/documents?collection=1&amp;real=Havforskning
+        <a href="/api/documents?collection=1&amp;real=Havforskning">
+            ?collection=1&amp;real=Havforskning
         </a>
         –
         <em>documents in the 'samling42' collection indexed with
@@ -155,14 +155,21 @@
     </li>
 
     <li>
-        <a href="/api/documents?collection=1&creator=x90053072">
-            creator.id:x90053072
+        <a href="/api/documents?q=creator.id:x90053072">
+            ?q=creator.id:x90053072
         </a>
         –
         <em>documents having
         <a href="https://authority.bibsys.no:443/authority/rest/functions/identifier/autid?id=x90053072&format=json
 ">x90053072</a>
         as one of the creators.</em>
+    </li>
+    <li>
+        <a href="/api/documents?q=acquired:{2015-01-01%20TO%20*}">
+            ?q=acquired:{2015-01-01 TO *}
+        </a>
+        –
+        <em>acquired since January 1st, 2015</em>
     </li>
 
 </ul>
