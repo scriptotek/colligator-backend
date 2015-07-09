@@ -132,9 +132,7 @@ class SearchEngine
         }
 
         // Add holdings
-        $body['holdings'] = array_values(array_filter($doc->holdings, function ($holding) {
-            return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
-        }));
+        $this->addHoldings($body, $doc);
 
         // Add xisbns
         $body['xisbns'] = (new XisbnResponse($doc->xisbn))->getSimpleRepr();
@@ -142,7 +140,48 @@ class SearchEngine
         // Add description
         $body['description'] = $doc->description;
 
+        // Add 'other form'
+        $otherFormId = array_get($body, 'other_form.id');
+        if (!empty($otherFormId)) {
+            $otherFormDoc = Document::where('bibsys_id', '=', $otherFormId)->firstOrFail();
+            $body['other_form'] = [
+                'id' => $otherFormDoc->id,
+                'bibsys_id' => $otherFormDoc->bibsys_id,
+                'electronic' => $otherFormDoc->isElectronic(),
+            ];
+            $this->addHoldings($body['other_form'], $otherFormDoc);
+            echo " $doc->id ";
+        }
+
         return $body;
+    }
+
+    public function addHoldings(&$body, Document $doc)
+    {
+        if ($doc->isElectronic()) {
+            $body['fulltext'] = $this->fulltextFromHoldings($doc->holdings);
+        } else {
+            $body['holdings'] = array_values(array_filter($doc->holdings, function ($holding) {
+                return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
+            }));
+        }
+    }
+
+    public function fulltextFromHoldings($holdings)
+    {
+        $fulltext = [
+            'access' => false,
+        ];
+        foreach ($holdings as $holding) {
+            if (!count($holding['fulltext'])) {
+                continue;
+            }
+            if ($holding['location'] == 'UBO' || stripos($holding['fulltext'][0]['comment'], 'gratis') !== false) {
+                $fulltext = $holding['fulltext'][0];
+                $fulltext['access'] = true;
+            }
+        }
+        return $fulltext;
     }
 
     /**

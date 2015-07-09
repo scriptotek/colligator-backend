@@ -91,6 +91,22 @@ class Marc21Importer
             return;
         }
 
+        // Check other form
+        $other_id = array_get($biblio, 'other_form.id');
+        if (!empty($other_id)) {
+            // TODO: Add a separate jobb that updates e-books weekly or so..
+            $doc2 = Document::where('bibsys_id', '=', $other_id)->first();
+            if (is_null($doc2)) {
+                $record = \SruClient::first('bs.objektid=' . $other_id);
+                \Log::debug('Importing related record ' . $other_id);
+                if (is_null($record)) {
+                    die("uh oh");
+                } else {
+                    $this->import($record->data);
+                }
+            }
+        }
+
         // Sync subjects
         $subject_ids = [];
         foreach ($biblio['subjects'] as $value) {

@@ -26,6 +26,7 @@ $factory->define(Colligator\Document::class, function (\Faker\Generator $faker) 
         'bibsys_id' => $bs_id,
         'bibliographic' => [
             'id' => $bs_id,
+            'electronic' => false,
             'title' => $faker->sentence(),
             'isbns' => [$faker->isbn13, $faker->isbn13, $faker->isbn13]
         ],

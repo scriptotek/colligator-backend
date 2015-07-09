@@ -144,6 +144,8 @@ return [
         Barryvdh\Cors\ServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
         Maknz\Slack\SlackServiceProvider::class,
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
+        Scriptotek\Sru\Providers\SruServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -152,7 +154,6 @@ return [
         Colligator\Providers\EventServiceProvider::class,
         Colligator\Providers\RouteServiceProvider::class,
         Colligator\Providers\CoverCacheServiceProvider::class,
-        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
 
     ],
 
@@ -204,6 +205,7 @@ return [
         'CoverCache' => Colligator\Facades\CoverCache::class,
         'Image'     => Intervention\Image\Facades\Image::class,
         'Slack'     => Maknz\Slack\Facades\Slack::class,
+        'SruClient' => Scriptotek\Sru\Facades\SruClient::class,
 
     ],
 

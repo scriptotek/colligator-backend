@@ -20,7 +20,8 @@
         "maknz/slack": "~1.7",
         "fabpot/goutte": "^3.1@dev",
         "easyrdf/easyrdf": "dev-master",
-        "ml/json-ld": "~1.0"
+        "ml/json-ld": "~1.0",
+        "scriptotek/sru-client": "dev-master"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

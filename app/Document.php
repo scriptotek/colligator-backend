@@ -69,4 +69,9 @@ class Document extends Model
 
         return $cover;
     }
+
+    public function isElectronic()
+    {
+        return $this->bibliographic['electronic'];
+    }
 }
