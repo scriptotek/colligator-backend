@@ -150,7 +150,6 @@ class SearchEngine
                 'electronic' => $otherFormDoc->isElectronic(),
             ];
             $this->addHoldings($body['other_form'], $otherFormDoc);
-            echo " $doc->id ";
         }
 
         return $body;
