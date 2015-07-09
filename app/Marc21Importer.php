@@ -1,21 +1,18 @@
 <?php
 
-namespace Colligator\Jobs;
+namespace Colligator;
 
-use Colligator\DescriptionScraper;
 use Colligator\Document;
 use Colligator\Events\Marc21RecordImported;
-use Colligator\Genre;
 use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
-use Illuminate\Contracts\Bus\SelfHandling;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
 use Scriptotek\SimpleMarcParser\ParserException;
 
-class ImportMarc21Record extends Job implements SelfHandling
+class Marc21Importer
 {
     public $record;
     public $parser;
@@ -25,10 +22,10 @@ class ImportMarc21Record extends Job implements SelfHandling
      *
      * @param $record
      */
-    public function __construct(QuiteSimpleXMLElement $record = null, MarcParser $parser = null)
+    public function __construct(MarcParser $parser = null, DescriptionScraper $scraper)
     {
-        $this->record = $record;
         $this->parser = $parser ?: new MarcParser();
+        $this->scraper = $scraper ?: new DescriptionScraper();
     }
 
     /**
@@ -60,7 +57,7 @@ class ImportMarc21Record extends Job implements SelfHandling
      *
      * @return null|Document
      */
-    public function import(array $biblio, array $holdings = [])
+    public function importParsedRecord(array $biblio, array $holdings = [])
     {
         // Convert Carbon date objects to ISO8601 strings
         if (isset($biblio['created'])) {
@@ -76,8 +73,6 @@ class ImportMarc21Record extends Job implements SelfHandling
             }
         }
 
-        $scraper = new DescriptionScraper();
-
         // Find existing Document or create a new one
         $doc = Document::firstOrNew(['bibsys_id' => $biblio['id']]);
 
@@ -87,7 +82,7 @@ class ImportMarc21Record extends Job implements SelfHandling
 
         // Extract description from bibliographic record if no description exists
         if (isset($biblio['description']) && is_null($doc->description)) {
-            $scraper->updateDocument($doc, $biblio['description']);
+            $this->scraper->updateDocument($doc, $biblio['description']);
         }
 
         if (!$doc->save()) {
@@ -133,20 +128,22 @@ class ImportMarc21Record extends Job implements SelfHandling
     /**
      * Execute the job.
      */
-    public function handle()
+    public function import(QuiteSimpleXMLElement $record)
     {
+
         try {
-            list($biblio, $holdings) = $this->parseRecord($this->record);
+            list($biblio, $holdings) = $this->parseRecord($record);
         } catch (ParserException $e) {
             $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
 
             return;
         }
 
-        $doc = $this->import($biblio, $holdings);
+        $doc = $this->importParsedRecord($biblio, $holdings);
 
         if (!is_null($doc)) {
             Event::fire(new Marc21RecordImported($doc->id));
         }
+        return $doc->id;
     }
 }

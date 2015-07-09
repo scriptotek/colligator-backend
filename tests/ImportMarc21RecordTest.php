@@ -1,7 +1,7 @@
 <?php
 
 use Carbon\Carbon;
-use Colligator\Jobs\ImportMarc21Record;
+use Colligator\Marc21Importer;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 
@@ -20,7 +20,7 @@ class ImportMarc21RecordTest extends TestCase
         $mock->shouldReceive('save')->andReturn(false);
 
         // TODO: Mocken funker ikke
-        // $importer = new ImportMarc21Record;
+        // $importer = new Marc21Importer;
         // $importer->import($bib->toArray());
         // $this->assertSame('1985-03-25T00:00:00', $mockDoc->bibliographic['created']);
     }

@@ -6,6 +6,7 @@ use Colligator\Collection;
 use Colligator\Document;
 use Colligator\Events\OaiPmhHarvestComplete;
 use Colligator\Events\OaiPmhHarvestStatus;
+use Colligator\Marc21Importer;
 use Colligator\SearchEngine;
 use Event;
 use Illuminate\Contracts\Bus\SelfHandling;
@@ -31,6 +32,21 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public $sleepTimeOnError;
 
     /**
+     * @var Collection $collection
+     */
+    public $collection;
+
+    /**
+     * @var Marc21Importer $importer
+     */
+    public $importer;
+
+    /**
+     * @var SearchEngine $searchEngine
+     */
+    public $searchEngine;
+
+    /**
      * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
      * A too small number will cause CPU overhead.
      *
@@ -46,6 +62,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
      * @param string $start  Start date (optional)
      * @param string $until  End date (optional)
      * @param string $resume Resumption token for continuing an aborted harvest (optional)
+     * @param boolean $fromDump Import from local dump
      */
     public function __construct($name, $config, $start = null, $until = null, $resume = null, $fromDump = false)
     {
@@ -62,6 +79,20 @@ class OaiPmhHarvest extends Job implements SelfHandling
     }
 
     /**
+     *
+     */
+    public function imported($doc_id)
+    {
+        $doc = Document::with('subjects', 'genres', 'cover')->find($doc_id);
+        if (!$this->collection->documents->contains($doc->id)) {
+            $this->collection->documents()->attach($doc->id);
+        }
+
+        // Add/update ElasticSearch
+        $this->searchEngine->indexDocument($doc);
+    }
+
+    /**
      * Import local XML dump rather than talking to the OAI-PMH server.
      */
     public function fromDump()
@@ -74,7 +105,8 @@ class OaiPmhHarvest extends Job implements SelfHandling
             }
             $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
             foreach ($response->records as $record) {
-                $this->dispatch(new ImportMarc21Record($record->data));
+                $doc_id = $this->importer->import($record->data);
+                $this->imported($doc_id);
                 ++$recordsHarvested;
                 if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                     Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
@@ -86,27 +118,25 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
     /**
      * Execute the job.
+     *
+     * @param SearchEngine $searchEngine
+     * @param Marc21Importer $importer
+     * @throws BadRequestError
+     * @throws \Exception
      */
-    public function handle(SearchEngine $searchEngine)
+    public function handle(SearchEngine $searchEngine, Marc21Importer $importer)
     {
+        $this->searchEngine = $searchEngine;
+        $this->importer = $importer;
+
         $dest_path = 'harvests/' . $this->name . '/';
 
-        $collection = Collection::where('name', '=', $this->name)->first();
-        if (is_null($collection)) {
+        $this->collection = Collection::where('name', '=', $this->name)->first();
+        if (is_null($this->collection)) {
             $this->error("Collection '$this->name' not found in DB");
 
             return;
         }
-
-        Event::listen('Colligator\Events\Marc21RecordImported', function ($event) use ($collection, $searchEngine) {
-            $doc = Document::with('subjects', 'cover')->find($event->id);
-            if (!$collection->documents->contains($doc->id)) {
-                $collection->documents()->attach($doc->id);
-            }
-
-            // Add/update ElasticSearch
-            $searchEngine->indexDocument($doc);
-        });
 
         if ($this->fromDump) {
             $this->fromDump();
@@ -170,7 +200,8 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 Storage::disk('local')->move($latest, sprintf('%s/response_%08d.xml', $dest_path, $currentIndex));
             }
 
-            $this->dispatch(new ImportMarc21Record($record->data));
+            $doc_id = $this->importer->import($record->data);
+            $this->imported($doc_id);
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
