@@ -50,7 +50,7 @@ class SearchDocumentsRequestTest extends TestCase
     public function testMaxLimit()
     {
         $request = $this->newReq(['limit' => '100000000']);
-        $this->assertSame(100, $request->limit);
+        $this->assertSame(1000, $request->limit);
         $this->assertCount(1, $request->warnings);
     }
 }
