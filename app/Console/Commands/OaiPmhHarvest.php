@@ -113,10 +113,6 @@ class OaiPmhHarvest extends Command
             return;
         }
 
-        // The query log is kept in memory, so we should disable it for long-running
-        // tasks to prevent memory usage from increasing linearly over time
-        \DB::connection()->disableQueryLog();
-
         $harvestName = $this->argument('name');
         $harvestConfig = \Config::get('oaipmh.harvests.' . $harvestName, null);
         if (is_null($harvestConfig)) {
