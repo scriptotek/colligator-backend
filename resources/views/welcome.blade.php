@@ -171,6 +171,13 @@
         –
         <em>acquired since January 1st, 2015</em>
     </li>
+    <li>
+        <a href="/api/documents?q=electronic.false%20AND%20other_form.fulltext.access:true">
+            ?q=electronic:false AND other_form.fulltext.access:true
+        </a>
+        –
+        <em>physical books that we also have as e-books</em>
+    </li>
 
 </ul>
 
