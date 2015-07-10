@@ -160,9 +160,16 @@ class SearchEngine
         if ($doc->isElectronic()) {
             $body['fulltext'] = $this->fulltextFromHoldings($doc->holdings);
         } else {
-            $body['holdings'] = array_values(array_filter($doc->holdings, function ($holding) {
-                return $holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL';
-            }));
+            $holdings = [];
+            foreach ($doc->holdings as $holding) {
+                if ($holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL') {
+                    array_forget($holding, 'fulltext');
+                    array_forget($holding, 'bibliographic_record');
+                    array_forget($holding, 'nonpublic_notes');
+                    $holdings[] = $holding;
+                }
+            }
+            $body['holdings'] = $holdings;
         }
     }
 
