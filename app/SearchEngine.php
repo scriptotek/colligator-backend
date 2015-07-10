@@ -119,6 +119,7 @@ class SearchEngine
                 'id' => array_get($subject, 'id'),
                 'prefLabel' => array_get($subject, 'term'),
                 'type' => array_get($subject, 'type'),
+                'count' => count($subject->documents),
             ];
         }
 

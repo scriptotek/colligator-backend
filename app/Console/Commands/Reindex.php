@@ -45,13 +45,20 @@ class Reindex extends Command
         $se->dropDocumentsIndex();
         $se->createDocumentsIndex();
 
+        $t0 = microtime(true);
         $this->output->progressStart(Document::count());
-        foreach (Document::with('subjects', 'genres', 'cover')->get() as $doc) {
-            $se->indexDocument($doc);
+        $docs = Document::with('subjects', 'genres', 'cover')->get();
+        for ($i=0; $i < count($docs); $i++) {
+            $se->indexDocument($docs[$i]);
+            unset($docs[$i]);
+            // $mem = round(memory_get_usage() / 1024 / 102.4) / 10;
+            // echo "$mem MB \n";
             $this->output->progressAdvance();
         }
         $this->output->progressFinish();
         \Artisan::call('up');
-        // }
+
+        $dt = microtime(true) - $t0;
+        $this->info('Completed in ' . round($dt) . ' seconds.');
     }
 }
