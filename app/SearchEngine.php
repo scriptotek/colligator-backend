@@ -155,21 +155,38 @@ class SearchEngine
         return $body;
     }
 
+    public function sortableCallCode($holding)
+    {
+        if ($holding['shelvinglocation'] == 'UREAL Samling 42') {
+            $m = preg_match('/FA ([0-9]+)(\/([A-Z]))?/', $holding['callcode'], $matches);
+            if ($m) {
+                return intval($matches[1]);
+                // TODO: Også ta hensyn til undersortering i $matches[3], men
+                // denne er en blanding av romertall og alfabetisk sortering
+                // https://github.com/scriptotek/colligator-backend/issues/28
+            }
+        }
+        return null;
+    }
+
     public function addHoldings(&$body, Document $doc)
     {
         if ($doc->isElectronic()) {
             $body['fulltext'] = $this->fulltextFromHoldings($doc->holdings);
         } else {
-            $holdings = [];
+            $body['holdings'] = [];
             foreach ($doc->holdings as $holding) {
                 if ($holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL') {
                     array_forget($holding, 'fulltext');
                     array_forget($holding, 'bibliographic_record');
                     array_forget($holding, 'nonpublic_notes');
-                    $holdings[] = $holding;
+                    $s = $this->sortableCallCode($holding);
+                    if (!is_null($s)) {
+                        $holding['callcodeSortable'] = $s;
+                    }
+                    $body['holdings'][] = $holding;
                 }
             }
-            $body['holdings'] = $holdings;
         }
     }
 
