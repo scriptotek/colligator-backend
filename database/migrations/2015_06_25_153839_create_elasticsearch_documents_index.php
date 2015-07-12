@@ -1,6 +1,6 @@
 <?php
 
-use Colligator\SearchEngine;
+use Colligator\Search\DocumentsIndex;
 
 class CreateElasticsearchDocumentsIndex
 {
@@ -13,8 +13,9 @@ class CreateElasticsearchDocumentsIndex
     {
         // Not sure if we should test ElasticSearch or just mock it
         if (env('APP_ENV') == 'testing') return;
-        $se = app('Colligator\SearchEngine');
-        $se->createDocumentsIndex();
+        $se = app('Colligator\Search\DocumentsIndex');
+        $se->createVersion(1);
+        $se->activateVersion(1);
     }
 
     /**
@@ -25,7 +26,7 @@ class CreateElasticsearchDocumentsIndex
     public function down()
     {
         if (env('APP_ENV') == 'testing') return;
-        $se = app('Colligator\SearchEngine');
-        $se->dropDocumentsIndex();
+        $se = app('Colligator\Search\DocumentsIndex');
+        $se->dropVersion(1);
     }
 }

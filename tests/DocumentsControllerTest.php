@@ -8,15 +8,21 @@ class DocumentsControllerTest extends TestCase
 {
     use DatabaseMigrations;
 
+    public function esMock()
+    {
+        $this->mock = \Mockery::mock('Elasticsearch\Client');
+        \App::instance('Elasticsearch\Client', $this->mock);
+        return $this->mock;
+    }
+
     public function testPostingSmallCoverShouldNotCauseThumbnailGeneration()
     {
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
 
-        \Es::shouldReceive('index')
+        $this->esMock()->shouldReceive('index')
             ->once()
             ->with(\Mockery::on(function ($doc) use ($exampleUrl) {
                 $this->assertSame($exampleUrl, array_get($doc, 'body.cover.url'));
-
                 return true;
             }));
 
@@ -43,7 +49,7 @@ class DocumentsControllerTest extends TestCase
     {
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
 
-        \Es::shouldReceive('index')->times(1);
+        $this->esMock()->shouldReceive('index')->once();
 
         $mock2 = \Mockery::mock('Colligator\CachedImage');
         $mock2->shouldReceive('width')->once()->andReturn(600);
@@ -72,7 +78,9 @@ class DocumentsControllerTest extends TestCase
     public function testPostingTheSameCoverTwiceShouldNotCauseTwoCachingRequests()
     {
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
-        \Es::shouldReceive('index')->times(2);
+
+        $this->esMock()->shouldReceive('index')->times(2);
+
         $mock = \Mockery::mock('Colligator\CachedImage');
         $mock->shouldReceive('width')->once()->andReturn(300);
         $mock->shouldReceive('height')->twice()->andReturn(500);
@@ -94,7 +102,9 @@ class DocumentsControllerTest extends TestCase
 
     public function testPostCoverInvalidRequest()
     {
-        \Es::shouldReceive('index')->times(0);
+
+        $this->esMock()->shouldReceive('index')->never();
+
         \CoverCache::shouldReceive('store')->times(0);
 
         // Generate dummy data
@@ -108,7 +118,7 @@ class DocumentsControllerTest extends TestCase
 
     public function testShowCover()
     {
-        \Es::shouldReceive('index')->times(0);
+        $this->esMock()->shouldReceive('index')->never();
 
         // Generate dummy data
         $doc = factory(Document::class)->create();
@@ -122,7 +132,8 @@ class DocumentsControllerTest extends TestCase
     public function testPostDescription()
     {
         $faker = \Faker\Factory::create();
-        \Es::shouldReceive('index')->times(1);
+
+        $this->esMock()->shouldReceive('index')->once();
 
         // Generate dummy data
         factory(Document::class)->create();
@@ -143,7 +154,7 @@ class DocumentsControllerTest extends TestCase
 
     public function testPostDescriptionInvalidRequest()
     {
-        \Es::shouldReceive('index')->times(0);
+        $this->esMock()->shouldReceive('index')->never();
 
         // Generate dummy data
         factory(Document::class)->create();

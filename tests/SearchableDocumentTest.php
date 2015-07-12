@@ -5,16 +5,14 @@ use Colligator\Subject;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class SearchEngineTest extends TestCase
+class SearchableDocumentTest extends TestCase
 {
     // Rollback after each test
     // use DatabaseTransactions;
     use DatabaseMigrations;  // TODO: Use DatabaseTransactions instead, but then we need to use mysql and migrate before running tests
 
-    public function testIndexDocumentPayload()
+    public function testToArray()
     {
-        $se = app('Colligator\SearchEngine');
-
         // Generate dummy data
         $doc = factory(Document::class)->create();
         factory(Subject::class, 5)
@@ -26,7 +24,8 @@ class SearchEngineTest extends TestCase
         $doc = Document::with('subjects')->first();
         $doc->description = ['text' => 'Bla bla bla', 'source' => 'Selfmade'];
 
-        $pl = $se->indexDocumentPayload($doc);
+        $sdoc = app('Colligator\Search\SearchableDocument', [$doc]);
+        $pl = $sdoc->toArray();
 
         $this->assertSame($doc->id, $pl['id']);
 
@@ -40,26 +39,5 @@ class SearchEngineTest extends TestCase
         $this->assertArrayNotHasKey('real', $doc->bibliographic);
 
         $this->assertSame('Bla bla bla', $pl['description']['text']);
-    }
-
-    public function testSubjectUsageCache()
-    {
-        // Generate dummy data
-        $docs = factory(Document::class, 5)->create();
-
-        $sub1 = factory(Subject::class)->create();
-        $sub2 = factory(Subject::class)->create();
-        $sub3 = factory(Subject::class)->create();
-
-        $docs[0]->subjects()->save($sub1);
-        $docs[1]->subjects()->save($sub1);
-        $docs[2]->subjects()->save($sub1);
-        $docs[0]->subjects()->save($sub2);
-
-        $se = app('Colligator\SearchEngine');
-        $se->addToSubjectUsageCache(range(1,5));
-        $this->assertSame(3, $se->getSubjectUsageCount($sub1->id));
-        $this->assertSame(1, $se->getSubjectUsageCount($sub2->id));
-        $this->assertSame(0, $se->getSubjectUsageCount($sub3->id));
     }
 }

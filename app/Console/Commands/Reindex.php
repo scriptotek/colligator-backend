@@ -3,7 +3,7 @@
 namespace Colligator\Console\Commands;
 
 use Colligator\Document;
-use Colligator\SearchEngine;
+use Colligator\Search\DocumentsIndex;
 use Illuminate\Console\Command;
 
 class Reindex extends Command
@@ -52,7 +52,7 @@ class Reindex extends Command
      *
      * @return mixed
      */
-    public function handle(SearchEngine $se)
+    public function handle(DocumentsIndex $docIndex)
     {
         $this->info('');
         $this->info(' Rebuilding the Elasticsearch index will take some time.');
@@ -61,18 +61,18 @@ class Reindex extends Command
         // if ($this->confirm('Do you wish to continue? [Y|n]', true)) {
             //\Artisan::call('down');
 
-        //$se->dropDocumentsIndex();
-        $oldVersion = $se->getCurrentDocumentsIndexVersion();
+        //$docIndex->dropVersion();
+        $oldVersion = $docIndex->getCurrentVersion();
         $newVersion = $oldVersion + 1;
         $this->comment(' Old version: ' . $oldVersion . ', new version: ' . $newVersion);
 
-        if ($se->documentsIndexExists($newVersion)) {
+        if ($docIndex->versionExists($newVersion)) {
             $this->comment(' New version already existed, probably from a crashed job. Removing.');
-            $se->dropDocumentsIndex($newVersion);
+            $docIndex->dropVersion($newVersion);
         }
 
         $this->comment(' Creating new index');
-        $se->createDocumentsIndex($newVersion);
+        $docIndex->createVersion($newVersion);
 
 
         $t0 = microtime(true);
@@ -80,22 +80,22 @@ class Reindex extends Command
         $this->comment(' Building subject usage cache');
         $docs = Document::with('subjects', 'genres', 'cover')->get();
         $subject_ids = $this->getSubjectIdsForDocuments($docs);
-        $se->addToSubjectUsageCache($subject_ids);
+        $docIndex->addToSubjectUsageCache($subject_ids);
 
         $this->comment(' Filling new index');
         $this->output->progressStart(Document::count());
         for ($i=count($docs) - 1; $i >= 0; $i--) {
-            $se->indexDocument($docs[$i], $newVersion);
+            $docIndex->index($docs[$i], $newVersion);
             unset($docs[$i]);
             $this->output->progressAdvance();
         }
         $this->output->progressFinish();
 
         $this->comment(' Swapping indices');
-        $se->swapDocumentsIndices($oldVersion, $newVersion);
+        $docIndex->activateVersion($newVersion);
 
         $this->comment(' Dropping old index');
-        $se->dropDocumentsIndex($oldVersion);
+        $docIndex->dropVersion($oldVersion);
 
        // \Artisan::call('up');
 

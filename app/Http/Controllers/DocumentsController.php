@@ -5,7 +5,7 @@ namespace Colligator\Http\Controllers;
 use Colligator\Cover;
 use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
-use Colligator\SearchEngine;
+use Colligator\Search\DocumentsIndex;
 use Illuminate\Http\Request;
 
 class DocumentsController extends Controller
@@ -15,10 +15,10 @@ class DocumentsController extends Controller
      *
      * @return Response
      */
-    public function index(SearchDocumentsRequest $request, SearchEngine $se)
+    public function index(SearchDocumentsRequest $request, DocumentsIndex $se)
     {
         // Query ElasticSearch
-        $response = $se->searchDocuments($request);
+        $response = $se->search($request);
 
         // Build response, include pagination data
         $out = [
@@ -62,17 +62,17 @@ class DocumentsController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param SearchEngine $se
+     * @param DocumentsIndex $se
      * @param int          $id
      *
      * @return Response
      */
-    public function show(Request $request, SearchEngine $se, $id)
+    public function show(Request $request, DocumentsIndex $se, $id)
     {
         if ($request->raw) {
             $doc = Document::find($id);
         } else {
-            $doc = $se->getDocument($id);
+            $doc = $se->get($id);
         }
 
         if (is_null($doc)) {
@@ -141,7 +141,7 @@ class DocumentsController extends Controller
      *
      * @return Response
      */
-    public function storeCover($document_id, Request $request, SearchEngine $se)
+    public function storeCover($document_id, Request $request, DocumentsIndex $se)
     {
         $this->validate($request, [
             'url' => 'required|url',
@@ -160,7 +160,7 @@ class DocumentsController extends Controller
             ]);
         }
 
-        $se->indexDocumentById($document_id);
+        $se->indexById($document_id);
 
         return response()->json([
             'result' => 'ok',
@@ -173,7 +173,7 @@ class DocumentsController extends Controller
      *
      * @return Response
      */
-    public function storeDescription($document_id, Request $request, SearchEngine $se)
+    public function storeDescription($document_id, Request $request, DocumentsIndex $se)
     {
         $this->validate($request, [
             'text' => 'required',
@@ -191,7 +191,7 @@ class DocumentsController extends Controller
 
         \Log::info('Stored new description for ' . $document_id);
 
-        $se->indexDocumentById($document_id);
+        $se->indexById($document_id);
 
         return response()->json([
             'result' => 'ok',

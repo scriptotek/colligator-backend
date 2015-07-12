@@ -7,7 +7,7 @@ use Colligator\Document;
 use Colligator\Events\OaiPmhHarvestComplete;
 use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Marc21Importer;
-use Colligator\SearchEngine;
+use Colligator\Search\DocumentsIndex;
 use Event;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -43,9 +43,9 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public $importer;
 
     /**
-     * @var SearchEngine $searchEngine
+     * @var DocumentsIndex $docIndex
      */
-    public $searchEngine;
+    public $docIndex;
 
     /**
      * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
@@ -91,7 +91,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
         }
 
         // Add/update ElasticSearch
-        $this->searchEngine->indexDocument($doc);
+        $this->docIndex->index($doc);
 
         $this->importedDocuments[] = $docId;
     }
@@ -212,14 +212,14 @@ class OaiPmhHarvest extends Job implements SelfHandling
     /**
      * Execute the job.
      *
-     * @param SearchEngine $searchEngine
+     * @param DocumentsIndex $docIndex
      * @param Marc21Importer $importer
      * @throws BadRequestError
      * @throws \Exception
      */
-    public function handle(SearchEngine $searchEngine, Marc21Importer $importer)
+    public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
     {
-        $this->searchEngine = $searchEngine;
+        $this->docIndex = $docIndex;
         $this->importer = $importer;
 
         $this->collection = Collection::where('name', '=', $this->name)->first();
