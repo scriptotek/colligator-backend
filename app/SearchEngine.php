@@ -10,6 +10,11 @@ class SearchEngine
 {
 
     /**
+     * @var array
+     */
+    public $subjectUsageCache = [];
+
+    /**
      * Builds a query string query from a SearchDocumentsRequest.
      *
      * @param SearchDocumentsRequest $request
@@ -119,7 +124,7 @@ class SearchEngine
                 'id' => array_get($subject, 'id'),
                 'prefLabel' => array_get($subject, 'term'),
                 'type' => array_get($subject, 'type'),
-                'count' => count($subject->documents),
+                'count' => $this->getSubjectUsageCount(array_get($subject, 'id')),
             ];
         }
 
@@ -209,19 +214,72 @@ class SearchEngine
     }
 
     /**
+     * Returns the number of documents the subject is used on
+     *
+     * @param int $id
+     * @return int
+     */
+    public function getSubjectUsageCount($id)
+    {
+        if (!isset($this->subjectUsageCache[$id])) {
+            $this->addToSubjectUsageCache($id);
+        }
+        return array_get($this->subjectUsageCache, $id);
+    }
+
+    /**
+     * Build an array of document usage count per subject.
+     *
+     * @param array|int $subject_ids
+     * @return array
+     */
+    public function addToSubjectUsageCache($subject_ids)
+    {
+        if (!is_array($subject_ids)) {
+            $subject_ids = [$subject_ids];
+        }
+        $res = \DB::table('authorities')
+            ->select(['authority_id', \DB::raw('count(document_id) as doc_count')])
+            ->whereIn('authority_id', $subject_ids)
+            ->where('authority_type', 'Colligator\\Subject')
+            ->groupBy('authority_id')
+            ->get();
+
+        foreach ($subject_ids as $sid) {
+            $this->subjectUsageCache[intval($sid)] = 0;
+        }
+
+        foreach ($res as $row) {
+            $this->subjectUsageCache[intval($row->authority_id)] = intval($row->doc_count);
+        }
+//
+//
+//        $res = \DB::select('SELECT subjects.id, COUNT(authorities.id) as usage_count from subjects' .
+//            ' LEFT JOIN authorities ON subjects.id=authorities.authority_id AND authorities.authority_type=?' .
+//            ' GROUP BY subjects.id', ['Colligator\\Subject']);
+//        $subjectUsageCache = [];
+//        foreach ($res as $row) {
+//            $subjectUsageCache[$row->id] = intval($row->usage_count);
+//        }
+//        return $subjectUsageCache;
+    }
+
+    /**
      * Add or update a document in the ElasticSearch index, making it searchable.
      *
      * @param Document $doc
+     * @param int $indexVersion
      *
      * @throws \ErrorException
      */
-    public function indexDocument(Document $doc)
+    public function indexDocument(Document $doc, $indexVersion = null)
     {
         // \Log::debug('Search engine: Indexing document ' . $doc->id);
         $payload = $this->indexDocumentPayload($doc);
+        $index = $indexVersion ? 'documents_v' . $indexVersion : 'documents';
         try {
             \Es::index([
-                'index' => 'documents',
+                'index' => $index,
                 'type' => 'document',
                 'id' => $doc->id,
                 'body' => $payload,
@@ -244,9 +302,12 @@ class SearchEngine
         $this->indexDocument(Document::with('subjects', 'cover')->findOrFail($docId));
     }
 
-    public function createDocumentsIndex()
+    public function createDocumentsIndex($version=null)
     {
-        $indexParams = ['index' => 'documents'];
+        if (is_null($version)) {
+            $version = $this->getCurrentDocumentsIndexVersion() + 1;
+        }
+        $indexParams = ['index' => 'documents_v' . $version];
         $indexParams['body']['settings']['analysis']['char_filter']['isbn_filter'] = [
             'type' => 'pattern_replace',
             'pattern' => '-',
@@ -280,12 +341,38 @@ class SearchEngine
             ],
         ];
         \Es::indices()->create($indexParams);
+        return $version;
     }
 
-    public function dropDocumentsIndex()
+    public function dropDocumentsIndex($version = 1)
     {
         \Es::indices()->delete([
-            'index' => 'documents',
+            'index' => 'documents_v' . $version,
         ]);
     }
+
+    public function swapDocumentsIndices($oldVersion, $newVersion)
+    {
+        \Es::indices()->updateAliases(['body' => ['actions' => [
+            ['remove' => ['index' => 'documents_v' . $oldVersion, 'alias' => 'documents']],
+            ['add' => ['index' => 'documents_v' . $newVersion, 'alias' => 'documents']],
+        ]]]);
+    }
+
+    public function documentsIndexExists($version)
+    {
+        return \Es::indices()->exists(['index' => 'documents_v' . $version]);
+    }
+
+    public function getCurrentDocumentsIndexVersion()
+    {
+        $currentIndex = null;
+        foreach (\Es::indices()->getAliases() as $index => $data) {
+            if (in_array('documents', array_keys($data['aliases']))) {
+                $currentIndex = $index;
+            }
+        }
+        return is_null($currentIndex) ? 0 : intval(explode('_v', $currentIndex)[1]);
+    }
+
 }

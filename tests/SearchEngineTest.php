@@ -41,4 +41,25 @@ class SearchEngineTest extends TestCase
 
         $this->assertSame('Bla bla bla', $pl['description']['text']);
     }
+
+    public function testSubjectUsageCache()
+    {
+        // Generate dummy data
+        $docs = factory(Document::class, 5)->create();
+
+        $sub1 = factory(Subject::class)->create();
+        $sub2 = factory(Subject::class)->create();
+        $sub3 = factory(Subject::class)->create();
+
+        $docs[0]->subjects()->save($sub1);
+        $docs[1]->subjects()->save($sub1);
+        $docs[2]->subjects()->save($sub1);
+        $docs[0]->subjects()->save($sub2);
+
+        $se = app('Colligator\SearchEngine');
+        $se->addToSubjectUsageCache(range(1,5));
+        $this->assertSame(3, $se->getSubjectUsageCount($sub1->id));
+        $this->assertSame(1, $se->getSubjectUsageCount($sub2->id));
+        $this->assertSame(0, $se->getSubjectUsageCount($sub3->id));
+    }
 }
