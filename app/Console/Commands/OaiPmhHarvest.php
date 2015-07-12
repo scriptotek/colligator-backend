@@ -61,33 +61,6 @@ class OaiPmhHarvest extends Command
     }
 
     /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return array(
-            array('name', InputArgument::OPTIONAL, 'Name of the harvest, as defined in configs/oaipmh.php'),
-        );
-    }
-
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return array(
-            array('from', null, InputOption::VALUE_OPTIONAL, 'From date (YYYY-MM-DD)'),
-            array('until', null, InputOption::VALUE_OPTIONAL, 'Until date (YYYY-MM-DD)'),
-            array('resume', null, InputOption::VALUE_OPTIONAL, 'Resumption token'),
-            array('from-dump', null, InputOption::VALUE_OPTIONAL, 'Re-index from local dump'),
-        );
-    }
-
-    /**
      * Output a list of the configurations.
      */
     public function listConfigurations()
