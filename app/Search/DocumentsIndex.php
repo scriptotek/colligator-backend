@@ -11,7 +11,6 @@ use Elasticsearch\Common\Exceptions\Missing404Exception;
 
 class DocumentsIndex
 {
-
     public $esIndex = 'documents';
     public $esType = 'document';
 
@@ -28,7 +27,8 @@ class DocumentsIndex
     /**
      * @param Client $client
      */
-    function __construct(Client $client) {
+    public function __construct(Client $client)
+    {
         $this->client = $client;
     }
 
@@ -162,6 +162,20 @@ class DocumentsIndex
         }
     }
 
+    public function buildCompleteUsageCache()
+    {
+        $typemap = ['Colligator\\Subject' => 'subject', 'Colligator\\Genre' => 'genre'];
+        $query = \DB::table('entities')
+                    ->select(['entity_id', 'entity_type', \DB::raw('count(document_id) as doc_count')])
+                    ->groupBy('entity_id', 'entity_type');
+        $query->chunk(5000, function($rows) use ($typemap) {
+            foreach ($rows as $row) {
+                $type = $typemap[$row->entity_type];
+                array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));
+            }
+        });
+    }
+
     /**
      * Add or update a document in the ElasticSearch index, making it searchable.
      *
@@ -284,5 +298,4 @@ class DocumentsIndex
         }
         return is_null($currentIndex) ? 0 : intval(explode('_v', $currentIndex)[1]);
     }
-
 }

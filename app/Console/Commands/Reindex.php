@@ -58,6 +58,8 @@ class Reindex extends Command
      */
     public function handle(DocumentsIndex $docIndex)
     {
+        $t0 = microtime(true);
+
         $this->info('');
         $this->info(' Rebuilding the Elasticsearch index will take some time.');
         //$this->info(' Laravel will be put in maintenance mode.');
@@ -78,29 +80,26 @@ class Reindex extends Command
         $this->comment(' Creating new index');
         $docIndex->createVersion($newVersion);
 
+        $this->comment(sprintf(' [%03d] Building entity usage cache', microtime(true) - $t0));
+        $docIndex->buildCompleteUsageCache();
 
-        $t0 = microtime(true);
+        $this->comment(sprintf(' [%03d] Filling new index...', microtime(true) - $t0));
 
-        $this->comment(' Building entity usage cache');
-        $docs = Document::with('subjects', 'genres', 'cover')->get();
-        $subject_ids = $this->getIdsForDocuments($docs, 'subjects');
-        $docIndex->addToUsageCache($subject_ids, 'subject');
-        $genre_ids = $this->getIdsForDocuments($docs, 'genres');
-        $docIndex->addToUsageCache($genre_ids, 'genre');
+        $docCount = Document::count();
+        $this->output->progressStart($docCount);
 
-        $this->comment(' Filling new index');
-        $this->output->progressStart(Document::count());
-        for ($i=count($docs) - 1; $i >= 0; $i--) {
-            $docIndex->index($docs[$i], $newVersion);
-            unset($docs[$i]);
-            $this->output->progressAdvance();
-        }
+        Document::with('subjects', 'genres', 'cover')->chunk(1000, function($docs) use ($docIndex, $newVersion) {
+            foreach ($docs as $doc) {
+                $docIndex->index($doc, $newVersion);
+                $this->output->progressAdvance();
+            }
+        });
         $this->output->progressFinish();
 
-        $this->comment(' Swapping indices');
+        $this->comment(sprintf(' [%03d] Swapping indices', microtime(true) - $t0));
         $docIndex->activateVersion($newVersion);
 
-        $this->comment(' Dropping old index');
+        $this->comment(sprintf(' [%03d] Dropping old index', microtime(true) - $t0));
         $docIndex->dropVersion($oldVersion);
 
        // \Artisan::call('up');
