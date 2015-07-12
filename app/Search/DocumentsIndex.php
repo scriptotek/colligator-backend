@@ -23,7 +23,7 @@ class DocumentsIndex
     /**
      * @var array
      */
-    public $subjectUsageCache = [];
+    public $usage = [];
 
     /**
      * @param Client $client
@@ -106,8 +106,16 @@ class DocumentsIndex
         return [
             'index' => $this->esIndex,
             'type' => $this->esType,
-            'body' => [],
         ];
+    }
+
+    public function getFullType($type)
+    {
+        $typemap = ['subject' => 'Colligator\\Subject', 'genre' => 'Colligator\\Genre'];
+        if (!isset($typemap[$type])) {
+            throw new \InvalidArgumentException;
+        }
+        return $typemap[$type];
     }
 
     /**
@@ -116,12 +124,14 @@ class DocumentsIndex
      * @param int $id
      * @return int
      */
-    public function getSubjectUsageCount($id)
+    public function getUsageCount($id, $type)
     {
-        if (!isset($this->subjectUsageCache[$id])) {
-            $this->addToSubjectUsageCache($id);
+        $this->getFullType($type);
+        $arg = $type . '.' . $id;
+        if (is_null(array_get($this->usage, $arg))) {
+            $this->addToUsageCache($id, $type);
         }
-        return array_get($this->subjectUsageCache, $id);
+        return array_get($this->usage, $arg);
     }
 
     /**
@@ -130,24 +140,25 @@ class DocumentsIndex
      * @param array|int $subject_ids
      * @return array
      */
-    public function addToSubjectUsageCache($subject_ids)
+    public function addToUsageCache($entity_ids, $type)
     {
-        if (!is_array($subject_ids)) {
-            $subject_ids = [$subject_ids];
+        $fullType = $this->getFullType($type);
+        if (!is_array($entity_ids)) {
+            $entity_ids = [$entity_ids];
         }
         $res = \DB::table('authorities')
             ->select(['authority_id', \DB::raw('count(document_id) as doc_count')])
-            ->whereIn('authority_id', $subject_ids)
-            ->where('authority_type', 'Colligator\\Subject')
+            ->whereIn('authority_id', $entity_ids)
+            ->where('authority_type', $fullType)
             ->groupBy('authority_id')
             ->get();
 
-        foreach ($subject_ids as $sid) {
-            $this->subjectUsageCache[intval($sid)] = 0;
+        foreach ($entity_ids as $sid) {
+            array_set($this->usage, $type . '.' . $sid, 0);
         }
 
         foreach ($res as $row) {
-            $this->subjectUsageCache[intval($row->authority_id)] = intval($row->doc_count);
+            array_set($this->usage, $type . '.' . $row->authority_id, intval($row->doc_count));
         }
     }
 

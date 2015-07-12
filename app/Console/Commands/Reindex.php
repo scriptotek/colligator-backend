@@ -3,6 +3,7 @@
 namespace Colligator\Console\Commands;
 
 use Colligator\Document;
+use Colligator\Genre;
 use Colligator\Search\DocumentsIndex;
 use Illuminate\Console\Command;
 
@@ -31,16 +32,19 @@ class Reindex extends Command
     }
 
     /**
-     * Return IDs of all subjects used on a collection of documents.
+     * Return IDs of all subjects or genres used on a collection of documents.
      *
-     * @param Document[] $docs
+     * @param Genre[]|Document[] $docs
      * @return int[]
      */
-    public function getSubjectIdsForDocuments($docs)
+    public function getIdsForDocuments($docs, $type)
     {
+        if (!in_array($type, ['subjects', 'genres'])) {
+            throw new \InvalidArgumentException();
+        }
         $ids = [];
         foreach ($docs as $doc) {
-            foreach ($doc->subjects as $subject) {
+            foreach ($doc->{$type} as $subject) {
                 $ids[] = $subject->id;
             }
         }
@@ -77,10 +81,12 @@ class Reindex extends Command
 
         $t0 = microtime(true);
 
-        $this->comment(' Building subject usage cache');
+        $this->comment(' Building entity usage cache');
         $docs = Document::with('subjects', 'genres', 'cover')->get();
-        $subject_ids = $this->getSubjectIdsForDocuments($docs);
-        $docIndex->addToSubjectUsageCache($subject_ids);
+        $subject_ids = $this->getIdsForDocuments($docs, 'subjects');
+        $docIndex->addToUsageCache($subject_ids, 'subject');
+        $genre_ids = $this->getIdsForDocuments($docs, 'genres');
+        $docIndex->addToUsageCache($genre_ids, 'genre');
 
         $this->comment(' Filling new index');
         $this->output->progressStart(Document::count());

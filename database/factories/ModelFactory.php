@@ -41,6 +41,13 @@ $factory->define(Colligator\Subject::class, function (\Faker\Generator $faker) {
     ];
 });
 
+$factory->define(Colligator\Genre::class, function (\Faker\Generator $faker) {
+    return [
+        'vocabulary' => 'noubomn',
+        'term' => $faker->sentence(3),
+    ];
+});
+
 $factory->define(Colligator\Cover::class, function (\Faker\Generator $faker) {
     return [
         'url' => $faker->url(),

@@ -56,7 +56,7 @@ class SearchableDocument
                 'id' => array_get($subject, 'id'),
                 'prefLabel' => array_get($subject, 'term'),
                 'type' => array_get($subject, 'type'),
-                'count' => $this->docIndex->getSubjectUsageCount(array_get($subject, 'id')),
+                'count' => $this->docIndex->getUsageCount(array_get($subject, 'id'), 'subject'),
             ];
         }
 
@@ -66,6 +66,7 @@ class SearchableDocument
             $body['genres'][$genre['vocabulary'] ?: 'keywords'][] = [
                 'id' => array_get($genre, 'id'),
                 'prefLabel' => array_get($genre, 'term'),
+                'count' => $this->docIndex->getUsageCount(array_get($genre, 'id'), 'genre'),
             ];
         }
 
