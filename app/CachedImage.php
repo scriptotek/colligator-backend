@@ -2,6 +2,8 @@
 
 namespace Colligator;
 
+use Intervention\Image\Image;
+use Intervention\Image\ImageManager;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config as FlysystemConfig;
 
@@ -11,11 +13,12 @@ class CachedImage
     public $maxHeight;
     protected $_metadata;
 
-    public function __construct($url, $maxHeight = 0, AdapterInterface $filesystem = null)
+    public function __construct($url, $maxHeight = 0, AdapterInterface $filesystem = null, ImageManager $imageManager = null)
     {
         $this->sourceUrl = $url;
         $this->maxHeight = intval($maxHeight);
         $this->filesystem = $filesystem ?: \Storage::disk('s3')->getAdapter();
+        $this->imageManager = $imageManager ?: app('Intervention\Image\ImageManager');
         $maxAge = 3153600; // 30 days
         $this->fsConfig = new FlysystemConfig([
             'CacheControl' => 'max-age=' . $maxAge . ', public',
@@ -25,17 +28,16 @@ class CachedImage
     public function getMetadata()
     {
         if (is_null($this->_metadata)) {
-            \Log::debug('Get metadata from remote for ' . $this->sourceUrl);
             $data = $this->filesystem->read($this->basename());
             $contents = strval($data['contents']);
-            $img = \Image::make($contents);
+            $img = $this->imageManager->make($contents);
             $this->setMetadata($contents, $img);
         }
 
         return $this->_metadata;
     }
 
-    protected function setMetadata($file, $img)
+    protected function setMetadata($file, Image $img)
     {
         $this->_metadata = [
             'size' => strlen($file),
@@ -67,10 +69,7 @@ class CachedImage
 
     public function basename()
     {
-        return sprintf(
-            '%s',
-            sha1($this->sourceUrl . $this->maxHeight)
-        );
+        return sha1($this->sourceUrl . $this->maxHeight);
     }
 
     /**
@@ -99,7 +98,7 @@ class CachedImage
             throw new \ErrorException('[CoverCache] Failed to download ' . $this->sourceUrl);
         }
 
-        $img = \Image::make($data);
+        $img = $this->imageManager->make($data);
         if ($this->maxHeight && $img->height() > $this->maxHeight) {
             \Log::debug('Resizing from ' . $img->height() . ' to ' . $this->maxHeight);
             $img->heighten($this->maxHeight);
