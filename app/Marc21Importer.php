@@ -52,6 +52,16 @@ class Marc21Importer
     }
 
     /**
+     * Fixes wrong vocabulary codes returned by the Bibsys SRU service.
+     * Bibsys strips dashes in 648, 650, 655, but not in 651, so we have
+     * to do that ourselves. This affects 'no-ubo-mn' and 'no-ubo-mr'.
+     */
+    public function fixVocabularyCode($code)
+    {
+        return str_replace('-', '', $code);
+    }
+
+    /**
      * @param array $biblio
      * @param array $holdings
      *
@@ -110,6 +120,7 @@ class Marc21Importer
         // Sync subjects
         $subject_ids = [];
         foreach ($biblio['subjects'] as $value) {
+            $value['vocabulary'] = $this->fixVocabularyCode($value['vocabulary']);
             $subject = Subject::lookup($value['vocabulary'], $value['term']);
             if (is_null($subject)) {
                 $subject = Subject::create($value);
