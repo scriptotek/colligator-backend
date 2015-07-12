@@ -146,11 +146,11 @@ class DocumentsIndex
         if (!is_array($entity_ids)) {
             $entity_ids = [$entity_ids];
         }
-        $res = \DB::table('authorities')
-            ->select(['authority_id', \DB::raw('count(document_id) as doc_count')])
-            ->whereIn('authority_id', $entity_ids)
-            ->where('authority_type', $fullType)
-            ->groupBy('authority_id')
+        $res = \DB::table('entities')
+            ->select(['entity_id', \DB::raw('count(document_id) as doc_count')])
+            ->whereIn('entity_id', $entity_ids)
+            ->where('entity_type', $fullType)
+            ->groupBy('entity_id')
             ->get();
 
         foreach ($entity_ids as $sid) {
@@ -158,7 +158,7 @@ class DocumentsIndex
         }
 
         foreach ($res as $row) {
-            array_set($this->usage, $type . '.' . $row->authority_id, intval($row->doc_count));
+            array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));
         }
     }
 

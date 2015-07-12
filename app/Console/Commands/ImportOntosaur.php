@@ -76,22 +76,22 @@ class ImportOntosaur extends Command
             'document_count' => 0,
         ];
 
-        $authority = Subject::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
+        $entity = Subject::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
         $field = 'subjects';
-        if (is_null($authority)) {
+        if (is_null($entity)) {
             $field = 'genres';
-            $authority = Genre::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
-            if (is_null($authority)) {
-                $this->error('[ImportOntosaur] Authority not found: "' . $labels['nb'] . '"');
+            $entity = Genre::where('term', '=', $labels['nb'])->where('vocabulary', '=', 'noubomn')->first();
+            if (is_null($entity)) {
+                $this->error('[ImportOntosaur] Entity not found: "' . $labels['nb'] . '"');
             }
         }
-        if (!is_null($authority)) {
-            $node['local_id'] = $authority->id;
+        if (!is_null($entity)) {
+            $node['local_id'] = $entity->id;
             $node['documents'] = action('DocumentsController@index', [
-                'q' => $field . '.noubomn.id:' . $authority->id,
+                'q' => $field . '.noubomn.id:' . $entity->id,
             ]);
             // Can be used e.g. to determine bubble size in a visualization
-            $node['document_count'] = $authority->documents()->count();
+            $node['document_count'] = $entity->documents()->count();
         }
 
         return $node;

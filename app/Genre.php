@@ -18,7 +18,7 @@ class Genre extends Model
      */
     public function documents()
     {
-        return $this->morphToMany('Colligator\Document', 'authority')->withTimestamps();
+        return $this->morphToMany('Colligator\Document', 'entity')->withTimestamps();
     }
 
     public static function lookup($vocabulary, $term)
