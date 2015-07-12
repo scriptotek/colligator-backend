@@ -243,11 +243,15 @@ class DocumentsIndex
         return $version;
     }
 
-    public function dropVersion($version = 1)
+    public function dropVersion($version)
     {
-        $this->client->indices()->delete([
-            'index' => $this->esIndex . '_v' . $version,
-        ]);
+        try {
+            $this->client->indices()->delete([
+                'index' => $this->esIndex . '_v' . $version,
+            ]);
+        } catch (Missing404Exception $e) {
+            # Didn't exist in the beginning, that's ok.
+        }
     }
 
     public function activateVersion($newVersion)
