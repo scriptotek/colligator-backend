@@ -30,7 +30,7 @@ class Document extends Model
      */
     public function subjects()
     {
-        return $this->morphedByMany('Colligator\Subject', 'authority');
+        return $this->morphedByMany('Colligator\Subject', 'authority')->withTimestamps();
     }
 
     /**
@@ -38,7 +38,7 @@ class Document extends Model
      */
     public function genres()
     {
-        return $this->morphedByMany('Colligator\Genre', 'authority');
+        return $this->morphedByMany('Colligator\Genre', 'authority')->withTimestamps();
     }
 
     /**

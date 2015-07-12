@@ -35,6 +35,8 @@ class CreateSubjectsTable extends Migration
                 ->references('id')->on('subjects')
                 ->onDelete('cascade');
 
+            $table->timestamps();
+
         });
 
     }
