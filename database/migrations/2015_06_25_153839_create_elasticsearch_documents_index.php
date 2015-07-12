@@ -1,9 +1,13 @@
 <?php
 
 use Colligator\Search\DocumentsIndex;
+use Illuminate\Database\Migrations\Migration;
 
-class CreateElasticsearchDocumentsIndex
+class CreateElasticsearchDocumentsIndex extends Migration
 {
+
+    protected $connection = null;
+
     /**
      * Run the migrations.
      *
@@ -13,9 +17,9 @@ class CreateElasticsearchDocumentsIndex
     {
         // Not sure if we should test ElasticSearch or just mock it
         if (env('APP_ENV') == 'testing') return;
-        $se = app('Colligator\Search\DocumentsIndex');
-        $se->createVersion(1);
-        $se->activateVersion(1);
+        $docIndex = app('Colligator\Search\DocumentsIndex');
+        $docIndex->createVersion(1);
+        $docIndex->activateVersion(1);
     }
 
     /**
@@ -26,7 +30,8 @@ class CreateElasticsearchDocumentsIndex
     public function down()
     {
         if (env('APP_ENV') == 'testing') return;
-        $se = app('Colligator\Search\DocumentsIndex');
-        $se->dropVersion(1);
+        $docIndex = app('Colligator\Search\DocumentsIndex');
+        $docIndex->dropVersion(1);
+        $docIndex->activateVersion(0);
     }
 }

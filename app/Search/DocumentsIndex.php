@@ -257,8 +257,12 @@ class DocumentsIndex
         if ($oldVersion) {
             $actions[] = ['remove' => ['index' => $this->esIndex . '_v' . $oldVersion, 'alias' => $this->esIndex]];
         }
-        $actions[] = ['add' => ['index' => $this->esIndex . '_v' . $newVersion, 'alias' => $this->esIndex]];
-        $this->client->indices()->updateAliases(['body' => ['actions' => $actions]]);
+        if ($newVersion) {
+            $actions[] = ['add' => ['index' => $this->esIndex . '_v' . $newVersion, 'alias' => $this->esIndex]];
+        }
+        if (count($actions)) {
+            $this->client->indices()->updateAliases(['body' => ['actions' => $actions]]);
+        }
     }
 
     public function versionExists($version)
