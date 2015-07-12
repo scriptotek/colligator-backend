@@ -11,6 +11,7 @@ use Colligator\Search\DocumentsIndex;
 use Event;
 use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Log;
 use Scriptotek\OaiPmh\BadRequestError;
 use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Scriptotek\OaiPmh\ListRecordsResponse;
@@ -219,6 +220,8 @@ class OaiPmhHarvest extends Job implements SelfHandling
      */
     public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
     {
+
+        Log::info('[OaiPmhHarvestJob] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until '. ($this->until ?: '(no limit)') . '.');
         $this->docIndex = $docIndex;
         $this->importer = $importer;
 
@@ -238,6 +241,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
         }
 
         // $this->postProcess($this->importedDocuments);
+        Log::info('[OaiPmhHarvestJob] Completed job, got ' . $recordsHarvested . ' records.');
 
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }

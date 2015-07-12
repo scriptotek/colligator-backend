@@ -2,6 +2,7 @@
 
 namespace Colligator\Console\Commands;
 
+use Carbon\Carbon;
 use Colligator\Jobs\OaiPmhHarvest as OaiPmhHarvestJob;
 use Illuminate\Console\Command;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -39,11 +40,12 @@ class OaiPmhHarvest extends Command
      * @var string
      */
     protected $signature = 'colligator:harvest-oaipmh
-                            {name?       : Name of the harvest config defined in the config file}
+                            {name?       : Name of the harvest config as defined in configs/oaipmh.php}
                             {--from=     : Start date on ISO format YYYY-MM-DD}
                             {--until=    : End date on ISO format YYYY-MM-DD}
                             {--resume=   : Resumption token}
-                            {--from-dump : Just re-index from dump}';
+                            {--from-dump : Just re-index from dump}
+                            {--daily     : Harvest records modified yesterday. Cannot be combined with --from / --until}';
 
     /**
      * The console command description.
@@ -73,27 +75,56 @@ class OaiPmhHarvest extends Command
         }
     }
 
+    public function validate()
+    {
+        if (empty($this->argument('name'))) {
+            $this->listConfigurations();
+            return false;
+        }
+        $harvestConfig = \Config::get('oaipmh.harvests.' . $this->argument('name'), null);
+        if (is_null($harvestConfig)) {
+            $this->error('Unknown configuration specified.');
+            $this->listConfigurations();
+            return false;
+        }
+        if ($this->option('daily')) {
+            if ($this->option('from') || $this->option('until')) {
+                $this->error('--daily cannot be combined with --from / --until.');
+                return false;
+            }
+        }
+        if ($this->option('from-dump')) {
+            if ($this->option('from') || $this->option('until') || $this->option('resume') || $this->option('daily')) {
+                $this->error('--from-dump cannot be combined with other options.');
+                return false;
+            }
+        }
+        if ($this->option('from')) {
+            if (!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $this->option('from'))) {
+                $this->error('--from must be on ISO-format YYYY-MM-DD.');
+                return false;
+            }
+        }
+        if ($this->option('until')) {
+            if (!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $this->option('until'))) {
+                $this->error('--until must be on ISO-format YYYY-MM-DD.');
+                return false;
+            }
+        }
+        return true;
+    }
+
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $name = $this->argument('name');
-
-        if (is_null($name)) {
-            $this->listConfigurations();
-
+        if (!$this->validate()) {
             return;
         }
 
         $harvestName = $this->argument('name');
         $harvestConfig = \Config::get('oaipmh.harvests.' . $harvestName, null);
-        if (is_null($harvestConfig)) {
-            $this->error('Unknown configuration specified.');
-            $this->listConfigurations();
-
-            return;
-        }
 
         $this->comment('');
         $this->info(sprintf('[%s] Starting harvest "%s"',
@@ -108,7 +139,7 @@ class OaiPmhHarvest extends Command
             $this->comment(' - Schema: ' . $harvestConfig['schema']);
             $this->comment(' - Set: ' . $harvestConfig['set']);
 
-            foreach (array('from', 'until', 'resume') as $key) {
+            foreach (array('from', 'until', 'resume', 'daily') as $key) {
                 if (!is_null($this->option($key))) {
                     $this->comment(sprintf(' - %s: %s', ucfirst($key), $this->option($key)));
                 }
@@ -123,9 +154,10 @@ class OaiPmhHarvest extends Command
         });
 
         \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function ($event) {
-            $this->info(sprintf('[%s] Harvest complete, got %d records',
+            $this->info(sprintf('[%s] Harvest complete, got %d records in %d seconds',
                 strftime('%Y-%m-%d %H:%M:%S'),
-                $event->count
+                $event->count,
+                microtime(true) - $this->startTime
             ));
         });
 
@@ -133,12 +165,19 @@ class OaiPmhHarvest extends Command
             $this->error($event->msg);
         });
 
+        $from = $this->option('from');
+        $until = $this->option('until');
+        if ($this->option('daily')) {
+            $from = Carbon::now()->subDay()->toDateString();
+            $until = $from;
+        }
+
         $this->dispatch(
             new OaiPmhHarvestJob(
                 $harvestName,
                 $harvestConfig,
-                $this->option('from'),
-                $this->option('until'),
+                $from,
+                $until,
                 $this->option('resume'),
                 $this->option('from-dump')
             )
