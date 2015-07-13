@@ -162,6 +162,7 @@ class OaiPmhHarvest extends Command
         });
 
         \Event::listen('Colligator\Events\JobError', function ($event) {
+            \Log::error('[OaiPmhHarvest] ' . $event->msg);
             $this->error($event->msg);
         });
 
