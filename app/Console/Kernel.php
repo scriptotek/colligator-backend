@@ -28,7 +28,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('php artisan colligator:harvest-oaipmh samling42 --daily')
+        $schedule->command('colligator:harvest-oaipmh samling42 --daily')
                  ->dailyAt('04:00');
     }
 }
