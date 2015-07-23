@@ -35,6 +35,9 @@ class XisbnResponse
 
     protected function getForm($item)
     {
+        if (!isset($item['form'])) {
+            return null;
+        }
         $form = array_pop($item['form']);
         if (!count($item['form'])) {
             return $this->formats[$form];
@@ -60,17 +63,16 @@ class XisbnResponse
             if ($response['stat'] != 'ok') {
                 continue;
             }
-            foreach ($response['list'] as $item) {
-                foreach ($item['isbn'] as $isbn) {
-                    $desc = [];
-                    if (isset($item['ed'])) {
-                        $desc[] = str_replace(['[', ']'], ['', ''], $item['ed']);
+            foreach ($response['list'] as $listItem) {
+                foreach ($listItem['isbn'] as $isbn) {
+                    $item = [
+                        'isbn' => $isbn,
+                        'form' => $this->getForm($listItem),
+                    ];
+                    if (isset($listItem['ed'])) {
+                        $item['edition'] = str_replace(['[', ']'], ['', ''], $listItem['ed']);
                     }
-                    if (isset($item['form'])) {
-                        $desc[] = $this->getForm($item);
-                    }
-                    $desc = implode(', ', $desc);
-                    $items[$isbn] = $desc;
+                    $items[] = $item;
                 }
             }
         }
