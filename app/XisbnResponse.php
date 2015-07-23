@@ -43,7 +43,7 @@ class XisbnResponse
         if ($form == 'DA' && $form2 == 'BA') {
             return 'ebook';
         }
-        \Log::error(sprintf('Unknown form: %s %s', $form, $form2));
+        \Log::warning(sprintf('Unknown form: %s %s', $form, $form2));
 
         return sprintf('%s %s', $this->formats[$form], $this->formats[$form2]);
     }

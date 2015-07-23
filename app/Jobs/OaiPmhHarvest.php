@@ -241,7 +241,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
         }
 
         // $this->postProcess($this->importedDocuments);
-        Log::info('[OaiPmhHarvestJob] Completed job, got ' . $recordsHarvested . ' records.');
+        Log::info('[OaiPmhHarvestJob] Complete, got ' . $recordsHarvested . ' records.');
 
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
     }

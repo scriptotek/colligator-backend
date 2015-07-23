@@ -32,6 +32,8 @@ class Reindex extends Command
     {
         $t0 = microtime(true);
 
+        \Log::info('[ReindexJob] Starting job.');
+
         $this->info('');
         $this->info(' Rebuilding the Elasticsearch index will take some time.');
         $this->info('');
@@ -73,5 +75,7 @@ class Reindex extends Command
 
         $dt = microtime(true) - $t0;
         $this->info(' Completed in ' . round($dt) . ' seconds.');
+        \Log::info('[ReindexJob] Completed in ' . round($dt) . ' seconds.');
+
     }
 }

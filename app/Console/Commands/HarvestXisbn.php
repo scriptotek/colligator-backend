@@ -38,7 +38,13 @@ class HarvestXisbn extends Command
     public function handle(XisbnClient $client)
     {
         $docs = Document::whereNull('xisbn')->get();
+        if (!count($docs)) {
+            $this->info('No new documents. Exiting.');
+            \Log::info('[HarvestXisbnJob] No new documents to be checked.');
+            return;
+        }
         $this->info('Will check ' . count($docs) . ' documents');
+        \Log::info('[HarvestXisbnJob] Starting job. ' . count($docs) . ' documents to be checked.');
 
         $this->output->progressStart(count($docs));
         foreach ($docs as $doc) {
@@ -54,5 +60,6 @@ class HarvestXisbn extends Command
             sleep(5);
         }
         $this->output->progressFinish();
+        \Log::info('[HarvestXisbnJob] Complete.');
     }
 }
