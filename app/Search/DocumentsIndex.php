@@ -4,6 +4,8 @@ namespace Colligator\Search;
 
 use Colligator\Collection;
 use Colligator\Document;
+use Colligator\Exceptions\CollectionNotFoundException;
+use Colligator\Exceptions\InvalidQueryException;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Elasticsearch\Client;
 use Elasticsearch\Common\Exceptions\BadRequest400Exception;
@@ -50,7 +52,12 @@ class DocumentsIndex
             $payload['body']['query']['query_string']['query'] = $query;
         }
 
-        $response = $this->client->search($payload);
+        try {
+            $response = $this->client->search($payload);
+        } catch (BadRequest400Exception $e) {
+            $msg = json_decode($e->getMessage(), true);
+            throw new InvalidQueryException($msg['error']);
+        }
         $response['offset'] = $payload['from'];
         return $response;
     }
@@ -77,6 +84,32 @@ class DocumentsIndex
     }
 
     /**
+     * Escape special characters
+     * http://lucene.apache.org/core/old_versioned_docs/versions/2_9_1/queryparsersyntax.html#Escaping Special Characters
+     *
+     * @param string $value
+     *
+     * @return string
+     */
+    public function sanitizeForQuery($value)
+    {
+        $chars = preg_quote('\\+-&|!(){}[]^~*?:');
+        $value = preg_replace('/([' . $chars . '])/', '\\\\\1', $value);
+        return $value;
+        //
+        // # AND, OR and NOT are used by lucene as logical operators. We need
+        // # to escape them
+        // ['AND', 'OR', 'NOT'].each do |word|
+        //   escaped_word = word.split('').map {|char| "\\#{char}" }.join('')
+        //   str = str.gsub(/\s*\b(#{word.upcase})\b\s*/, " #{escaped_word} ")
+        // end
+
+        // # Escape odd quotes
+        // quote_count = str.count '"'
+        // str = str.gsub(/(.*)"(.*)/, '\1\"\3') if quote_count % 2 == 1
+
+    }
+    /**
      * Builds a query string query from a SearchDocumentsRequest.
      *
      * @param SearchDocumentsRequest $request
@@ -87,17 +120,23 @@ class DocumentsIndex
     {
         $query = [];
         if ($request->has('q')) {
+            // Allow raw queries
             $query[] = $request->q;
         }
         if ($request->has('collection')) {
             $col = Collection::find($request->collection);
-            $query[] = 'collections:' . $col->name;
+            if (is_null($col)) {
+                throw new CollectionNotFoundException();
+            }
+            $query[] = 'collections:"' . $this->sanitizeForQuery($col->name) . '"';
+        }
+        if ($request->has('subject')) {
+            $query[] = 'subjects.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"';
         }
         if ($request->has('real')) {
-            $query[] = 'subjects.noubomn.prefLabel:' . $request->real;
+            dd('`real` is (very) deprecated, please use `subject` instead.');
         }
         $query = count($query) ? implode(' AND ', $query) : '';
-
         return $query;
     }
 

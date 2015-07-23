@@ -53,3 +53,10 @@ $factory->define(Colligator\Cover::class, function (\Faker\Generator $faker) {
         'url' => $faker->url(),
     ];
 });
+
+$factory->define(Colligator\Collection::class, function (\Faker\Generator $faker) {
+    return [
+        'name' => str_random(10),
+        'label' => $faker->sentence(3),
+    ];
+});

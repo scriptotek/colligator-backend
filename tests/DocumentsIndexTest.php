@@ -1,7 +1,9 @@
 <?php
 
+use Colligator\Collection;
 use Colligator\Document;
 use Colligator\Genre;
+use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\Search\DocumentsIndex;
 use Colligator\Subject;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -51,4 +53,49 @@ class DocumentsIndexTest extends TestCase
         $this->assertSame(2, $docIndex->getUsageCount($gen1->id, 'genre'));
         $this->assertSame(1, $docIndex->getUsageCount($gen2->id, 'genre'));
     }
+
+    public function testSimpleSubjectQueryString()
+    {
+        $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap']);
+        $docIndex = $this->getDocumentsIndex();
+
+        $this->assertSame('subjects.noubomn.prefLabel:"Naturvitenskap"', $docIndex->queryStringFromRequest($request));
+    }
+
+    public function testComplexSubjectQueryString()
+    {
+        $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi']);
+        $docIndex = $this->getDocumentsIndex();
+
+        $this->assertSame('subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi"', $docIndex->queryStringFromRequest($request));
+    }
+
+    public function testCompoundQueryString()
+    {
+        $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi', 'q' => '_exists_:subjects.lcsh']);
+        $docIndex = $this->getDocumentsIndex();
+
+        $this->assertSame('_exists_:subjects.lcsh AND subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi"', $docIndex->queryStringFromRequest($request));
+    }
+
+    public function testCollectionQueryString()
+    {
+        $collections = factory(Collection::class, 5)->create();
+        $request1 = new SearchDocumentsRequest(['collection' => '1']);
+        $request2 = new SearchDocumentsRequest(['collection' => '3']);
+        $docIndex = $this->getDocumentsIndex();
+
+        $this->assertSame('collections:"' . $collections[0]->name . '"', $docIndex->queryStringFromRequest($request1));
+        $this->assertSame('collections:"' . $collections[2]->name . '"', $docIndex->queryStringFromRequest($request2));
+    }
+
+    public function testInvalidCollectionQueryString()
+    {
+        $request1 = new SearchDocumentsRequest(['collection' => '1']);
+        $docIndex = $this->getDocumentsIndex();
+
+        $this->setExpectedException('Colligator\Exceptions\CollectionNotFoundException');
+        $docIndex->queryStringFromRequest($request1);
+    }
+
 }
