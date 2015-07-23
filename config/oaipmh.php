@@ -16,7 +16,8 @@ return [
         'samling42' => [
             'url' => 'http://oai.bibsys.no/oai2/repository',  # http://utvikle-a.bibsys.no/oai/repository
             'set' => 'urealSamling42',
-            'schema' => 'marcxchange'
+            'schema' => 'marcxchange',
+            'max-retries' => 10,
         ]
     ],
 
