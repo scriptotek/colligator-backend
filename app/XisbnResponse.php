@@ -8,9 +8,14 @@ class XisbnResponse
 
     public $formats = array(
         'AA' => 'audio',
+        'AA BA' => 'audio book',
         'BA' => 'book',
+        'BA DA' => 'ebook',      // Yes, we DO actually get these
         'BB' => 'hardcover',
+        'BB BC' => 'book',       // ... and these
+        'BB DA' => 'ebook',      // ... and these
         'BC' => 'paperback',
+        'BC DA' => 'ebook',      // ... and these
         'DA' => 'digital',
         'FA' => 'film/transp.',
         'MA' => 'microform',
@@ -38,17 +43,17 @@ class XisbnResponse
         if (!isset($item['form'])) {
             return null;
         }
-        $form = array_pop($item['form']);
-        if (!count($item['form'])) {
-            return $this->formats[$form];
+        $forms = $item['form'];
+        sort($forms);
+        $formStr = implode(' ', $forms);
+        if (isset($this->formats[$formStr])) {
+            return $this->formats[$formStr];
         }
-        $form2 = array_pop($item['form']);
-        if ($form == 'DA' && $form2 == 'BA') {
-            return 'ebook';
-        }
-        \Log::warning(sprintf('Unknown form: %s %s', $form, $form2));
-
-        return sprintf('%s %s', $this->formats[$form], $this->formats[$form2]);
+        $formStr = implode(' ', array_map(function($el) {
+            return $this->formats[$el];
+        }, $forms));
+        \Log::warning(sprintf('Unknown form: %s', $formStr));
+        return $formStr;
     }
 
     public function toArray()
