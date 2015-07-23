@@ -54,7 +54,7 @@ class SearchableDocument
         foreach ($this->doc->subjects as $subject) {
             $body['subjects'][$subject['vocabulary'] ?: 'keywords'][] = [
                 'id' => array_get($subject, 'id'),
-                'prefLabel' => array_get($subject, 'term'),
+                'prefLabel' => str_replace('--', ' : ', array_get($subject, 'term')),
                 'type' => array_get($subject, 'type'),
                 'count' => $this->docIndex->getUsageCount(array_get($subject, 'id'), 'subject'),
             ];
