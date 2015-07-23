@@ -304,16 +304,19 @@ class DocumentsIndex
         }
     }
 
+    public function addAction(&$actions, $action, $version)
+    {
+        if ($version) {
+            $actions[] = [$action => ['index' => $this->esIndex . '_v' . $version, 'alias' => $this->esIndex]];
+        }
+    }
+
     public function activateVersion($newVersion)
     {
         $oldVersion = $this->getCurrentVersion();
         $actions = [];
-        if ($oldVersion) {
-            $actions[] = ['remove' => ['index' => $this->esIndex . '_v' . $oldVersion, 'alias' => $this->esIndex]];
-        }
-        if ($newVersion) {
-            $actions[] = ['add' => ['index' => $this->esIndex . '_v' . $newVersion, 'alias' => $this->esIndex]];
-        }
+        $this->addAction($actions, 'remove', $oldVersion);
+        $this->addAction($actions, 'add', $newVersion);
         if (count($actions)) {
             $this->client->indices()->updateAliases(['body' => ['actions' => $actions]]);
         }
