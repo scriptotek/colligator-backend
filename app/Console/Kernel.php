@@ -31,7 +31,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('colligator:harvest-oaipmh samling42 --daily')
                  ->dailyAt('02:00');
 
+        // Bring subject heading usage counts up-to-date
         $schedule->command('colligator:reindex')
                  ->weekly()->sundays()->at('04:00');
+
+        // Check new documents for xisbn
+        $schedule->command('colligator:harvest-xisbn')
+                 ->weekly()->saturdays()->at('04:00');
+
     }
 }
