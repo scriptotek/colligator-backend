@@ -13,7 +13,9 @@ class CreateCollection extends Command
      *
      * @var string
      */
-    protected $signature = 'colligator:create-collection {name} {label}';
+    protected $signature = 'colligator:create-collection
+                            {name  : Name of the collection}
+                            {label : A descriptionve label}';
 
     /**
      * The console command description.
@@ -21,27 +23,6 @@ class CreateCollection extends Command
      * @var string
      */
     protected $description = 'Create a new collection.';
-
-    /**
-     * Get the console command arguments.
-     *
-     * @return array
-     */
-    protected function getArguments()
-    {
-        return array(
-            array('name', InputArgument::REQUIRED, 'Name of the collection'),
-            array('label', InputArgument::REQUIRED, 'A descriptionve label'),
-        );
-    }
-
-    /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * Execute the console command.

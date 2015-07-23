@@ -24,34 +24,6 @@ class Reindex extends Command
     protected $description = 'Re-build ElasticSearch index.';
 
     /**
-     * Create a new command instance.
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
-    /**
-     * Return IDs of all subjects or genres used on a collection of documents.
-     *
-     * @param Genre[]|Document[] $docs
-     * @return int[]
-     */
-    public function getIdsForDocuments($docs, $type)
-    {
-        if (!in_array($type, ['subjects', 'genres'])) {
-            throw new \InvalidArgumentException();
-        }
-        $ids = [];
-        foreach ($docs as $doc) {
-            foreach ($doc->{$type} as $subject) {
-                $ids[] = $subject->id;
-            }
-        }
-        return $ids;
-    }
-
-    /**
      * Execute the console command.
      *
      * @return mixed
@@ -62,10 +34,7 @@ class Reindex extends Command
 
         $this->info('');
         $this->info(' Rebuilding the Elasticsearch index will take some time.');
-        //$this->info(' Laravel will be put in maintenance mode.');
         $this->info('');
-        // if ($this->confirm('Do you wish to continue? [Y|n]', true)) {
-            //\Artisan::call('down');
 
         //$docIndex->dropVersion();
         $oldVersion = $docIndex->getCurrentVersion();
@@ -88,7 +57,7 @@ class Reindex extends Command
         $docCount = Document::count();
         $this->output->progressStart($docCount);
 
-        Document::with('subjects', 'genres', 'cover')->chunk(1000, function($docs) use ($docIndex, $newVersion) {
+        Document::with('subjects', 'genres', 'cover')->chunk(1000, function ($docs) use ($docIndex, $newVersion) {
             foreach ($docs as $doc) {
                 $docIndex->index($doc, $newVersion);
                 $this->output->progressAdvance();
@@ -101,8 +70,6 @@ class Reindex extends Command
 
         $this->comment(sprintf(' [%03d] Dropping old index', microtime(true) - $t0));
         $docIndex->dropVersion($oldVersion);
-
-       // \Artisan::call('up');
 
         $dt = microtime(true) - $t0;
         $this->info(' Completed in ' . round($dt) . ' seconds.');
