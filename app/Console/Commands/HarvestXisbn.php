@@ -5,6 +5,7 @@ namespace Colligator\Console\Commands;
 use Colligator\Document;
 use Colligator\XisbnClient;
 use Illuminate\Console\Command;
+use Log;
 
 class HarvestXisbn extends Command
 {
@@ -22,6 +23,14 @@ class HarvestXisbn extends Command
      */
     protected $description = 'Adds additional isbn numbers from the xisbn service.';
 
+
+    /**
+     * Sleep time in seconds between requests.
+     *
+     * @var int
+     */
+    public $sleepTime = 5;
+
     /**
      * Create a new command instance.
      */
@@ -30,21 +39,19 @@ class HarvestXisbn extends Command
         parent::__construct();
     }
 
-    /**
-     * Execute the console command.
-     *
-     * @return mixed
-     */
-    public function handle(XisbnClient $client)
+    public function getDocuments()
     {
-        $docs = Document::whereNull('xisbn')->get();
-        if (!count($docs)) {
-            $this->info('No new documents. Exiting.');
-            \Log::info('[HarvestXisbnJob] No new documents to be checked.');
-            return;
-        }
+        return Document::whereNull('xisbn')->get();
+    }
+
+    /**
+     * @param XisbnClient $client
+     * @param Document[] $docs
+     */
+    public function handleDocuments(XisbnClient $client, $docs)
+    {
         $this->info('Will check ' . count($docs) . ' documents');
-        \Log::info('[HarvestXisbnJob] Starting job. ' . count($docs) . ' documents to be checked.');
+        Log::info('[HarvestXisbnJob] Starting job. ' . count($docs) . ' documents to be checked.');
 
         $this->output->progressStart(count($docs));
         foreach ($docs as $doc) {
@@ -57,9 +64,26 @@ class HarvestXisbn extends Command
             $doc->save();
 
             $this->output->progressAdvance();
-            sleep(5);
+            sleep($this->sleepTime);
         }
         $this->output->progressFinish();
-        \Log::info('[HarvestXisbnJob] Complete.');
+        Log::info('[HarvestXisbnJob] Complete.');
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @param XisbnClient $client
+     * @return void
+     */
+    public function handle(XisbnClient $client)
+    {
+        $docs = $this->getDocuments();
+        if (count($docs)) {
+            $this->handleDocuments($client, $docs);
+        } else {
+            $this->info('No new documents. Exiting.');
+            Log::info('[HarvestXisbnJob] No new documents to be checked.');
+        }
     }
 }
