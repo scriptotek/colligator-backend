@@ -124,10 +124,7 @@ class DocumentsIndex
             $query[] = $request->q;
         }
         if ($request->has('collection')) {
-            $col = Collection::find($request->collection);
-            if (is_null($col)) {
-                throw new CollectionNotFoundException();
-            }
+            $col = Collection::findOrFail($request->collection);
             $query[] = 'collections:"' . $this->sanitizeForQuery($col->name) . '"';
         }
         if ($request->has('subject')) {

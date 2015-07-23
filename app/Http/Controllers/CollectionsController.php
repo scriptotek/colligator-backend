@@ -28,16 +28,10 @@ class CollectionsController extends Controller
      */
     public function show($id)
     {
-        $collection = Collection::find($id);
-        if (is_null($collection)) {
-            return response()->json([
-                'error' => 'Collection not found.',
-            ]);
-        } else {
-            return response()->json([
-                'collection' => $collection,
-            ]);
-        }
+        $collection = Collection::findOrFail($id);
+        return response()->json([
+            'collection' => $collection,
+        ]);
     }
 
     /**
