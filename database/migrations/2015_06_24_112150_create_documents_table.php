@@ -47,5 +47,4 @@ class CreateDocumentsTable extends Migration
         Schema::drop('collection_document');
         Schema::drop('documents');
     }
-
 }

@@ -38,6 +38,5 @@ class Kernel extends ConsoleKernel
         // Check new documents for xisbn
         $schedule->command('colligator:harvest-xisbn')
                  ->weekly()->saturdays()->at('04:00');
-
     }
 }

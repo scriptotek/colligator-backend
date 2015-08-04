@@ -14,5 +14,4 @@ class CollectionNotFoundException extends RuntimeException
     {
         return \Response::make(['error' => 'collection_not_found', 'error_message' => 'Collection not found']);
     }
-
 }

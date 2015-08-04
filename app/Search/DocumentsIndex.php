@@ -107,7 +107,6 @@ class DocumentsIndex
         // # Escape odd quotes
         // quote_count = str.count '"'
         // str = str.gsub(/(.*)"(.*)/, '\1\"\3') if quote_count % 2 == 1
-
     }
     /**
      * Builds a query string query from a SearchDocumentsRequest.
@@ -204,7 +203,7 @@ class DocumentsIndex
         $query = \DB::table('entities')
                     ->select(['entity_id', 'entity_type', \DB::raw('count(document_id) as doc_count')])
                     ->groupBy('entity_id', 'entity_type');
-        $query->chunk(5000, function($rows) use ($typemap) {
+        $query->chunk(5000, function ($rows) use ($typemap) {
             foreach ($rows as $row) {
                 $type = $typemap[$row->entity_type];
                 array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));

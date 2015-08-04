@@ -6,7 +6,6 @@ use RuntimeException;
 
 class InvalidQueryException extends RuntimeException
 {
-
     /**
      * Render into an HTTP response.
      *
@@ -14,9 +13,8 @@ class InvalidQueryException extends RuntimeException
     public function render()
     {
         return \Response::make([
-        	'error' => 'invalid_query',
-        	'error_message' => $this->getMessage(),
+            'error' => 'invalid_query',
+            'error_message' => $this->getMessage(),
         ]);
     }
-
 }

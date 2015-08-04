@@ -7,7 +7,6 @@ use Colligator\XisbnResponse;
 
 class SearchableDocument
 {
-
     /**
      * @var DocumentsIndex
      */
@@ -17,7 +16,7 @@ class SearchableDocument
      * @param Document $doc
      * @param DocumentsIndex $docIndex
      */
-    function __construct(Document $doc, DocumentsIndex $docIndex)
+    public function __construct(Document $doc, DocumentsIndex $docIndex)
     {
         $this->doc = $doc;
         $this->docIndex = $docIndex;
@@ -145,5 +144,4 @@ class SearchableDocument
         }
         return $fulltext;
     }
-
 }
