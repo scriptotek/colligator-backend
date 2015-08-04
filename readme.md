@@ -1,3 +1,8 @@
+[![Build Status](https://img.shields.io/travis/scriptotek/colligator-backend.svg?style=flat-square)](https://travis-ci.org/scriptotek/colligator-backend)
+[![StyleCI](https://styleci.io/repos/37909881/shield)](https://styleci.io/repos/37909881)
+[![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/scriptotek/colligator-backend.svg?style=flat-square)](https://scrutinizer-ci.com/g/scriptotek/colligator-backend/?branch=master)
+[![Code Climate](https://img.shields.io/codeclimate/github/scriptotek/colligator-backend.svg?style=flat-square)](https://codeclimate.com/github/scriptotek/colligator-backend)
+
 # :crocodile: Colligator backend :crocodile:
 
 This is the backend for the [Colligator frontend](https://github.com/scriptotek/colligator-frontend)
