@@ -157,7 +157,6 @@ class Marc21Importer
      */
     public function import(QuiteSimpleXMLElement $record)
     {
-
         try {
             list($biblio, $holdings) = $this->parseRecord($record);
         } catch (ParserException $e) {

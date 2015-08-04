@@ -76,6 +76,5 @@ class Reindex extends Command
         $dt = microtime(true) - $t0;
         $this->info(' Completed in ' . round($dt) . ' seconds.');
         \Log::info('[ReindexJob] Completed in ' . round($dt) . ' seconds.');
-
     }
 }

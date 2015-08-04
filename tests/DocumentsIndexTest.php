@@ -97,5 +97,4 @@ class DocumentsIndexTest extends TestCase
         $this->setExpectedException('Colligator\Exceptions\CollectionNotFoundException');
         $docIndex->queryStringFromRequest($request1);
     }
-
 }

@@ -220,8 +220,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
      */
     public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
     {
-
-        Log::info('[OaiPmhHarvestJob] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until '. ($this->until ?: '(no limit)') . '.');
+        Log::info('[OaiPmhHarvestJob] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until ' . ($this->until ?: '(no limit)') . '.');
         $this->docIndex = $docIndex;
         $this->importer = $importer;
 

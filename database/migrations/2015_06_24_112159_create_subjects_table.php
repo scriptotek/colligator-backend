@@ -38,7 +38,6 @@ class CreateSubjectsTable extends Migration
             $table->timestamps();
 
         });
-
     }
 
     /**
@@ -51,5 +50,4 @@ class CreateSubjectsTable extends Migration
         Schema::drop('document_subject');
         Schema::drop('subjects');
     }
-
 }

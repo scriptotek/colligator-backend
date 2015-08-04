@@ -49,7 +49,7 @@ class XisbnResponse
         if (isset($this->formats[$formStr])) {
             return $this->formats[$formStr];
         }
-        $formStr = implode(' ', array_map(function($el) {
+        $formStr = implode(' ', array_map(function ($el) {
             return $this->formats[$el];
         }, $forms));
         \Log::warning(sprintf('Unknown form: %s', $formStr));

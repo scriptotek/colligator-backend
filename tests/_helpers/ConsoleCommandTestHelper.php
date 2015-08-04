@@ -11,14 +11,13 @@ use Symfony\Component\Console\Tester\CommandTester;
  * Class ConsoleCommandTestHelper
  * @package Tests\Helpers
  */
-trait ConsoleCommandTestHelper {
-
-	protected function runConsoleCommand(Command $command, $arguments = [], $options = [])
-	{
-		$command->setLaravel($this->app);
-		$tester = new CommandTester($command);
-		$tester->execute($arguments, $options);
+trait ConsoleCommandTestHelper
+{
+    protected function runConsoleCommand(Command $command, $arguments = [], $options = [])
+    {
+        $command->setLaravel($this->app);
+        $tester = new CommandTester($command);
+        $tester->execute($arguments, $options);
         return $tester;
-	}
-
+    }
 }

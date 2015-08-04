@@ -26,7 +26,6 @@ class CreateCoversTable extends Migration
                 ->references('id')->on('documents')
                 ->onDelete('cascade');
         });
-
     }
 
     /**
@@ -38,5 +37,4 @@ class CreateCoversTable extends Migration
     {
         Schema::drop('covers');
     }
-
 }

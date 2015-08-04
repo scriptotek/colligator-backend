@@ -102,7 +102,6 @@ class DocumentsControllerTest extends TestCase
 
     public function testPostCoverInvalidRequest()
     {
-
         $this->esMock()->shouldReceive('index')->never();
 
         \CoverCache::shouldReceive('store')->times(0);
