@@ -127,7 +127,8 @@ class DocumentsIndex
             $query[] = 'collections:"' . $this->sanitizeForQuery($col->name) . '"';
         }
         if ($request->has('subject')) {
-            $query[] = 'subjects.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"';
+            $query[] = '(subjects.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"' .
+                    ' OR subjects.NOTrBIB.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '")' ;
         }
         if ($request->has('real')) {
             dd('`real` is (very) deprecated, please use `subject` instead.');
