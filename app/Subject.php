@@ -11,7 +11,7 @@ class Subject extends Model
      *
      * @var array
      */
-    protected $fillable = ['vocabulary', 'term'];
+    protected $fillable = ['vocabulary', 'term', 'type'];
 
     /**
      * The documents indexed with the subject.
@@ -21,10 +21,11 @@ class Subject extends Model
         return $this->morphToMany('Colligator\Document', 'entity')->withTimestamps();
     }
 
-    public static function lookup($vocabulary, $term)
+    public static function lookup($vocabulary, $term, $type)
     {
         return self::where('vocabulary', '=', $vocabulary)
             ->where('term', '=', $term)
+            ->where('type', '=', $type)
             ->first();
     }
 }

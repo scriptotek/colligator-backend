@@ -121,7 +121,7 @@ class Marc21Importer
         $subject_ids = [];
         foreach ($biblio['subjects'] as $value) {
             $value['vocabulary'] = $this->fixVocabularyCode($value['vocabulary']);
-            $subject = Subject::lookup($value['vocabulary'], $value['term']);
+            $subject = Subject::lookup($value['vocabulary'], $value['term'], $value['type']);
             if (is_null($subject)) {
                 $subject = Subject::create($value);
             }
