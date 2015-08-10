@@ -212,12 +212,19 @@ Store description:
 	vocabulary string
 	term string
 	uri string
-	data JSON blurb ?
+	type string
 
-	document_subjects
+	genres
+	--------
+	id int
+	vocabulary string
+	term string
+	uri string
+
+	entities
 	-----------------
-	document_id
-	subject_id
+	document_id - reference to document id
+	entity_id - reference to subject or genre id (and creator id in the future?)
 	date_assigned
 
 	covers
@@ -227,6 +234,13 @@ Store description:
 	width
 	height
 	mime
+
+	ontosaurs
+	---------
+	id
+	nodes - json blurb
+	links - json blurb
+	topnode - string
 
 
 ## License
