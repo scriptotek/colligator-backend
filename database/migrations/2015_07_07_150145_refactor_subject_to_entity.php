@@ -12,6 +12,10 @@ class RefactorSubjectToEntity extends Migration
      */
     public function up()
     {
+        Schema::table('document_subject', function (Blueprint $table) {
+            $table->dropForeign('document_subject_subject_id_foreign');
+        });
+
         Schema::rename('document_subject', 'entities');
 
         Schema::table('entities', function (Blueprint $table) {
@@ -41,5 +45,12 @@ class RefactorSubjectToEntity extends Migration
         });
 
         Schema::rename('entities', 'document_subject');
+
+        Schema::table('document_subject', function (Blueprint $table) {
+            $table->foreign('subject_id')
+                ->references('id')->on('subjects')
+                ->onDelete('cascade');
+        });
+
     }
 }
