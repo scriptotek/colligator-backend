@@ -107,10 +107,11 @@
     </tr>
     <tr>
         <td>
-            <tt>real</tt>
+            <tt>subject</tt>
         </td>
         <td>
-            Subject heading from the 'Realfagstermer' vocabulary.
+            Subject (or form/genre) from 'Realfagstermer' vocabulary,
+            or person/corporation from 'Bibsys personautoritetsregister'
         </td>
     </tr>
     <tr>
@@ -118,7 +119,7 @@
             <tt>q</tt>
         </td>
         <td>
-            Query using the <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html">ElasticSearch URI search syntax</a>.
+            Raw query using the <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-uri-request.html">ElasticSearch URI search syntax</a>.
         </td>
     </tr>
     <tr>
@@ -140,39 +141,52 @@
 </table>
 
 <h3>
-    Examples:
+    Examples: (since only 'samling42' data is currently imported, 
+adding collection=1 doesn't make a difference right now, but
+it might in the future)
 </h3>
 <ul>
 
     <li>
-        <a href="/api/documents?collection=1&amp;real=Havforskning">
-            ?collection=1&amp;real=Havforskning
+Documents about "Havforskning":
+        <a href="/api/documents?subject=Havforskning">
+            ?subject=Havforskning
         </a>
-        –
-        <em>documents in the 'samling42' collection indexed with
-        the 'Havforskning' subject part of the
-        'Realfagstermer' vocabulary (prefix 'real')</em>
+        <em>
+- subject search is currently monolingual, but that will change
+in the future.</em>
     </li>
 
-    <li>
-        <a href="/api/documents?q=creator.id:x90053072">
-            ?q=creator.id:x90053072
+    <li>Einstein as author/creator:
+        <a href='/api/documents?q=creators.normalizedName:"Einstein,%20Albert"'>
+            ?q=creators.normalizedName:"Einstein, Albert"
+        </a>,
+or using the Bibsys authority id,
+        <a href="/api/documents?q=creators.id:x90053072">
+            ?q=creators.id:x90053072
         </a>
-        –
-        <em>documents having
-        <a href="https://authority.bibsys.no:443/authority/rest/functions/identifier/autid?id=x90053072&format=json
-">x90053072</a>
-        as one of the creators.</em>
+</em>
     </li>
     <li>
-        <a href="/api/documents?q=acquired:{2015-01-01%20TO%20*}">
+Einstein as the subject:
+        <a href="/api/documents?subject=Einstein,%20Albert">
+            ?subject=Einstein, Albert
+        </a>
+<em>
+        , currently no option to search using authority id since
+Bibsys doesn't add those to the 6XX fields for some reason.
+
+</em>
+    </li>
+    <li>
+        "New books": <a href="/api/documents?q=acquired:{2015-01-01%20TO%20*}">
             ?q=acquired:{2015-01-01 TO *}
         </a>
         –
         <em>acquired since January 1st, 2015</em>
     </li>
     <li>
-        <a href="/api/documents?q=electronic.false%20AND%20other_form.fulltext.access:true">
+        "Also as e-book": <a href="/api/documents?q=electronic:false%20AND%20other_form.fulltext.access:true">
             ?q=electronic:false AND other_form.fulltext.access:true
         </a>
         –
