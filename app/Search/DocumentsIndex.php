@@ -128,7 +128,13 @@ class DocumentsIndex
         }
         if ($request->has('subject')) {
             $query[] = '(subjects.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"' .
-                    ' OR subjects.NOTrBIB.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '")' ;
+                    ' OR subjects.NOTrBIB.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"' .
+                    ' OR genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '")' ;
+                // TODO: Vi bør vel antakelig skille mellom X som emne og X som form/sjanger ?
+                //       Men da må frontend si fra hva den ønsker, noe den ikke gjør enda.
+        }
+        if ($request->has('genre')) {
+            $query[] = 'genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->genre) . '"' ;
         }
         if ($request->has('real')) {
             dd('`real` is (very) deprecated, please use `subject` instead.');

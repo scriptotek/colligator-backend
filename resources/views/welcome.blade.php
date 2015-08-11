@@ -157,6 +157,13 @@ Documents about "Havforskning":
 in the future.</em>
     </li>
 
+    <li>
+Documents with form/genre "Tegneserier":
+        <a href="/api/documents?subject=Tegneserier">
+            ?genre=Tegneserier
+        </a>
+    </li>
+
     <li>Einstein as author/creator:
         <a href='/api/documents?q=creators.normalizedName:"Einstein,%20Albert"'>
             ?q=creators.normalizedName:"Einstein, Albert"
