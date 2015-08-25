@@ -59,7 +59,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap" OR genres.noubomn.prefLabel:"Naturvitenskap")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testComplexSubjectQueryString()
@@ -67,7 +67,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testCompoundQueryString()
@@ -75,7 +75,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi', 'q' => '_exists_:subjects.lcsh']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('_exists_:subjects.lcsh AND (subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('_exists_:subjects.lcsh AND (subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testCollectionQueryString()
