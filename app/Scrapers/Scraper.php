@@ -36,7 +36,7 @@ class Scraper
         }
 
         return [
-            'text' => trim($text),
+            'text'   => trim($text),
             'source' => trim($source),
         ];
     }

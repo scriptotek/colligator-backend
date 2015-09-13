@@ -4,7 +4,6 @@ namespace Colligator\Search;
 
 use Colligator\Collection;
 use Colligator\Document;
-use Colligator\Exceptions\CollectionNotFoundException;
 use Colligator\Exceptions\InvalidQueryException;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Elasticsearch\Client;
@@ -59,6 +58,7 @@ class DocumentsIndex
             throw new InvalidQueryException($msg['error']);
         }
         $response['offset'] = $payload['from'];
+
         return $response;
     }
 
@@ -85,7 +85,7 @@ class DocumentsIndex
 
     /**
      * Escape special characters
-     * http://lucene.apache.org/core/old_versioned_docs/versions/2_9_1/queryparsersyntax.html#Escaping Special Characters
+     * http://lucene.apache.org/core/old_versioned_docs/versions/2_9_1/queryparsersyntax.html#Escaping Special Characters.
      *
      * @param string $value
      *
@@ -95,6 +95,7 @@ class DocumentsIndex
     {
         $chars = preg_quote('\\+-&|!(){}[]^~*?:');
         $value = preg_replace('/([' . $chars . '])/', '\\\\\1', $value);
+
         return $value;
         //
         // # AND, OR and NOT are used by lucene as logical operators. We need
@@ -108,6 +109,7 @@ class DocumentsIndex
         // quote_count = str.count '"'
         // str = str.gsub(/(.*)"(.*)/, '\1\"\3') if quote_count % 2 == 1
     }
+
     /**
      * Builds a query string query from a SearchDocumentsRequest.
      *
@@ -129,17 +131,18 @@ class DocumentsIndex
         if ($request->has('subject')) {
             $query[] = '(subjects.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"' .
                     ' OR subjects.NOTrBIB.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '"' .
-                    ' OR genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '")' ;
+                    ' OR genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->subject) . '")';
                 // TODO: Vi bør vel antakelig skille mellom X som emne og X som form/sjanger ?
                 //       Men da må frontend si fra hva den ønsker, noe den ikke gjør enda.
         }
         if ($request->has('genre')) {
-            $query[] = 'genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->genre) . '"' ;
+            $query[] = 'genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->genre) . '"';
         }
         if ($request->has('real')) {
             dd('`real` is (very) deprecated, please use `subject` instead.');
         }
         $query = count($query) ? implode(' AND ', $query) : '';
+
         return $query;
     }
 
@@ -147,7 +150,7 @@ class DocumentsIndex
     {
         return [
             'index' => $this->esIndex,
-            'type' => $this->esType,
+            'type'  => $this->esType,
         ];
     }
 
@@ -155,15 +158,17 @@ class DocumentsIndex
     {
         $typemap = ['subject' => 'Colligator\\Subject', 'genre' => 'Colligator\\Genre'];
         if (!isset($typemap[$type])) {
-            throw new \InvalidArgumentException;
+            throw new \InvalidArgumentException();
         }
+
         return $typemap[$type];
     }
 
     /**
-     * Returns the number of documents the subject is used on
+     * Returns the number of documents the subject is used on.
      *
      * @param int $id
+     *
      * @return int
      */
     public function getUsageCount($id, $type)
@@ -173,6 +178,7 @@ class DocumentsIndex
         if (is_null(array_get($this->usage, $arg))) {
             $this->addToUsageCache($id, $type);
         }
+
         return array_get($this->usage, $arg);
     }
 
@@ -180,6 +186,7 @@ class DocumentsIndex
      * Build an array of document usage count per subject.
      *
      * @param array|int $subject_ids
+     *
      * @return array
      */
     public function addToUsageCache($entity_ids, $type)
@@ -222,7 +229,7 @@ class DocumentsIndex
      * Add or update a document in the ElasticSearch index, making it searchable.
      *
      * @param Document $doc
-     * @param int $indexVersion
+     * @param int      $indexVersion
      *
      * @throws \ErrorException
      */
@@ -257,45 +264,46 @@ class DocumentsIndex
         $this->index(Document::with('subjects', 'cover')->findOrFail($docId));
     }
 
-    public function createVersion($version=null)
+    public function createVersion($version = null)
     {
         if (is_null($version)) {
             $version = $this->getCurrentVersion() + 1;
         }
         $indexParams = ['index' => $this->esIndex . '_v' . $version];
         $indexParams['body']['settings']['analysis']['char_filter']['isbn_filter'] = [
-            'type' => 'pattern_replace',
-            'pattern' => '-',
+            'type'        => 'pattern_replace',
+            'pattern'     => '-',
             'replacement' => '',
         ];
         $indexParams['body']['settings']['analysis']['analyzer']['isbn_analyzer'] = [
-            'type' => 'custom',
+            'type'        => 'custom',
             'char_filter' => ['isbn_filter'],
-            'tokenizer' => 'keyword',
-            'filter' => ['lowercase'],
+            'tokenizer'   => 'keyword',
+            'filter'      => ['lowercase'],
         ];
         $indexParams['body']['mappings']['document'] = [
             '_source' => [
                 'enabled' => true,
             ],
             'properties' => [
-                'id' => ['type' => 'integer'],
-                'created' => ['type' => 'date'],
-                'modified' => ['type' => 'date'],
+                'id'        => ['type' => 'integer'],
+                'created'   => ['type' => 'date'],
+                'modified'  => ['type' => 'date'],
                 'bibsys_id' => ['type' => 'string', 'index' => 'not_analyzed'],
-                'isbns' => [
-                    'type' => 'string',
-                    'analyzer' => 'isbn_analyzer'
+                'isbns'     => [
+                    'type'     => 'string',
+                    'analyzer' => 'isbn_analyzer',
                 ],
                 'holdings' => [
                     'properties' => [
-                        'created' => ['type' => 'date'],
+                        'created'  => ['type' => 'date'],
                         'acquired' => ['type' => 'date'],
                     ],
                 ],
             ],
         ];
         $this->client->indices()->create($indexParams);
+
         return $version;
     }
 
@@ -341,6 +349,7 @@ class DocumentsIndex
                 $currentIndex = $index;
             }
         }
+
         return is_null($currentIndex) ? 0 : intval(explode('_v', $currentIndex)[1]);
     }
 }

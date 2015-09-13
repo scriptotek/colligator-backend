@@ -41,8 +41,8 @@ class DescriptionScraper
         $docLink = sprintf('<http://colligator.biblionaut.net/api/documents/%s|#%s> ', $doc->id, $doc->id);
         \Slack::attach([
             'fallback' => '#' . $doc->id . ' ' . $msg,
-            'text' => $docLink . $msg,
-            'color' => $level,
+            'text'     => $docLink . $msg,
+            'color'    => $level,
         ])->send();
     }
 
@@ -94,8 +94,8 @@ class DescriptionScraper
         }
 
         $doc->description = [
-            'text' => $result['text'],
-            'source' => $result['source'],
+            'text'       => $result['text'],
+            'source'     => $result['source'],
             'source_url' => $url,
         ];
 

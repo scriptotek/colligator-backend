@@ -32,9 +32,9 @@ class CoverCache
      * @param string $url
      * @param int    $maxHeight
      *
-     * @return CachedImage
-     *
      * @throws \ErrorException
+     *
+     * @return CachedImage
      */
     public function put($url, $maxHeight = 0)
     {

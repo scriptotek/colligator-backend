@@ -40,10 +40,10 @@ class CachedImage
     protected function setMetadata($file, Image $img)
     {
         $this->_metadata = [
-            'size' => strlen($file),
-            'width' => $img->width(),
+            'size'   => strlen($file),
+            'width'  => $img->width(),
             'height' => $img->height(),
-            'mime' => $img->mime(),
+            'mime'   => $img->mime(),
         ];
     }
 
@@ -87,9 +87,9 @@ class CachedImage
     /**
      * Store a file in cache.
      *
-     * @return CachedImage
-     *
      * @throws \ErrorException
+     *
+     * @return CachedImage
      */
     public function store()
     {
@@ -122,9 +122,9 @@ class CachedImage
      *
      * @param string $maxHeight
      *
-     * @return CachedImage
-     *
      * @throws \ErrorException
+     *
+     * @return CachedImage
      */
     public function thumb($maxHeight)
     {

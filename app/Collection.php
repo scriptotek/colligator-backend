@@ -28,6 +28,7 @@ class Collection extends Model
         if (is_null($collection)) {
             throw new CollectionNotFoundException();
         }
+
         return $collection;
     }
 }

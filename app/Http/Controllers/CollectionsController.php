@@ -29,6 +29,7 @@ class CollectionsController extends Controller
     public function show($id)
     {
         $collection = Collection::findOrFail($id);
+
         return response()->json([
             'collection' => $collection,
         ]);

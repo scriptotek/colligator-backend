@@ -1,5 +1,6 @@
 <?php
-return array(
+
+return [
     /*
     |--------------------------------------------------------------------------
     | Endpoint
@@ -40,5 +41,4 @@ return array(
     */
     'user-agent' => 'Colligator/0.1',
 
-
-);
+];

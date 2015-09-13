@@ -23,8 +23,8 @@ class DocumentsController extends Controller
         // Build response, include pagination data
         $out = [
             'warnings' => $request->warnings,
-            'offset' => $response['offset'],
-            'total' => intval($response['hits']['total']),
+            'offset'   => $response['offset'],
+            'total'    => intval($response['hits']['total']),
         ];
         $hits = count($response['hits']['hits']);
         if ($response['offset'] + $hits < $out['total']) {
@@ -63,7 +63,7 @@ class DocumentsController extends Controller
      * Display the specified resource.
      *
      * @param DocumentsIndex $se
-     * @param int          $id
+     * @param int            $id
      *
      * @return Response
      */
@@ -156,7 +156,7 @@ class DocumentsController extends Controller
 
             return response()->json([
                 'result' => 'error',
-                'error' => 'Failed to cache the cover. Please check that the URL points to a valid image file.',
+                'error'  => 'Failed to cache the cover. Please check that the URL points to a valid image file.',
             ]);
         }
 
@@ -164,7 +164,7 @@ class DocumentsController extends Controller
 
         return response()->json([
             'result' => 'ok',
-            'cover' => $cover->toArray(),
+            'cover'  => $cover->toArray(),
         ]);
     }
 
@@ -176,15 +176,15 @@ class DocumentsController extends Controller
     public function storeDescription($document_id, Request $request, DocumentsIndex $se)
     {
         $this->validate($request, [
-            'text' => 'required',
-            'source' => 'required',
+            'text'       => 'required',
+            'source'     => 'required',
             'source_url' => 'url',
         ]);
 
         $doc = Document::findOrFail($document_id);
         $doc->description = [
-            'text' => $request->text,
-            'source' => $request->source,
+            'text'       => $request->text,
+            'source'     => $request->source,
             'source_url' => $request->source_url,
         ];
         $doc->save();

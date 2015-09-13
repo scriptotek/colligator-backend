@@ -32,7 +32,7 @@ class DocumentsIndexTest extends TestCase
         $sub2 = factory(Subject::class)->create();
         $sub3 = factory(Subject::class)->create();
 
-        $gen1= factory(Genre::class)->create();
+        $gen1 = factory(Genre::class)->create();
         $gen2 = factory(Genre::class)->create();
 
         $docs[0]->subjects()->save($sub1);

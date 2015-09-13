@@ -42,9 +42,9 @@ class OaiPmhHarvestInfo extends Command
      */
     protected function getArguments()
     {
-        return array(
-            array('name', InputArgument::REQUIRED, 'Name of the harvest, as defined in configs/oaipmh.php'),
-        );
+        return [
+            ['name', InputArgument::REQUIRED, 'Name of the harvest, as defined in configs/oaipmh.php'],
+        ];
     }
 
     /**
@@ -60,9 +60,9 @@ class OaiPmhHarvestInfo extends Command
         $files = Storage::disk('local')->files('harvests/' . $name);
 
         $info = [
-            'count' => 0,
-            'isbn_count' => [],
-            'holdings_count' => [],
+            'count'                => 0,
+            'isbn_count'           => [],
+            'holdings_count'       => [],
             'local_holdings_count' => [],
         ];
 

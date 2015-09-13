@@ -23,7 +23,6 @@ class HarvestXisbn extends Command
      */
     protected $description = 'Adds additional isbn numbers from the xisbn service.';
 
-
     /**
      * Sleep time in seconds between requests.
      *
@@ -46,7 +45,7 @@ class HarvestXisbn extends Command
 
     /**
      * @param XisbnClient $client
-     * @param Document[] $docs
+     * @param Document[]  $docs
      */
     public function handleDocuments(XisbnClient $client, $docs)
     {
@@ -74,6 +73,7 @@ class HarvestXisbn extends Command
      * Execute the console command.
      *
      * @param XisbnClient $client
+     *
      * @return void
      */
     public function handle(XisbnClient $client)

@@ -8,8 +8,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 /**
  * Source: <https://github.com/ngmy/webloyer/blob/22ccec32be2a0e7d86549a44818c7a2b3de5ffb1/tests/_helpers/ConsoleCommandTestHelper.php>
  * (MIT)
- * Class ConsoleCommandTestHelper
- * @package Tests\Helpers
+ * Class ConsoleCommandTestHelper.
  */
 trait ConsoleCommandTestHelper
 {
@@ -18,6 +17,7 @@ trait ConsoleCommandTestHelper
         $command->setLaravel($this->app);
         $tester = new CommandTester($command);
         $tester->execute($arguments, $options);
+
         return $tester;
     }
 }

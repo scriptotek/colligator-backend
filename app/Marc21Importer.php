@@ -2,9 +2,7 @@
 
 namespace Colligator;
 
-use Colligator\Document;
 use Colligator\Events\Marc21RecordImported;
-use Colligator\Subject;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
@@ -38,7 +36,7 @@ class Marc21Importer
     public function parseRecord(QuiteSimpleXMLElement $data)
     {
         $biblio = null;
-        $holdings = array();
+        $holdings = [];
         foreach ($data->xpath('.//marc:record') as $rec) {
             $parsed = $this->parser->parse($rec);
             if ($parsed instanceof BibliographicRecord) {
@@ -48,7 +46,7 @@ class Marc21Importer
             }
         }
 
-        return array($biblio, $holdings);
+        return [$biblio, $holdings];
     }
 
     /**
@@ -110,7 +108,7 @@ class Marc21Importer
                 $record = \SruClient::first('bs.objektid=' . $other_id);
                 \Log::debug('Importing related record ' . $other_id);
                 if (is_null($record)) {
-                    die("uh oh");
+                    die('uh oh');
                 } else {
                     $this->import($record->data);
                 }
@@ -172,6 +170,7 @@ class Marc21Importer
         if (!is_null($doc)) {
             Event::fire(new Marc21RecordImported($doc->id));
         }
+
         return $doc->id;
     }
 }

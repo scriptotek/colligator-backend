@@ -4,7 +4,6 @@ namespace Colligator\Console\Commands;
 
 use Colligator\Collection;
 use Illuminate\Console\Command;
-use Symfony\Component\Console\Input\InputArgument;
 
 class CreateCollection extends Command
 {
