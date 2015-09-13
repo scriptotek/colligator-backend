@@ -3,7 +3,6 @@
 namespace Colligator\Console\Commands;
 
 use Colligator\Document;
-use Colligator\Genre;
 use Colligator\Search\DocumentsIndex;
 use Illuminate\Console\Command;
 

@@ -13,7 +13,7 @@ class SearchableDocument
     protected $docIndex;
 
     /**
-     * @param Document $doc
+     * @param Document       $doc
      * @param DocumentsIndex $docIndex
      */
     public function __construct(Document $doc, DocumentsIndex $docIndex)
@@ -52,10 +52,10 @@ class SearchableDocument
         $body['subjects'] = [];
         foreach ($this->doc->subjects as $subject) {
             $body['subjects'][$subject['vocabulary'] ?: 'keywords'][] = [
-                'id' => array_get($subject, 'id'),
+                'id'        => array_get($subject, 'id'),
                 'prefLabel' => str_replace('--', ' : ', array_get($subject, 'term')),
-                'type' => array_get($subject, 'type'),
-                'count' => $this->docIndex->getUsageCount(array_get($subject, 'id'), 'subject'),
+                'type'      => array_get($subject, 'type'),
+                'count'     => $this->docIndex->getUsageCount(array_get($subject, 'id'), 'subject'),
             ];
         }
 
@@ -63,9 +63,9 @@ class SearchableDocument
         $body['genres'] = [];
         foreach ($this->doc->genres as $genre) {
             $body['genres'][$genre['vocabulary'] ?: 'keywords'][] = [
-                'id' => array_get($genre, 'id'),
+                'id'        => array_get($genre, 'id'),
                 'prefLabel' => array_get($genre, 'term'),
-                'count' => $this->docIndex->getUsageCount(array_get($genre, 'id'), 'genre'),
+                'count'     => $this->docIndex->getUsageCount(array_get($genre, 'id'), 'genre'),
             ];
         }
 
@@ -83,8 +83,8 @@ class SearchableDocument
         if (!empty($otherFormId)) {
             $otherFormDoc = Document::where('bibsys_id', '=', $otherFormId)->firstOrFail();
             $body['other_form'] = [
-                'id' => $otherFormDoc->id,
-                'bibsys_id' => $otherFormDoc->bibsys_id,
+                'id'         => $otherFormDoc->id,
+                'bibsys_id'  => $otherFormDoc->bibsys_id,
                 'electronic' => $otherFormDoc->isElectronic(),
             ];
             $this->addHoldings($body['other_form'], $otherFormDoc);
@@ -104,7 +104,8 @@ class SearchableDocument
                 // https://github.com/scriptotek/colligator-backend/issues/28
             }
         }
-        return null;
+
+        return;
     }
 
     public function addHoldings(&$body, Document $doc)
@@ -142,6 +143,7 @@ class SearchableDocument
                 $fulltext['access'] = true;
             }
         }
+
         return $fulltext;
     }
 }

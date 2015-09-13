@@ -26,8 +26,8 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $routeMiddleware = [
-        'auth' => \Colligator\Http\Middleware\Authenticate::class,
+        'auth'       => \Colligator\Http\Middleware\Authenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'guest' => \Colligator\Http\Middleware\RedirectIfAuthenticated::class,
+        'guest'      => \Colligator\Http\Middleware\RedirectIfAuthenticated::class,
     ];
 }

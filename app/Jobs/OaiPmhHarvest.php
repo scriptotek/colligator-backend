@@ -34,17 +34,17 @@ class OaiPmhHarvest extends Job implements SelfHandling
     public $importedDocuments;
 
     /**
-     * @var Collection $collection
+     * @var Collection
      */
     public $collection;
 
     /**
-     * @var Marc21Importer $importer
+     * @var Marc21Importer
      */
     public $importer;
 
     /**
-     * @var DocumentsIndex $docIndex
+     * @var DocumentsIndex
      */
     public $docIndex;
 
@@ -59,12 +59,12 @@ class OaiPmhHarvest extends Job implements SelfHandling
     /**
      * Create a new job instance.
      *
-     * @param string $name   Harvest name from config
-     * @param array  $config Harvest config array (url, set, schema)
-     * @param string $start  Start date (optional)
-     * @param string $until  End date (optional)
-     * @param string $resume Resumption token for continuing an aborted harvest (optional)
-     * @param boolean $fromDump Import from local dump
+     * @param string $name     Harvest name from config
+     * @param array  $config   Harvest config array (url, set, schema)
+     * @param string $start    Start date (optional)
+     * @param string $until    End date (optional)
+     * @param string $resume   Resumption token for continuing an aborted harvest (optional)
+     * @param bool   $fromDump Import from local dump
      */
     public function __construct($name, $config, $start = null, $until = null, $resume = null, $fromDump = false)
     {
@@ -118,6 +118,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 }
             }
         }
+
         return $recordsHarvested;
     }
 
@@ -129,12 +130,12 @@ class OaiPmhHarvest extends Job implements SelfHandling
 
         $latest = $dest_path . 'latest.xml';
 
-        $client = new OaiPmhClient($this->url, array(
-            'schema' => $this->schema,
-            'user-agent' => 'Colligator/0.1',
-            'max-retries' => $this->maxRetries,
+        $client = new OaiPmhClient($this->url, [
+            'schema'              => $this->schema,
+            'user-agent'          => 'Colligator/0.1',
+            'max-retries'         => $this->maxRetries,
             'sleep-time-on-error' => $this->sleepTimeOnError,
-        ));
+        ]);
 
         $client->on('request.error', function ($msg) {
             $this->error($msg);
@@ -207,6 +208,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
                 }
             }
         }
+
         return $recordsHarvested;
     }
 
@@ -215,6 +217,7 @@ class OaiPmhHarvest extends Job implements SelfHandling
      *
      * @param DocumentsIndex $docIndex
      * @param Marc21Importer $importer
+     *
      * @throws BadRequestError
      * @throws \Exception
      */

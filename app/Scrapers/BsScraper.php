@@ -15,12 +15,12 @@ class BsScraper extends Scraper implements ScraperInterface
     {
         // Secion list ordered by preference
         $sections = [
-            'Beskrivelse fra forlaget (lang)' => '',
-            'Publisher\'s description (full)' => '',
+            'Beskrivelse fra forlaget (lang)'  => '',
+            'Publisher\'s description (full)'  => '',
             'Beskrivelse fra Forlagssentralen' => '',
-            'Beskrivelse fra forlaget (kort)' => '',
+            'Beskrivelse fra forlaget (kort)'  => '',
             'Publisher\'s description (brief)' => '',
-            'Innholdsfortegnelse' => '',
+            'Innholdsfortegnelse'              => '',
         ];
 
         $next = '';
@@ -34,6 +34,7 @@ class BsScraper extends Scraper implements ScraperInterface
                 $next = $t;
             }
         }
+
         return $sections;
     }
 
@@ -49,6 +50,7 @@ class BsScraper extends Scraper implements ScraperInterface
                 break;
             }
         }
+
         return [$text, $source];
     }
 
@@ -60,6 +62,7 @@ class BsScraper extends Scraper implements ScraperInterface
 
         $sections = $this->getSections($texts);
         list($text, $source) = $this->getFirstNonEmpty($sections);
+
         return $this->returnResult($text, $source);
     }
 }

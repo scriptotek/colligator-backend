@@ -13,22 +13,23 @@
 
 $factory->define(Colligator\User::class, function (\Faker\Generator $faker) {
     return [
-        'name' => $faker->name,
-        'email' => $faker->email,
-        'password' => str_random(10),
+        'name'           => $faker->name,
+        'email'          => $faker->email,
+        'password'       => str_random(10),
         'remember_token' => str_random(10),
     ];
 });
 
 $factory->define(Colligator\Document::class, function (\Faker\Generator $faker) {
     $bs_id = str_random(10);
+
     return [
-        'bibsys_id' => $bs_id,
+        'bibsys_id'     => $bs_id,
         'bibliographic' => [
-            'id' => $bs_id,
+            'id'         => $bs_id,
             'electronic' => false,
-            'title' => $faker->sentence(),
-            'isbns' => [$faker->isbn13, $faker->isbn13, $faker->isbn13]
+            'title'      => $faker->sentence(),
+            'isbns'      => [$faker->isbn13, $faker->isbn13, $faker->isbn13],
         ],
         'holdings' => [],
     ];
@@ -37,14 +38,14 @@ $factory->define(Colligator\Document::class, function (\Faker\Generator $faker) 
 $factory->define(Colligator\Subject::class, function (\Faker\Generator $faker) {
     return [
         'vocabulary' => 'noubomn',
-        'term' => $faker->sentence(3),
+        'term'       => $faker->sentence(3),
     ];
 });
 
 $factory->define(Colligator\Genre::class, function (\Faker\Generator $faker) {
     return [
         'vocabulary' => 'noubomn',
-        'term' => $faker->sentence(3),
+        'term'       => $faker->sentence(3),
     ];
 });
 
@@ -56,7 +57,7 @@ $factory->define(Colligator\Cover::class, function (\Faker\Generator $faker) {
 
 $factory->define(Colligator\Collection::class, function (\Faker\Generator $faker) {
     return [
-        'name' => str_random(10),
+        'name'  => str_random(10),
         'label' => $faker->sentence(3),
     ];
 });

@@ -24,7 +24,7 @@ class CreateCollectionCommandTest extends TestCase
 
     public function testCreateCollectionThatDoesntExist()
     {
-        $tester = $this->runConsoleCommand(new CreateCollection, ['name' => $this->name, 'label' => $this->label]);
+        $tester = $this->runConsoleCommand(new CreateCollection(), ['name' => $this->name, 'label' => $this->label]);
 
         $this->assertContains("Created collection '$this->name'.", $tester->getDisplay());
     }
@@ -33,7 +33,7 @@ class CreateCollectionCommandTest extends TestCase
     {
         Collection::create(['name' => $this->name, 'label' => $this->label]);
 
-        $tester = $this->runConsoleCommand(new CreateCollection, ['name' => $this->name, 'label' => $this->label]);
+        $tester = $this->runConsoleCommand(new CreateCollection(), ['name' => $this->name, 'label' => $this->label]);
 
         $this->assertContains("Collection '$this->name' already exists.", $tester->getDisplay());
     }

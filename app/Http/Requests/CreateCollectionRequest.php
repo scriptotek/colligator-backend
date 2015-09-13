@@ -22,7 +22,7 @@ class CreateCollectionRequest extends Request
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name'  => 'required',
             'label' => 'required',
         ];
     }

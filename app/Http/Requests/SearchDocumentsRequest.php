@@ -2,8 +2,6 @@
 
 namespace Colligator\Http\Requests;
 
-use Colligator\Collection;
-
 class SearchDocumentsRequest extends Request
 {
     public $warnings = [];

@@ -16,11 +16,11 @@ class XisbnClient
 
     public function makeQuery($method = 'getEditions', $format = 'json', $fields = 'form,year,lang,ed,lccn,oclcnum,originalLang,publisher,url')
     {
-        return http_build_query(array(
+        return http_build_query([
             'method' => $method,
             'format' => $format,
-            'fl' => $fields,
-        ));
+            'fl'     => $fields,
+        ]);
     }
 
     public function checkIsbns($isbns)

@@ -19,11 +19,11 @@ class Document extends Model
      * @var array
      */
     protected $casts = [
-        'id' => 'integer',
+        'id'            => 'integer',
         'bibliographic' => 'array',
-        'holdings' => 'array',
-        'xisbn' => 'array',
-        'description' => 'array',
+        'holdings'      => 'array',
+        'xisbn'         => 'array',
+        'description'   => 'array',
     ];
 
     /**

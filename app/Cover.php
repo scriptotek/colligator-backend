@@ -52,8 +52,8 @@ class Cover extends Model
     public function getCachedAttribute()
     {
         return [
-            'url' => \CoverCache::url($this->cache_key),
-            'width' => $this->width,
+            'url'    => \CoverCache::url($this->cache_key),
+            'width'  => $this->width,
             'height' => $this->height,
         ];
     }
@@ -66,8 +66,8 @@ class Cover extends Model
     public function getThumbAttribute()
     {
         return !is_null($this->thumb_key) ? [
-            'url' => \CoverCache::url($this->thumb_key),
-            'width' => $this->thumb_width,
+            'url'    => \CoverCache::url($this->thumb_key),
+            'width'  => $this->thumb_width,
             'height' => $this->thumb_height,
         ] : $this->cached;
     }

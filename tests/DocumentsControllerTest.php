@@ -12,6 +12,7 @@ class DocumentsControllerTest extends TestCase
     {
         $this->mock = \Mockery::mock('Elasticsearch\Client');
         \App::instance('Elasticsearch\Client', $this->mock);
+
         return $this->mock;
     }
 
@@ -23,6 +24,7 @@ class DocumentsControllerTest extends TestCase
             ->once()
             ->with(\Mockery::on(function ($doc) use ($exampleUrl) {
                 $this->assertSame($exampleUrl, array_get($doc, 'body.cover.url'));
+
                 return true;
             }));
 
@@ -42,7 +44,7 @@ class DocumentsControllerTest extends TestCase
         $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeStatusCode(200)
             ->seeJSON(['result' => 'ok'])
-            ->seeJson(['url' => $exampleUrl]);
+            ->seeJson(['url'    => $exampleUrl]);
     }
 
     public function testPostigLargeCoverShouldCauseThumbnailGeneration()
@@ -72,7 +74,7 @@ class DocumentsControllerTest extends TestCase
 
         $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
-            ->seeJson(['url' => $exampleUrl]);
+            ->seeJson(['url'    => $exampleUrl]);
     }
 
     public function testPostingTheSameCoverTwiceShouldNotCauseTwoCachingRequests()
@@ -93,11 +95,11 @@ class DocumentsControllerTest extends TestCase
 
         $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
-            ->seeJson(['url' => $exampleUrl]);
+            ->seeJson(['url'    => $exampleUrl]);
 
         $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
-            ->seeJson(['url' => $exampleUrl]);
+            ->seeJson(['url'    => $exampleUrl]);
     }
 
     public function testPostCoverInvalidRequest()
@@ -137,8 +139,8 @@ class DocumentsControllerTest extends TestCase
         // Generate dummy data
         factory(Document::class)->create();
         $postData = [
-            'text' => $faker->text,
-            'source' => $faker->sentence(),
+            'text'       => $faker->text,
+            'source'     => $faker->sentence(),
             'source_url' => $faker->url,
         ];
 

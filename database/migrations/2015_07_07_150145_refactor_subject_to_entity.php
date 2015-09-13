@@ -51,6 +51,5 @@ class RefactorSubjectToEntity extends Migration
                 ->references('id')->on('subjects')
                 ->onDelete('cascade');
         });
-
     }
 }

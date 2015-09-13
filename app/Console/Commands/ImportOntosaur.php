@@ -36,6 +36,7 @@ class ImportOntosaur extends Command
 
     /**
      * @param Resource $res
+     *
      * @return array
      */
     public function getLabels(Resource $res)
@@ -56,11 +57,13 @@ class ImportOntosaur extends Command
             $lab = array_get($labels, $lang);
             $labels[$lang] = empty($lab) ? $defaultLabel : $lab;
         }
+
         return $labels;
     }
 
     /**
      * @param Resource $res
+     *
      * @return array
      */
     public function getNode(Resource $res)
@@ -68,11 +71,11 @@ class ImportOntosaur extends Command
         $labels = $this->getLabels($res);
 
         $node = [
-            'label_nb' => $labels['nb'],
-            'label_en' => $labels['en'],
-            'id' => $res->getUri(),
-            'local_id' => null,
-            'documents' => null,
+            'label_nb'       => $labels['nb'],
+            'label_en'       => $labels['en'],
+            'id'             => $res->getUri(),
+            'local_id'       => null,
+            'documents'      => null,
             'document_count' => 0,
         ];
 
@@ -99,6 +102,7 @@ class ImportOntosaur extends Command
 
     /**
      * @param Resource $res
+     *
      * @return array
      */
     public function getLinks(Resource $res)
@@ -110,6 +114,7 @@ class ImportOntosaur extends Command
                 'target' => $res->getUri(),
             ];
         }
+
         return $links;
     }
 
@@ -117,8 +122,10 @@ class ImportOntosaur extends Command
      * Get arrays of nodes and links from an RDF graph.
      *
      * @param $graph
-     * @return array
+     *
      * @throws \Exception
+     *
+     * @return array
      */
     public function getNetwork(Graph $graph)
     {

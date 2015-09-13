@@ -50,6 +50,7 @@ class ReindexTest extends TestCase
             ->with(\Mockery::on(function ($arg1) use ($doc) {
                 $this->assertInstanceOf('Colligator\Document', $arg1);
                 $this->assertSame($doc->id, $arg1->id);
+
                 return true;
             }), $this->newVersion);
     }
@@ -63,7 +64,7 @@ class ReindexTest extends TestCase
             ->with($this->newVersion)
             ->andReturn(false);
 
-        $tester = $this->runConsoleCommand(new Reindex);
+        $tester = $this->runConsoleCommand(new Reindex());
 
         $this->assertContains('Rebuilding the Elasticsearch index', $tester->getDisplay());
         $this->assertContains('Old version: ' . $this->baseVersion, $tester->getDisplay());
@@ -83,7 +84,7 @@ class ReindexTest extends TestCase
             ->with($this->newVersion)
             ->once();
 
-        $tester = $this->runConsoleCommand(new Reindex);
+        $tester = $this->runConsoleCommand(new Reindex());
 
         $this->assertContains('New version already existed', $tester->getDisplay());
     }

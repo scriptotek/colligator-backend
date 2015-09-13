@@ -6,21 +6,21 @@ class XisbnResponse
 {
     protected $data;
 
-    public $formats = array(
-        'AA' => 'audio',
+    public $formats = [
+        'AA'    => 'audio',
         'AA BA' => 'audio book',
-        'BA' => 'book',
+        'BA'    => 'book',
         'BA DA' => 'ebook',      // Yes, we DO actually get these
-        'BB' => 'hardcover',
+        'BB'    => 'hardcover',
         'BB BC' => 'book',       // ... and these
         'BB DA' => 'ebook',      // ... and these
-        'BC' => 'paperback',
+        'BC'    => 'paperback',
         'BC DA' => 'ebook',      // ... and these
-        'DA' => 'digital',
-        'FA' => 'film/transp.',
-        'MA' => 'microform',
-        'VA' => 'video',
-    );
+        'DA'    => 'digital',
+        'FA'    => 'film/transp.',
+        'MA'    => 'microform',
+        'VA'    => 'video',
+    ];
 
     public function __construct(array $data = null)
     {
@@ -41,7 +41,7 @@ class XisbnResponse
     protected function getForm($item)
     {
         if (!isset($item['form'])) {
-            return null;
+            return;
         }
         $forms = $item['form'];
         sort($forms);
@@ -53,6 +53,7 @@ class XisbnResponse
             return $this->formats[$el];
         }, $forms));
         \Log::warning(sprintf('Unknown form: %s', $formStr));
+
         return $formStr;
     }
 

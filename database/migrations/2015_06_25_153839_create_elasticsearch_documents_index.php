@@ -1,6 +1,5 @@
 <?php
 
-use Colligator\Search\DocumentsIndex;
 use Illuminate\Database\Migrations\Migration;
 
 class CreateElasticsearchDocumentsIndex extends Migration

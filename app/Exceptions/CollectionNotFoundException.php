@@ -8,7 +8,6 @@ class CollectionNotFoundException extends RuntimeException
 {
     /**
      * Render into an HTTP response.
-     *
      */
     public function render()
     {

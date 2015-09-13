@@ -54,7 +54,7 @@ return [
             'secret' => env('S3_SECRET'),
             'region' => env('S3_REGION'),
             'bucket' => env('S3_BUCKET'),
-        ]
+        ],
 
     ],
 
