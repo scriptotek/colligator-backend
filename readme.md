@@ -5,9 +5,11 @@
 
 # :crocodile: Colligator backend :crocodile:
 
-This is the backend for the [Colligator frontend](https://github.com/scriptotek/colligator-frontend)
+This is the backend for the [Colligator frontend](https://github.com/scriptotek/colligator-frontend). A description of the system (in Norwegian) can be found [here](http://www.ub.uio.no/om/prosjekter/scriptotek/colligator.html).
 
 ## Development server
+
+(See https://github.com/scriptotek/colligator-vagrant for a Vagrant box)
 
 Fetch deps:
 
