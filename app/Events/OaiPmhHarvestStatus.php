@@ -19,22 +19,15 @@ class OaiPmhHarvestStatus extends Event
     public $position;
 
     /**
-     * @var int
-     */
-    public $total;
-
-    /**
      * Create a new event instance.
      *
      * @param int $harvested
      * @param int $position
-     * @param int $total
      */
-    public function __construct($harvested, $position, $total)
+    public function __construct($harvested, $position)
     {
         $this->harvested = $harvested;
         $this->position = $position;
-        $this->total = $total;
     }
 
     /**

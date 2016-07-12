@@ -155,7 +155,7 @@ class OaiPmhHarvest extends Command
         $this->startTime = $this->batchTime = microtime(true) - 1;
 
         \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function ($event) {
-            $this->status($event->harvested, $event->position, $event->total);
+            $this->status($event->harvested, $event->position);
         });
 
         \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function ($event) {
@@ -195,15 +195,12 @@ class OaiPmhHarvest extends Command
      *
      * @param int $fetched
      * @param int $current
-     * @param int $total
      */
-    public function status($fetched, $current, $total)
+    public function status($fetched, $current)
     {
         $totalTime = microtime(true) - $this->startTime;
         $batchTime = microtime(true) - $this->batchTime;
         $mem = round(memory_get_usage() / 1024 / 102.4) / 10;
-        $percentage = $current / $total;
-        $remaining = $total - $current;
 
         $currentSpeed = ($fetched - $this->batchPos) / $batchTime;
         $avgSpeed = $fetched / $totalTime;
@@ -211,22 +208,10 @@ class OaiPmhHarvest extends Command
         $this->batchTime = microtime(true);
         $this->batchPos = $fetched;
 
-        $eta = '';
-        if ($remaining > 0) {   # Can be negative
-
-            $et = $remaining / $avgSpeed;
-            $h = floor($et / 3600);
-            $m = floor(($et - ($h * 3600)) / 60);
-            $s = round($et - $h * 3600 - $m * 60);
-            $eta = 'ETA: ' . sprintf('%02d:%02d:%02d', $h, $m, $s) . ', ';
-        }
         $this->comment(sprintf(
-            '[%s] %d / %d records (%.2f %%) - %sRecs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
+            '[%s] %d records - Recs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
             strftime('%Y-%m-%d %H:%M:%S'),
             $current,
-            $total,
-            $percentage * 100,
-            $eta,
             $currentSpeed,
             $avgSpeed,
             $mem
