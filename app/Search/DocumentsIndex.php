@@ -248,7 +248,7 @@ class DocumentsIndex
             $this->client->index($payload);
         } catch (BadRequest400Exception $e) {
             \Log::error('ElasticSearch returned error: ' . $e->getMessage() . '. Our request: ' . var_export($payload, true));
-            throw new \ErrorException($e);
+            throw new \ErrorException('ElasticSearch failed to index the document ' . $doc->id . '. Please see the log for payload and full error response. Error message: ' . $e->getMessage());
         }
     }
 
