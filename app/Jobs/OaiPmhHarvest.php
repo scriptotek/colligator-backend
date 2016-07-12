@@ -199,12 +199,14 @@ class OaiPmhHarvest extends Job implements SelfHandling
                     $records->next();
                     break 1;
                 } catch (BadRequestError $e) {
-                    $this->error('Bad request. Attempt ' . $attempt . ' of 500. Sleeping 60 secs.');
-                    if ($attempt > 500) {
+                    $this->error($e->getMessage());
+                    $this->error($e->getCode());
+                    $this->error('Bad request. Attempt ' . $attempt . ' of 100. Sleeping 10 secs.');
+                    if ($attempt > 100) {
                         throw $e;
                     }
                     ++$attempt;
-                    sleep(60);
+                    sleep(10);
                 }
             }
         }
