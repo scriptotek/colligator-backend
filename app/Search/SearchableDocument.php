@@ -13,6 +13,11 @@ class SearchableDocument
     protected $docIndex;
 
     /**
+     * @var string
+     */
+    protected $sortableCallCodePattern = '/FA ([0-9]+)(\/([A-Z]))?/';
+
+    /**
      * @param Document       $doc
      * @param DocumentsIndex $docIndex
      */
@@ -81,13 +86,17 @@ class SearchableDocument
         // Add 'other form'
         $otherFormId = array_get($body, 'other_form.id');
         if (!empty($otherFormId)) {
-            $otherFormDoc = Document::where('bibsys_id', '=', $otherFormId)->firstOrFail();
-            $body['other_form'] = [
-                'id'         => $otherFormDoc->id,
-                'bibsys_id'  => $otherFormDoc->bibsys_id,
-                'electronic' => $otherFormDoc->isElectronic(),
-            ];
-            $this->addHoldings($body['other_form'], $otherFormDoc);
+
+            // @TODO: https://github.com/scriptotek/colligator-backend/issues/34
+            // Not sure how to handle this in Alma yet
+            unset($body['other_form']);
+            // $otherFormDoc = Document::where('bibsys_id', '=', $otherFormId)->firstOrFail();
+            // $body['other_form'] = [
+            //     'id'         => $otherFormDoc->id,
+            //     'bibsys_id'  => $otherFormDoc->bibsys_id,
+            //     'electronic' => $otherFormDoc->isElectronic(),
+            // ];
+            // $this->addHoldings($body['other_form'], $otherFormDoc);
         }
 
         return $body;
@@ -95,14 +104,12 @@ class SearchableDocument
 
     public function sortableCallCode($holding)
     {
-        if ($holding['shelvinglocation'] == 'UREAL Samling 42') {
-            $m = preg_match('/FA ([0-9]+)(\/([A-Z]))?/', $holding['callcode'], $matches);
-            if ($m) {
-                return intval($matches[1]);
-                // TODO: Også ta hensyn til undersortering i $matches[3], men
-                // denne er en blanding av romertall og alfabetisk sortering
-                // https://github.com/scriptotek/colligator-backend/issues/28
-            }
+        $m = preg_match($this->sortableCallCodePattern, array_get($holding, 'callcode'), $matches);
+        if ($m) {
+            return intval($matches[1]);
+            // TODO: Også ta hensyn til undersortering i $matches[3], men
+            // denne er en blanding av romertall og alfabetisk sortering
+            // https://github.com/scriptotek/colligator-backend/issues/28
         }
 
         return;
@@ -111,20 +118,22 @@ class SearchableDocument
     public function addHoldings(&$body, Document $doc)
     {
         if ($doc->isElectronic()) {
-            $body['fulltext'] = $this->fulltextFromHoldings($doc->holdings);
+
+            // @ TODO: Virker ikke med Alma
+            // https://github.com/scriptotek/colligator-backend/issues/34
+            // $body['fulltext'] = $this->fulltextFromHoldings($doc->holdings);
+
         } else {
             $body['holdings'] = [];
             foreach ($doc->holdings as $holding) {
-                if ($holding['location'] == 'UBO' && $holding['sublocation'] == 'UREAL') {
-                    array_forget($holding, 'fulltext');
-                    array_forget($holding, 'bibliographic_record');
-                    array_forget($holding, 'nonpublic_notes');
-                    $s = $this->sortableCallCode($holding);
-                    if (!is_null($s)) {
-                        $holding['callcodeSortable'] = $s;
-                    }
-                    $body['holdings'][] = $holding;
+                array_forget($holding, 'fulltext');
+                array_forget($holding, 'bibliographic_record');
+                array_forget($holding, 'nonpublic_notes');
+                $s = $this->sortableCallCode($holding);
+                if (!is_null($s)) {
+                    $holding['callcodeSortable'] = $s;
                 }
+                $body['holdings'][] = $holding;
             }
         }
     }

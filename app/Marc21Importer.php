@@ -5,6 +5,7 @@ namespace Colligator;
 use Colligator\Events\Marc21RecordImported;
 use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
+use Scriptotek\Marc\Record as MarcRecord;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 use Scriptotek\SimpleMarcParser\HoldingsRecord;
 use Scriptotek\SimpleMarcParser\Parser as MarcParser;
@@ -35,6 +36,9 @@ class Marc21Importer
      */
     public function parseRecord(QuiteSimpleXMLElement $data)
     {
+        $data->registerXPathNamespaces([
+            'marc' => 'http://www.loc.gov/MARC21/slim'
+        ]);
         $biblio = null;
         $holdings = [];
         foreach ($data->xpath('.//marc:record') as $rec) {
@@ -43,6 +47,51 @@ class Marc21Importer
                 $biblio = $parsed->toArray();
             } elseif ($parsed instanceof HoldingsRecord) {
                 $holdings[] = $parsed->toArray();
+            }
+        }
+
+        if (!count($holdings)) {
+            // Oh, hello Alma...
+            $q = $data->first('.//marc:record')->asXML();
+
+            $rec = MarcRecord::fromString($q);
+
+            $itemMap = [
+                'x' => 'location',  // OBS: 1030310
+                'y' => 'shelvinglocation',  // OBS: k00475
+                'c' => 'barcode',
+                'z' => 'callcode',
+                'a' => 'id',
+                'd' => 'due_back_date',
+                'p' => 'process_type',
+                's' => 'item_status',
+                'n' => 'public_note',
+            ];
+
+            foreach ($rec->getFields('976') as $field) {
+                $holding = [];
+
+                foreach ($itemMap as $c => $f) {
+                    $sf = $field->getSubfield($c);
+                    if ($sf) {
+                        $holding[$f] = $sf->getData();
+                    }
+                }
+
+                $sf = $field->getSubfield('s');
+                if ($sf) {
+                    $sft = $sf->getData();
+
+                    # TODO: Er dette faktisk circulation status, eller bare om den er missing eller ei?
+
+                    if ($sft) {
+                        $holding['circulation_status'] = 'Available';
+                    } else {
+                        $holding['circulation_status'] = 'Unavailable';
+                    }
+                }
+
+                $holdings[] = $holding;
             }
         }
 
@@ -74,12 +123,6 @@ class Marc21Importer
         if (isset($biblio['modified'])) {
             $biblio['modified'] = $biblio['modified']->toIso8601String();
         }
-        foreach ($holdings as &$holding) {
-            $holding['created'] = $holding['created']->toIso8601String();
-            if (isset($holding['acquired'])) {
-                $holding['acquired'] = $holding['acquired']->toIso8601String();
-            }
-        }
 
         // Find existing Document or create a new one
         $doc = Document::firstOrNew(['bibsys_id' => $biblio['id']]);
@@ -102,17 +145,24 @@ class Marc21Importer
         // Check other form
         $other_id = array_get($biblio, 'other_form.id');
         if (!empty($other_id)) {
-            // TODO: Add a separate jobb that updates e-books weekly or so..
-            $doc2 = Document::where('bibsys_id', '=', $other_id)->first();
-            if (is_null($doc2)) {
-                $record = \SruClient::first('bs.objektid=' . $other_id);
-                \Log::debug('Importing related record ' . $other_id);
-                if (is_null($record)) {
-                    die('uh oh');
-                } else {
-                    $this->import($record->data);
-                }
-            }
+
+            // @TODO: https://github.com/scriptotek/colligator-backend/issues/34
+            // Alma uses 776, but the IDs can't be looked up. Need to investigate!
+            // Example: 990824196984702204 (NZ: 990824196984702201), having
+            // 776    0_ $t The Earth after us : what legacy will humans leave in the rocks? $w 991234552274702201
+
+            // $doc2 = Document::where('bibsys_id', '=', $other_id)->first();
+            // if (is_null($doc2)) {
+            //     $record = \SruClient::first('bs.objektid=' . $other_id);
+            //     \Log::debug('Importing related record ' . $other_id);
+            //     if (is_null($record)) {
+            //         die('uh oh');
+            //     } else {
+            //         $this->import($record->data);
+            //     }
+            // }
+
+            // @TODO: Add a separate jobb that updates e-books weekly or so..
         }
 
         // Sync subjects

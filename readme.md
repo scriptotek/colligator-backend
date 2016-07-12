@@ -7,18 +7,30 @@
 
 This is the backend for the [Colligator frontend](https://github.com/scriptotek/colligator-frontend). A description of the system (in Norwegian) can be found [here](http://www.ub.uio.no/om/prosjekter/scriptotek/colligator.html).
 
-## Development server
+## Setup
 
 (See https://github.com/scriptotek/colligator-vagrant for a Vagrant box)
 
-Fetch deps:
+1) Fetch deps:
 
 	composer install
 	npm install
 	cp .env.example .env
 	php artisan key:generate
 
-and modify `.env` as needed.
+2) Modify `.env` as needed.
+
+3) Add to crontab:
+
+	* * * * * php /path/to/colligator/backend/artisan schedule:run 1>> /dev/null 2>&1
+
+4) Make sure both the webserver and the cron user can write to the `storage` folder.
+
+5) More?
+
+## Development
+
+To start a development server on port 8000:
 
 	php artisan serve
 
@@ -39,6 +51,9 @@ run [laravel-ide-helper](https://github.com/barryvdh/laravel-ide-helper):
 
 ## CLI
 
+Run `php artisan` for a list of commands. Colligator-specific
+commands are in the `colligator:` namespaces. Examples:
+
 Create a collection and harvest bibliographic records, etc. (draft)
 
 	php artisan colligator:create-collection samling42 "Samling 42"
@@ -54,11 +69,6 @@ Gather extra isbns from xisbn:
 Drop and re-create the ElasticSearch index:
 
 	php artisan colligator:reindex
-
-Daily updates:
-
-	php artisan harvest:bibsys --url http://oai.bibsys.no/repository \
-  		--set urealSamling42 --from=2014-01-01 --until=2014-02-01
 
 ## REST API
 

@@ -14,9 +14,10 @@ return [
 
     'harvests' => [
         'samling42' => [
-            'url'         => 'http://oai.bibsys.no/oai2/repository',  # http://utvikle-a.bibsys.no/oai/repository
-            'set'         => 'urealSamling42',
-            'schema'      => 'marcxchange',
+            // 'url'         => 'https://sandbox-eu.alma.exlibrisgroup.com/view/oai/47BIBSYS_UBO/request',
+            'url'         => 'https://bibsys-k.alma.exlibrisgroup.com/view/oai/47BIBSYS_UBO/request',
+            'set'         => 'ureal_samling42',
+            'schema'      => 'marc21',
             'max-retries' => 10,
         ],
     ],
