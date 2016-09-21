@@ -169,6 +169,7 @@ return [
         Maknz\Slack\SlackServiceProvider::class,
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Scriptotek\Sru\Providers\SruServiceProvider::class,
+        Scriptotek\GoogleBooks\GoogleBooksServiceProvider::class,
 
         /*
          * Application Service Providers...

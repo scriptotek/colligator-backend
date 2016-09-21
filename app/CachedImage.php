@@ -100,19 +100,19 @@ class CachedImage
 
         $img = $this->imageManager->make($data);
         if ($this->maxHeight && $img->height() > $this->maxHeight) {
-            \Log::debug('Resizing from ' . $img->height() . ' to ' . $this->maxHeight);
+            \Log::debug('[CachedImage] Resizing from ' . $img->height() . ' to ' . $this->maxHeight);
             $img->heighten($this->maxHeight);
             $data = strval($img->encode('jpg'));
         }
 
         $this->setMetadata($data, $img);
 
-        \Log::debug('Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
+        \Log::debug('[CachedImage] Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
         if (!$this->filesystem->write($this->basename(), $data, $this->fsConfig)) {
             throw new \ErrorException('[CoverCache] Failed to upload to S3: ' . $this->sourceUrl);
         }
 
-        \Log::debug('Wrote cached version of ' . $this->sourceUrl . ' as ' . $this->basename());
+        \Log::debug('[CachedImage] Wrote cached version of ' . $this->sourceUrl . ' as ' . $this->basename());
 
         return $this;
     }

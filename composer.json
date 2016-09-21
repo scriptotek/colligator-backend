@@ -36,7 +36,8 @@
         "easyrdf/easyrdf": "dev-master",
         "ml/json-ld": "~1.0",
         "scriptotek/sru-client": "dev-master",
-        "scriptotek/marc": "dev-master"
+        "scriptotek/marc": "dev-master",
+        "scriptotek/google-books": "^0.2.0"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",

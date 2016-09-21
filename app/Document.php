@@ -51,6 +51,22 @@ class Document extends Model
     }
 
     /**
+     * Get enrichments associated with this document.
+     */
+    public function enrichments()
+    {
+        return $this->hasMany('Colligator\Enrichment');
+    }
+
+    /**
+     * Get enrichments associated with this document.
+     */
+    public function enrichmentsByService($serviceName)
+    {
+        return $this->enrichments()->where('service_name', '=', $serviceName);
+    }
+
+    /**
      * The collections the document belongs to.
      */
     public function collections()
