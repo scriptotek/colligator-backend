@@ -9,7 +9,6 @@ use Colligator\Events\OaiPmhHarvestStatus;
 use Colligator\Marc21Importer;
 use Colligator\Search\DocumentsIndex;
 use Event;
-use Illuminate\Contracts\Bus\SelfHandling;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Log;
 use Scriptotek\OaiPmh\BadRequestError;
@@ -17,7 +16,7 @@ use Scriptotek\OaiPmh\Client as OaiPmhClient;
 use Scriptotek\OaiPmh\ListRecordsResponse;
 use Storage;
 
-class OaiPmhHarvest extends Job implements SelfHandling
+class OaiPmhHarvest extends Job
 {
     use DispatchesJobs;
 
