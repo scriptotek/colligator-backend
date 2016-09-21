@@ -105,6 +105,10 @@ class CachedImage
             $data = strval($img->encode('jpg'));
         }
 
+        if ($img->width() / $img->height() > 1.4) {
+            throw new \ErrorException('[CoverCache] Not accepting images with w/h ratio > 1.4: ' . $this->sourceUrl);
+        }
+
         $this->setMetadata($data, $img);
 
         \Log::debug('[CachedImage] Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
