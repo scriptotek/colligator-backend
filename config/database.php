@@ -53,9 +53,15 @@ return [
         ],
 
         'testing' => [
-            'driver'    => 'sqlite',
-            'database'  => env('DB_TEST_HOST', ':memory:'),
+            'driver'    => 'mysql',
+            'host'      => env('DB_HOST', 'localhost'),
+            'database'  => 'colligator_test',
+            'username'  => env('DB_USERNAME', 'colligator'),
+            'password'  => env('DB_PASSWORD', ''),
+            'charset'   => 'utf8',
+            'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
+            'strict'    => false,
         ],
 
         'mysql' => [

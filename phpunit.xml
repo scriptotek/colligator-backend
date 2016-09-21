@@ -26,5 +26,6 @@
         <env name="QUEUE_DRIVER" value="sync"/>
 
         <env name="DB_CONNECTION" value="testing"/>
+        <env name="ES_INDEX" value="documents_test"/>
     </php>
 </phpunit>

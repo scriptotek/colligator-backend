@@ -1,16 +1,19 @@
 language: php
-services: elasticsearch
+services:
+- mysql
+- elasticsearch
 php:
 - 5.5
 - 5.6
 before_script:
+- mysql -uroot -e 'CREATE DATABASE colligator_test;'
 - printf "\n" | pecl install imagick
 - php -m
-- composer install --dev -o -n
+- composer install -o -n
 - cp .env.example .env
 - php artisan key:generate
 script:
-- vendor/bin/phpunit
+- DB_USERNAME=root DB_PASSWORD= vendor/bin/phpunit
 notifications:
   email: false
   slack:

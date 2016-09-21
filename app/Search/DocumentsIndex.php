@@ -31,6 +31,7 @@ class DocumentsIndex
     public function __construct(Client $client)
     {
         $this->client = $client;
+        $this->esIndex = env('ES_INDEX', 'documents');
     }
 
     /**
