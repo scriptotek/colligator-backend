@@ -59,7 +59,7 @@ class Marc21Importer
             $itemMap = [
                 'x' => 'location',  // OBS: 1030310
                 'y' => 'shelvinglocation',  // OBS: k00475
-                'c' => 'barcode',
+                'b' => 'barcode',
                 'z' => 'callcode',
                 'a' => 'id',
                 'd' => 'due_back_date',
@@ -68,7 +68,7 @@ class Marc21Importer
                 'n' => 'public_note',
             ];
 
-            foreach ($rec->getFields('976') as $field) {
+            foreach ($rec->getFields('909') as $field) {
                 $holding = [];
 
                 foreach ($itemMap as $c => $f) {
@@ -81,9 +81,6 @@ class Marc21Importer
                 $sf = $field->getSubfield('s');
                 if ($sf) {
                     $sft = $sf->getData();
-
-                    # TODO: Er dette faktisk circulation status, eller bare om den er missing eller ei?
-
                     if ($sft) {
                         $holding['circulation_status'] = 'Available';
                     } else {
