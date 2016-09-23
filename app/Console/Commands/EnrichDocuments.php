@@ -5,6 +5,7 @@ namespace Colligator\Console\Commands;
 use Colligator\Collection;
 use Colligator\Document;
 use Colligator\EnrichmentService;
+use Colligator\Search\DocumentsIndex;
 use Illuminate\Console\Command;
 
 class EnrichDocuments extends Command
@@ -32,6 +33,11 @@ class EnrichDocuments extends Command
      * @var int
      */
     public $sleepTime = 5;
+
+    /**
+     * @var DocumentsIndex
+     */
+    public $docIndex;
 
     protected $services;
 
@@ -72,6 +78,9 @@ class EnrichDocuments extends Command
         foreach ($docs as $doc) {
             $service->enrich($doc);
 
+            // Update ElasticSearch
+            $this->docIndex->index($doc);
+
             $this->output->progressAdvance();
             sleep($this->sleepTime);
         }
@@ -82,10 +91,11 @@ class EnrichDocuments extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @param DocumentsIndex $docIndex
      */
-    public function handle()
+    public function handle(DocumentsIndex $docIndex)
     {
+        $this->docIndex = $docIndex;
         $serviceName = $this->argument('service');
         $force = $this->option('force');
         $verbose = $this->option('verbose');
