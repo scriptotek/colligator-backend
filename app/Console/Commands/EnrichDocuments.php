@@ -2,6 +2,7 @@
 
 namespace Colligator\Console\Commands;
 
+use Colligator\Collection;
 use Colligator\Document;
 use Colligator\EnrichmentService;
 use Illuminate\Console\Command;
@@ -13,7 +14,10 @@ class EnrichDocuments extends Command
      *
      * @var string
      */
-    protected $signature = 'colligator:enrich {service} {--f|force}';
+    protected $signature = 'colligator:enrich
+                            {service : Name of the service (e.g. "googlebooks")}
+                            {--f|force : Enrich documents that haven\'t changed}
+                            {--collection= : Collection id, for enriching only documents belonging to a single collection}';
 
     /**
      * The console command description.
@@ -43,12 +47,18 @@ class EnrichDocuments extends Command
         ];
     }
 
-    public function getDocumentsToBeChecked($serviceName, $force = false)
+    public function getDocumentsToBeChecked($serviceName, $force = false, $collectionId = 0)
     {
-        if ($force) {
-            return Document::all();
+
+        if ($collectionId > 0) {
+            $docs = Collection::findOrFail($collectionId)->documents();
+        } else {
+            $docs = Document::query();
         }
-        return Document::whereDoesntHave('enrichments', function($query) use ($serviceName) {
+        if ($force) {
+            return $docs->get();
+        }
+        return $docs->whereDoesntHave('enrichments', function($query) use ($serviceName) {
             $query->where('service_name', '=', $serviceName);
         })->get();
     }
@@ -79,6 +89,7 @@ class EnrichDocuments extends Command
         $serviceName = $this->argument('service');
         $force = $this->option('force');
         $verbose = $this->option('verbose');
+        $collectionId = intval($this->option('collection'));
 
         if (!isset($this->services[$serviceName])) {
             $this->error('Service "' . $serviceName . '" is not defined. Available servies: "' . implode('", "', array_keys($this->services)) . '".');
@@ -91,11 +102,14 @@ class EnrichDocuments extends Command
             });
         }
 
-        $docs = $this->getDocumentsToBeChecked($serviceName, $force);
+        $collectionHelp = ($collectionId > 0) ? ' in collection ' . $collectionId : '';
+
+        $docs = $this->getDocumentsToBeChecked($serviceName, $force, $collectionId);
 
         if (!count($docs)) {
-            $this->info('No new documents. Exiting.');
+            $this->info('No new documents' . $collectionHelp . '. Exiting.');
             \Log::info('[EnrichDocuments] No new documents to be checked.');
+            return;
         }
 
         $service = $this->getLaravel()->make($this->services[$serviceName]);
