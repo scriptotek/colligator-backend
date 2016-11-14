@@ -15,7 +15,7 @@ class CreateDocumentsTable extends Migration
         Schema::create('documents', function (Blueprint $table) {
             $table->increments('id');
             $table->timestamps();
-            $table->string('bibsys_id', 12)->unique();
+            $table->string('bibsys_id')->unique();
             $table->text('bibliographic');
             $table->mediumText('holdings');
         });
