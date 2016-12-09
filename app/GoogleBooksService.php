@@ -17,18 +17,9 @@ class GoogleBooksService implements EnrichmentService
 
     protected function get($isbns)
     {
-        $maxAttempts = 10;
-
         foreach ($isbns as $isbn) {
-            for ($i=0; $i < $maxAttempts; $i++) {
-                try {
-                    $volume = $this->books->volumes->byIsbn($isbn);
-                    break;
-                } catch (UsageRateExceeded $e) {
-                    \Log::debug('[GoogleBooksService] Reached API limit. Sleeping for 60 secs.');
-                    sleep(60);
-                }
-            }
+            $volume = $this->books->volumes->byIsbn($isbn);
+            \Log::debug('[GoogleBooksService] - ' . $isbn . ': ' . (is_null($volume) ? 'not found' : 'found'));
             if (!is_null($volume)) {
                 return $volume;
             }
@@ -38,6 +29,8 @@ class GoogleBooksService implements EnrichmentService
 
     public function enrich(Document $doc)
     {
+        \Log::debug('[GoogleBooksService] Checking document ' . $doc->id);
+
         $volume = $this->get($doc->bibliographic['isbns']);
 
         // Delete old

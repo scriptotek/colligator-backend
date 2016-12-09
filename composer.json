@@ -19,14 +19,14 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=5.5.9",
+        "php": ">=5.6.4",
         "ext-imagick": "*",
-        "laravel/framework": "5.2.*",
+        "laravel/framework": "5.3.*",
         "scriptotek/oai-pmh-client": "^0.7.0",
         "scriptotek/simplemarcparser": "^0.8.0",
         "danmichaelo/quitesimplexmlelement": "~0.4",
         "shift31/laravel-elasticsearch": "~1.0",
-        "barryvdh/laravel-cors": "0.7.*@dev",
+        "barryvdh/laravel-cors": "~0.8.2",
         "barryvdh/laravel-ide-helper": "~2.0@dev",
         "doctrine/dbal": "~2.5",
         "intervention/image": "~2.3",
@@ -44,8 +44,8 @@
         "mockery/mockery": "0.9.*",
         "phpunit/phpunit": "~4.0",
         "phpspec/phpspec": "~2.1",
-        "symfony/dom-crawler": "~3.0",
-        "symfony/css-selector": "~3.0"
+        "symfony/dom-crawler": "~3.1",
+        "symfony/css-selector": "~3.1"
     },
     "autoload": {
         "classmap": [

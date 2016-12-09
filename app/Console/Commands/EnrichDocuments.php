@@ -71,21 +71,20 @@ class EnrichDocuments extends Command
 
     public function handleDocuments(EnrichmentService $service, $docs)
     {
-        $this->info('Will check ' . count($docs) . ' documents using "' . $service::$serviceName . '" service');
-        \Log::info('[EnrichDocuments] Starting job. ' . count($docs) . ' documents to be checked.');
+        \Log::info('[EnrichDocuments] Starting job. ' . count($docs) . ' documents to be checked using the "' . $service::$serviceName . '" service.');
 
-        $this->output->progressStart(count($docs));
+        // $this->output->progressStart(count($docs));
         foreach ($docs as $doc) {
             $service->enrich($doc);
 
             // Update ElasticSearch
             $this->docIndex->index($doc);
 
-            $this->output->progressAdvance();
+            // $this->output->progressAdvance();
             sleep($this->sleepTime);
         }
-        $this->output->progressFinish();
-        \Log::info('[EnrichDocuments] Complete.');
+        // $this->output->progressFinish();
+        \Log::info('[EnrichDocuments] Job complete.');
     }
 
     /**
@@ -95,6 +94,12 @@ class EnrichDocuments extends Command
      */
     public function handle(DocumentsIndex $docIndex)
     {
+        $formatter = new \Monolog\Formatter\LineFormatter(null, null, null, true);
+        $handler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::DEBUG);
+        $handler->setFormatter($formatter);
+        $monolog = \Log::getMonolog();
+        $monolog->pushHandler($handler);
+
         $this->docIndex = $docIndex;
         $serviceName = $this->argument('service');
         $force = $this->option('force');
