@@ -131,11 +131,7 @@ class OaiPmhHarvest extends Command
         $harvestName = $this->argument('name');
         $harvestConfig = \Config::get('oaipmh.harvests.' . $harvestName, null);
 
-        $this->comment('');
-        $this->info(sprintf('[%s] Starting harvest "%s"',
-            strftime('%Y-%m-%d %H:%M:%S'),
-            $harvestName
-        ));
+        $this->comment(sprintf('Dispatching new harvest job'));
 
         if ($this->option('from-dump')) {
             $this->comment(' - From local dump');

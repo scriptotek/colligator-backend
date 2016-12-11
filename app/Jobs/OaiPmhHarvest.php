@@ -3,11 +3,8 @@
 namespace Colligator\Jobs;
 
 use Colligator\Collection;
-use Colligator\Document;
 use Colligator\Events\OaiPmhHarvestComplete;
 use Colligator\Events\OaiPmhHarvestStatus;
-use Colligator\Marc21Importer;
-use Colligator\Search\DocumentsIndex;
 use Event;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Log;
@@ -30,22 +27,11 @@ class OaiPmhHarvest extends Job
     public $fromDump;
     public $maxRetries;
     public $sleepTimeOnError;
-    public $importedDocuments;
 
     /**
      * @var Collection
      */
     public $collection;
-
-    /**
-     * @var Marc21Importer
-     */
-    public $importer;
-
-    /**
-     * @var DocumentsIndex
-     */
-    public $docIndex;
 
     /**
      * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
@@ -80,23 +66,6 @@ class OaiPmhHarvest extends Job
     }
 
     /**
-     *
-     */
-    public function imported($docId)
-    {
-        $doc = Document::with('subjects', 'genres', 'cover')->find($docId);
-
-        if (!$this->collection->documents->contains($doc->id)) {
-            $this->collection->documents()->attach($doc->id);
-        }
-
-        // Add/update ElasticSearch
-        $this->docIndex->index($doc);
-
-        $this->importedDocuments[] = $docId;
-    }
-
-    /**
      * Import local XML dump rather than talking to the OAI-PMH server.
      */
     public function fromDump()
@@ -107,15 +76,16 @@ class OaiPmhHarvest extends Job
             if (!preg_match('/.xml$/', $filename)) {
                 continue;
             }
+
             $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
             foreach ($response->records as $record) {
-                $docId = $this->importer->import($record->data);
-                $this->imported($docId);
+                $this->dispatch(new ImportRecord($this->collection, $record->data));
                 ++$recordsHarvested;
                 if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                     Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
                 }
             }
+
         }
 
         return $recordsHarvested;
@@ -177,12 +147,12 @@ class OaiPmhHarvest extends Job
             $currentIndex = $records->key();
 
             // Move to stable location
+            $destPath = sprintf('%s/response_%08d.xml', $dest_path, $currentIndex);
             if (Storage::disk('local')->exists($latest)) {
-                Storage::disk('local')->move($latest, sprintf('%s/response_%08d.xml', $dest_path, $currentIndex));
+                Storage::disk('local')->move($latest, $destPath);
             }
 
-            $docId = $this->importer->import($record->data);
-            $this->imported($docId);
+            $this->dispatch(new ImportRecord($this->collection, $record->data));
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
@@ -216,17 +186,12 @@ class OaiPmhHarvest extends Job
     /**
      * Execute the job.
      *
-     * @param DocumentsIndex $docIndex
-     * @param Marc21Importer $importer
-     *
      * @throws BadRequestError
      * @throws \Exception
      */
-    public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
+    public function handle()
     {
         Log::info('[OaiPmhHarvestJob] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until ' . ($this->until ?: '(no limit)') . '.');
-        $this->docIndex = $docIndex;
-        $this->importer = $importer;
 
         $this->collection = Collection::where('name', '=', $this->name)->first();
         if (is_null($this->collection)) {
@@ -235,15 +200,12 @@ class OaiPmhHarvest extends Job
             return;
         }
 
-        $this->importedDocuments = [];
-
         if ($this->fromDump) {
             $recordsHarvested = $this->fromDump();
         } else {
             $recordsHarvested = $this->fromNetwork();
         }
 
-        // $this->postProcess($this->importedDocuments);
         Log::info('[OaiPmhHarvestJob] Complete, got ' . $recordsHarvested . ' records.');
 
         Event::fire(new OaiPmhHarvestComplete($recordsHarvested));

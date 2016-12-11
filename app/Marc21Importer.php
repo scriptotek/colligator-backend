@@ -199,6 +199,8 @@ class Marc21Importer
 
     /**
      * Execute the job.
+     * @param QuiteSimpleXMLElement $record
+     * @return int|null
      */
     public function import(QuiteSimpleXMLElement $record)
     {
@@ -207,7 +209,7 @@ class Marc21Importer
         } catch (ParserException $e) {
             $this->error('Failed to parse MARC record. Error "' . $e->getMessage() . '" in: ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
 
-            return;
+            return null;
         }
 
         $doc = $this->importParsedRecord($biblio, $holdings);

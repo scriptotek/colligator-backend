@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'url' => 'http://colligator.biblionaut.net',
+    'url' => 'https://ub-www01.uio.no/colligator/',
 
     /*
     |--------------------------------------------------------------------------
@@ -119,8 +119,9 @@ return [
     | Available Settings: "single", "daily", "syslog", "errorlog"
     |
     */
+    'log' => env('APP_LOG', 'daily'),
 
-    'log' => 'single',
+    'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
     /*
     |--------------------------------------------------------------------------

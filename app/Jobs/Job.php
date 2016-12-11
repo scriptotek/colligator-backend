@@ -5,8 +5,11 @@ namespace Colligator\Jobs;
 use Colligator\Events\JobError;
 use Event;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 
-abstract class Job
+abstract class Job implements ShouldQueue
 {
     /*
     |--------------------------------------------------------------------------
@@ -19,10 +22,11 @@ abstract class Job
     |
     */
 
-    use Queueable;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     protected function error($msg)
     {
+        \Log::error($msg);
         Event::fire(new JobError($msg));
     }
 }
