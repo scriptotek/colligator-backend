@@ -20,6 +20,12 @@ return [
             'schema'      => 'marc21',
             'max-retries' => 10,
         ],
+        's-litt' => [
+            'url'         => 'https://bibsys-k.alma.exlibrisgroup.com/view/oai/47BIBSYS_UBO/request',
+            'set'         => 'S-Litt_Colligator',
+            'schema'      => 'marc21',
+            'max-retries' => 10,
+        ],
     ],
 
 ];
