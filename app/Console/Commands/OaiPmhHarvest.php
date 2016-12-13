@@ -12,27 +12,6 @@ class OaiPmhHarvest extends Command
     use DispatchesJobs;
 
     /**
-     * Start time for the full harvest.
-     *
-     * @var float
-     */
-    protected $startTime;
-
-    /**
-     * Start time for the current batch.
-     *
-     * @var float
-     */
-    protected $batchTime;
-
-    /**
-     * Harvest position.
-     *
-     * @var int
-     */
-    protected $batchPos = 0;
-
-    /**
      * The name and signature of the console command.
      *
      * @var string
@@ -147,26 +126,6 @@ class OaiPmhHarvest extends Command
             }
         }
 
-        // For timing
-        $this->startTime = $this->batchTime = microtime(true) - 1;
-
-        \Event::listen('Colligator\Events\OaiPmhHarvestStatus', function ($event) {
-            $this->status($event->harvested, $event->position);
-        });
-
-        \Event::listen('Colligator\Events\OaiPmhHarvestComplete', function ($event) {
-            $this->info(sprintf('[%s] Harvest complete, got %d records in %d seconds',
-                strftime('%Y-%m-%d %H:%M:%S'),
-                $event->count,
-                microtime(true) - $this->startTime
-            ));
-        });
-
-        \Event::listen('Colligator\Events\JobError', function ($event) {
-            \Log::error('[OaiPmhHarvest] ' . $event->msg);
-            $this->error($event->msg);
-        });
-
         $from = $this->option('from');
         $until = $this->option('until');
         if ($this->option('daily')) {
@@ -184,33 +143,5 @@ class OaiPmhHarvest extends Command
                 $this->option('from-dump')
             )
         );
-    }
-
-    /**
-     * Output a status message.
-     *
-     * @param int $fetched
-     * @param int $current
-     */
-    public function status($fetched, $current)
-    {
-        $totalTime = microtime(true) - $this->startTime;
-        $batchTime = microtime(true) - $this->batchTime;
-        $mem = round(memory_get_usage() / 1024 / 102.4) / 10;
-
-        $currentSpeed = ($fetched - $this->batchPos) / $batchTime;
-        $avgSpeed = $fetched / $totalTime;
-
-        $this->batchTime = microtime(true);
-        $this->batchPos = $fetched;
-
-        $this->comment(sprintf(
-            '[%s] %d records - Recs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
-            strftime('%Y-%m-%d %H:%M:%S'),
-            $current,
-            $currentSpeed,
-            $avgSpeed,
-            $mem
-        ));
     }
 }

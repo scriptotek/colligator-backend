@@ -3,9 +3,6 @@
 namespace Colligator\Jobs;
 
 use Colligator\Collection;
-use Colligator\Events\OaiPmhHarvestComplete;
-use Colligator\Events\OaiPmhHarvestStatus;
-use Event;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Log;
 use Scriptotek\OaiPmh\BadRequestError;
@@ -27,6 +24,27 @@ class OaiPmhHarvest extends Job
     public $fromDump;
     public $maxRetries;
     public $sleepTimeOnError;
+
+    /**
+     * Start time for the full harvest.
+     *
+     * @var float
+     */
+    protected $startTime;
+
+    /**
+     * Start time for the current batch.
+     *
+     * @var float
+     */
+    protected $batchTime;
+
+    /**
+     * Harvest position.
+     *
+     * @var int
+     */
+    protected $batchPos = 0;
 
     /**
      * @var Collection
@@ -79,10 +97,10 @@ class OaiPmhHarvest extends Job
 
             $response = new ListRecordsResponse(Storage::disk('local')->get($filename));
             foreach ($response->records as $record) {
-                $this->dispatch(new ImportRecord($this->collection, $record->data));
+                $this->dispatch(new ImportRecord($this->collection, $record->data->asXML()));
                 ++$recordsHarvested;
                 if ($recordsHarvested % $this->statusUpdateEvery == 0) {
-                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested, $response->numberOfRecords));
+                    $this->status($recordsHarvested, $recordsHarvested);
                 }
             }
 
@@ -152,13 +170,13 @@ class OaiPmhHarvest extends Job
                 Storage::disk('local')->move($latest, $destPath);
             }
 
-            $this->dispatch(new ImportRecord($this->collection, $record->data));
+            $this->dispatch(new ImportRecord($this->collection, $record->data->asXML()));
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 if (is_null($this->start)) {
-                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $recordsHarvested));
+                    $this->status($recordsHarvested, $recordsHarvested);
                 } else {
-                    Event::fire(new OaiPmhHarvestStatus($recordsHarvested, $currentIndex));
+                    $this->status($recordsHarvested, $currentIndex);
                 }
             }
 
@@ -191,7 +209,10 @@ class OaiPmhHarvest extends Job
      */
     public function handle()
     {
-        Log::info('[OaiPmhHarvestJob] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until ' . ($this->until ?: '(no limit)') . '.');
+        Log::info('[OaiPmhHarvest] Starting job. Requesting records from ' . ($this->start ?: '(no limit)') . ' until ' . ($this->until ?: '(no limit)') . '.');
+
+        // For timing
+        $this->startTime = $this->batchTime = microtime(true) - 1;
 
         $this->collection = Collection::where('name', '=', $this->name)->first();
         if (is_null($this->collection)) {
@@ -206,8 +227,33 @@ class OaiPmhHarvest extends Job
             $recordsHarvested = $this->fromNetwork();
         }
 
-        Log::info('[OaiPmhHarvestJob] Complete, got ' . $recordsHarvested . ' records.');
+        Log::info('[OaiPmhHarvest] Harvest complete, got ' . $recordsHarvested . ' records.');
+    }
 
-        Event::fire(new OaiPmhHarvestComplete($recordsHarvested));
+    /**
+     * Output a status message.
+     *
+     * @param int $fetched
+     * @param int $current
+     */
+    public function status($fetched, $current)
+    {
+        $totalTime = microtime(true) - $this->startTime;
+        $batchTime = microtime(true) - $this->batchTime;
+        $mem = round(memory_get_usage() / 1024 / 102.4) / 10;
+
+        $currentSpeed = ($fetched - $this->batchPos) / $batchTime;
+        $avgSpeed = $fetched / $totalTime;
+
+        $this->batchTime = microtime(true);
+        $this->batchPos = $fetched;
+
+        Log::debug(sprintf(
+            '[OaiPmhHarvest] Got %d records so far - Recs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
+            $current,
+            $currentSpeed,
+            $avgSpeed,
+            $mem
+        ));
     }
 }
