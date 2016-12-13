@@ -16,9 +16,9 @@ class ImportRecord extends Job
     /**
      * ImportRecord constructor.
      * @param Collection $collection
-     * @param QuiteSimpleXMLElement $record
+     * @param string $record
      */
-    public function __construct(Collection $collection, QuiteSimpleXMLElement $record)
+    public function __construct(Collection $collection, string $record)
     {
         $this->collection = $collection;
         $this->record = $record;
@@ -29,7 +29,8 @@ class ImportRecord extends Job
      */
     public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
     {
-        $docId = $importer->import($this->record);
+        $record = new QuiteSimpleXMLElement($this->record);
+        $docId = $importer->import($record);
         $this->imported($docIndex, $docId);
     }
 
