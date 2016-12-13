@@ -81,7 +81,7 @@ class DescriptionScraper
 
             return;
         } catch (Scrapers\ScrapeException $e) {
-            \Log::error('[DescriptionScraper] Scraping failed: ' . $e->getMessage());
+            \Log::error('[DescriptionScraper] Scraping of ' . $url . ' failed: ' . $e->getMessage());
             $this->notify('*DescriptionScraper* / %s failed to find a text at: %s', $doc, [$e->getMessage(), $url]);
 
             return;
