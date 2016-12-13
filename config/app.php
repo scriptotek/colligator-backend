@@ -172,6 +172,7 @@ return [
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Scriptotek\Sru\Providers\SruServiceProvider::class,
         Scriptotek\GoogleBooks\GoogleBooksServiceProvider::class,
+        Arcanedev\LogViewer\LogViewerServiceProvider::class,
 
         /*
          * Application Service Providers...

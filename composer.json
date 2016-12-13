@@ -19,11 +19,11 @@
     "license": "MIT",
     "type": "project",
     "require": {
-        "php": ">=5.6.4",
+        "php": ">=7.0.0",
         "ext-imagick": "*",
         "laravel/framework": "5.3.*",
         "scriptotek/oai-pmh-client": "^0.7.0",
-        "scriptotek/simplemarcparser": "^0.8.0",
+        "scriptotek/simplemarcparser": "^0.8.1",
         "danmichaelo/quitesimplexmlelement": "~0.4",
         "shift31/laravel-elasticsearch": "~1.0",
         "barryvdh/laravel-cors": "~0.8.2",
@@ -37,7 +37,8 @@
         "ml/json-ld": "~1.0",
         "scriptotek/sru-client": "dev-master",
         "scriptotek/marc": "dev-master",
-        "scriptotek/google-books": "^0.2.0"
+        "scriptotek/google-books": "^0.2.0",
+        "arcanedev/log-viewer": "^4.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
