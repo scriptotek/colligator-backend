@@ -136,6 +136,9 @@ class DocumentsIndex
                 // TODO: Vi bør vel antakelig skille mellom X som emne og X som form/sjanger ?
                 //       Men da må frontend si fra hva den ønsker, noe den ikke gjør enda.
         }
+        if ($request->has('language')) {
+            $query[] = 'language:"' . $this->sanitizeForQuery($request->language) . '"' ;
+        }
         if ($request->has('genre')) {
             $query[] = 'genres.noubomn.prefLabel:"' . $this->sanitizeForQuery($request->genre) . '"';
         }
