@@ -17,7 +17,7 @@ class CreateEnrichmentsTable extends Migration
             $table->integer('document_id')->unsigned();
             $table->string('document_version');
             $table->string('service_name');
-            $table->text('service_data')->nullable();
+            $table->mediumText('service_data')->nullable();
             $table->timestamps();
 
             $table->foreign('document_id')

@@ -15,7 +15,7 @@ class CreateCoversTable extends Migration
         Schema::create('covers', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('document_id')->unsigned();
-            $table->string('url');
+            $table->text('url');
             $table->string('mime')->nullable();
             $table->integer('width')->nullable()->unsigned();
             $table->integer('height')->nullable()->unsigned();
