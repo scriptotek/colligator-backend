@@ -48,6 +48,9 @@ class BsScraper extends Scraper implements ScraperInterface
                 $text = $v[0];
                 $source = $v[1];
                 break;
+            } else if (count($v) == 1 && !empty($v[0])) {
+                $text = $v[0];
+                $source = '';
             }
         }
 
