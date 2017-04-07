@@ -156,9 +156,10 @@ class DocumentsController extends Controller
 
             return response()->json([
                 'result' => 'error',
-                'error'  => 'Failed to cache the cover. Please check that the URL points to a valid image file.',
+                'error'  => 'Failed to store the cover. Please check that the URL points to a valid image file. Details: ' . $e->getMessage(),
             ]);
         }
+
 
         $se->indexById($document_id);
 
