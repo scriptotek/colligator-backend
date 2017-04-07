@@ -33,6 +33,6 @@ class CachedImageTest extends TestCase
         $this->assertSame(filesize($this->fakeImage), $c->size());
         $this->assertSame($width, $c->width());
         $this->assertSame($height, $c->height());
-        $this->assertSame(sha1($url . $c->maxHeight), $c->basename());
+        $this->assertSame(sha1($url . $c->maxHeight), $c->cacheKey);
     }
 }

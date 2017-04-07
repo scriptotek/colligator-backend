@@ -156,16 +156,20 @@ class DocumentsController extends Controller
      */
     public function storeCover($document_id, Request $request, DocumentsIndex $se)
     {
-        $this->validate($request, [
-            'url' => 'required|url',
-        ]);
-
         $doc = $this->getDocumentFromSomeId($document_id);
 
         try {
-            $cover = $doc->storeCover($request->url);
+            if ($request->url) {
+                $this->validate($request, [
+                    'url' => 'required|url',
+                ]);
+                $cover = $doc->storeCover($request->url);
+            } else {
+                $data = $request->getContent();
+                $cover = $doc->storeCoverFromBlob($data);
+            }
         } catch (\ErrorException $e) {
-            \Log::error('Failed to cache cover ' . $request->url . '. Got error: ' . $e->getMessage());
+            \Log::error('Failed to cache cover, got error: ' . $e->getMessage());
 
             return response()->json([
                 'result' => 'error',

@@ -20,26 +20,32 @@ class CoverCache
 
     /**
      * @param string $url
-     *
-     * @return CachedImage
-     */
-    public function get($url)
-    {
-        return new CachedImage($url);
-    }
-
-    /**
-     * @param string $url
      * @param int    $maxHeight
      *
      * @throws \ErrorException
      *
      * @return CachedImage
      */
-    public function put($url, $maxHeight = 0)
+    public function putUrl($url, $maxHeight = 0)
     {
         $item = new CachedImage($url, $maxHeight);
         $item->store();
+
+        return $item;
+    }
+
+    /**
+     * @param binary $blob
+     * @param int    $maxHeight
+     *
+     * @throws \ErrorException
+     *
+     * @return CachedImage
+     */
+    public function putBlob($blob, $maxHeight = 0)
+    {
+        $item = new CachedImage(null, $maxHeight);
+        $item->store($blob);
 
         return $item;
     }

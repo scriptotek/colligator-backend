@@ -117,31 +117,37 @@ class Cover extends Model
      *
      * @throws \ErrorException
      */
-    public function cache()
+    public function cache($blob = null)
     {
-        if (!isset($this->url)) {
-            throw new \ErrorException('[Cover] Cannot cache when no URL set.');
+        if (is_null($blob) && !isset($this->url)) {
+            throw new \ErrorException('[Cover] Cannot cache when no URL or blob is set.');
         }
         if ($this->isCached()) {
-            \Log::debug('[Cover] Already cached: ' . $this->url);
+            \Log::debug('[Cover] Already cached');
 
             return;
         }
 
-        \Log::debug('[Cover] Add to cache: ' . $this->url);
+        if (!is_null($blob)) {
+            \Log::debug('[Cover] Add to cache from blob');
+            $orig = \CoverCache::putBlob($blob);
 
-        $orig = \CoverCache::put($this->url);
+        } else {
+            \Log::debug('[Cover] Add to cache from url: ' . $this->url);
+            $orig = \CoverCache::putUrl($this->url);
+        }
+
 
         $this->width = $orig->width();
         $this->height = $orig->height();
         $this->mime = $orig->mime();
-        $this->cache_key = $orig->basename();
+        $this->cache_key = $orig->cacheKey;
 
         if ($orig->height() > $this->defaultThumbHeight) {
             $thumb = $orig->thumb($this->defaultThumbHeight);
             $this->thumb_width = $thumb->width();
             $this->thumb_height = $thumb->height();
-            $this->thumb_key = $thumb->basename();
+            $this->thumb_key = $thumb->cacheKey;
         }
     }
 }

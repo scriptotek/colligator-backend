@@ -11,6 +11,7 @@ class CachedImage
 {
     public $sourceUrl;
     public $maxHeight;
+    public $cacheKey;
     protected $_metadata;
 
     public function __construct($url, $maxHeight = 0, AdapterInterface $filesystem = null, ImageManager $imageManager = null)
@@ -28,7 +29,7 @@ class CachedImage
     public function getMetadata()
     {
         if (is_null($this->_metadata)) {
-            $data = $this->filesystem->read($this->basename());
+            $data = $this->filesystem->read($this->cacheKey);
             $contents = strval($data['contents']);
             $img = $this->imageManager->make($contents);
             $this->setMetadata($contents, $img);
@@ -67,11 +68,6 @@ class CachedImage
         return $this->getMetadata()['size'];
     }
 
-    public function basename()
-    {
-        return sha1($this->sourceUrl . $this->maxHeight);
-    }
-
     /**
      * Retrieves the content of an URL.
      *
@@ -91,12 +87,16 @@ class CachedImage
      *
      * @return CachedImage
      */
-    public function store()
+    public function store($data = null)
     {
-        $data = $this->download();
-        if (!$data) {
-            throw new \ErrorException('[CoverCache] Failed to download ' . $this->sourceUrl);
+        if (is_null($data)) {
+            $data = $this->download();
+            if (!$data) {
+                throw new \ErrorException('[CoverCache] Failed to download ' . $this->sourceUrl);
+            }
         }
+
+        $this->cacheKey = sha1($data);
 
         $img = $this->imageManager->make($data);
         if ($this->maxHeight && $img->height() > $this->maxHeight) {
@@ -106,17 +106,17 @@ class CachedImage
         }
 
         if ($img->width() / $img->height() > 1.4) {
-            throw new \ErrorException('[CoverCache] Not accepting images with w/h ratio > 1.4: ' . $this->sourceUrl);
+            throw new \ErrorException('[CoverCache] Not accepting images with w/h ratio > 1.4');
         }
 
         $this->setMetadata($data, $img);
 
         \Log::debug('[CachedImage] Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
-        if (!$this->filesystem->write($this->basename(), $data, $this->fsConfig)) {
-            throw new \ErrorException('[CoverCache] Failed to upload to S3: ' . $this->sourceUrl);
+        if (!$this->filesystem->write($this->cacheKey, $data, $this->fsConfig)) {
+            throw new \ErrorException('[CoverCache] Failed to upload thumb to S3');
         }
 
-        \Log::debug('[CachedImage] Wrote cached version of ' . $this->sourceUrl . ' as ' . $this->basename());
+        \Log::debug('[CachedImage] Wrote cached version as ' . $this->cacheKey);
 
         return $this;
     }
@@ -132,6 +132,6 @@ class CachedImage
      */
     public function thumb($maxHeight)
     {
-        return \CoverCache::put($this->sourceUrl, $maxHeight);
+        return \CoverCache::putBlob(file_get_contents($this->cacheKey), $maxHeight);
     }
 }

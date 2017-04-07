@@ -87,6 +87,19 @@ class Document extends Model
         return $cover;
     }
 
+    public function storeCoverFromBlob($blob)
+    {
+        $cover = $this->cover;
+        if (is_null($cover)) {
+            $cover = new Cover(['document_id' => $this->id]);
+        }
+        $cover->url = null;
+        $cover->cache($blob);
+        $cover->save();
+
+        return $cover;
+    }
+
     public function isElectronic()
     {
         return $this->bibliographic['electronic'];
