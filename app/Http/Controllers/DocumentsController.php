@@ -122,6 +122,19 @@ class DocumentsController extends Controller
         //
     }
 
+    protected function getDocumentFromSomeId($document_id)
+    {
+        if (strlen($document_id) > 16) {
+            return Document::with('cover')
+                ->where('bibsys_id', '=', $document_id)
+                ->firstOrFail();
+        }
+        return Document::with('cover')
+            ->where('id', '=', $document_id)
+            ->orWhere('id', '=', $document_id)
+            ->firstOrFail();
+    }
+
     /**
      * Show cover.
      *
@@ -129,7 +142,7 @@ class DocumentsController extends Controller
      */
     public function cover($document_id)
     {
-        $doc = Document::findOrFail($document_id);
+        $doc = $this->getDocumentFromSomeId($document_id);
 
         return response()->json([
             'cover' => $doc->cover,
@@ -147,7 +160,7 @@ class DocumentsController extends Controller
             'url' => 'required|url',
         ]);
 
-        $doc = Document::with('cover')->findOrFail($document_id);
+        $doc = $this->getDocumentFromSomeId($document_id);
 
         try {
             $cover = $doc->storeCover($request->url);
@@ -161,7 +174,7 @@ class DocumentsController extends Controller
         }
 
 
-        $se->indexById($document_id);
+        $se->indexById($doc->id);
 
         return response()->json([
             'result' => 'ok',
@@ -182,7 +195,8 @@ class DocumentsController extends Controller
             'source_url' => 'url',
         ]);
 
-        $doc = Document::findOrFail($document_id);
+        $doc = $this->getDocumentFromSomeId($document_id);
+
         $doc->description = [
             'text'       => $request->text,
             'source'     => $request->source,
@@ -190,9 +204,9 @@ class DocumentsController extends Controller
         ];
         $doc->save();
 
-        \Log::info('Stored new description for ' . $document_id);
+        \Log::info('Stored new description for ' . $doc->id);
 
-        $se->indexById($document_id);
+        $se->indexById($doc->id);
 
         return response()->json([
             'result' => 'ok',
