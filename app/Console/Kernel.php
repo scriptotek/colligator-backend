@@ -14,7 +14,6 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         Commands\OaiPmhHarvest::class,
-        Commands\OaiPmhHarvestInfo::class,
         Commands\CreateCollection::class,
         Commands\Reindex::class,
         Commands\EnrichDocuments::class,

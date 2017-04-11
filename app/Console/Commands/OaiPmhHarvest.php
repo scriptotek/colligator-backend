@@ -21,7 +21,6 @@ class OaiPmhHarvest extends Command
                             {--from=     : Start date on ISO format YYYY-MM-DD}
                             {--until=    : End date on ISO format YYYY-MM-DD}
                             {--resume=   : Resumption token}
-                            {--from-dump : Just re-index from dump}
                             {--daily     : Harvest records modified yesterday. Cannot be combined with --from / --until}';
 
     /**
@@ -73,13 +72,6 @@ class OaiPmhHarvest extends Command
                 return false;
             }
         }
-        if ($this->option('from-dump')) {
-            if ($this->option('from') || $this->option('until') || $this->option('resume') || $this->option('daily')) {
-                $this->error('--from-dump cannot be combined with other options.');
-
-                return false;
-            }
-        }
         if ($this->option('from')) {
             if (!preg_match('/[0-9]{4}-[0-9]{2}-[0-9]{2}/', $this->option('from'))) {
                 $this->error('--from must be on ISO-format YYYY-MM-DD.');
@@ -112,17 +104,13 @@ class OaiPmhHarvest extends Command
 
         $this->comment(sprintf('Dispatching new harvest job'));
 
-        if ($this->option('from-dump')) {
-            $this->comment(' - From local dump');
-        } else {
-            $this->comment(' - Repo: ' . $harvestConfig['url']);
-            $this->comment(' - Schema: ' . $harvestConfig['schema']);
-            $this->comment(' - Set: ' . $harvestConfig['set']);
+        $this->comment(' - Repo: ' . $harvestConfig['url']);
+        $this->comment(' - Schema: ' . $harvestConfig['schema']);
+        $this->comment(' - Set: ' . $harvestConfig['set']);
 
-            foreach (['from', 'until', 'resume', 'daily'] as $key) {
-                if (!is_null($this->option($key))) {
-                    $this->comment(sprintf(' - %s: %s', ucfirst($key), $this->option($key)));
-                }
+        foreach (['from', 'until', 'resume', 'daily'] as $key) {
+            if (!is_null($this->option($key))) {
+                $this->comment(sprintf(' - %s: %s', ucfirst($key), $this->option($key)));
             }
         }
 
@@ -139,8 +127,7 @@ class OaiPmhHarvest extends Command
                 $harvestConfig,
                 $from,
                 $until,
-                $this->option('resume'),
-                $this->option('from-dump')
+                $this->option('resume')
             )
         );
     }
