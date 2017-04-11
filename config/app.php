@@ -173,6 +173,7 @@ return [
         Scriptotek\Sru\Providers\SruServiceProvider::class,
         Scriptotek\GoogleBooks\GoogleBooksServiceProvider::class,
         Arcanedev\LogViewer\LogViewerServiceProvider::class,
+        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -236,6 +237,7 @@ return [
         'Image'          => Intervention\Image\Facades\Image::class,
         'Slack'          => Maknz\Slack\Facades\Slack::class,
         'SruClient'      => Scriptotek\Sru\Facades\SruClient::class,
+        'Sentry'         => Sentry\SentryLaravel\SentryFacade::class,
 
     ],
 

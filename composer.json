@@ -38,7 +38,8 @@
         "scriptotek/marc": "dev-master",
         "scriptotek/google-books": "^0.2.0",
         "arcanedev/log-viewer": "^4.1",
-        "caseyamcl/phpoaipmh": "^2.5"
+        "caseyamcl/phpoaipmh": "^2.5",
+        "sentry/sentry-laravel": "^0.6.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
