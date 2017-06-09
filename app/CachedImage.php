@@ -132,6 +132,10 @@ class CachedImage
      */
     public function thumb($maxHeight)
     {
-        return \CoverCache::putBlob(file_get_contents($this->cacheKey), $maxHeight);
+        $data = $this->filesystem->read($this->cacheKey);
+        $blob = strval($data['contents']);
+        \Log::debug('[CachedImage] Read ' .$this->cacheKey . ': ' . strlen($blob) . ' bytes');
+
+        return \CoverCache::putBlob($blob, $maxHeight);
     }
 }
