@@ -159,14 +159,29 @@ class DocumentsController extends Controller
         $doc = $this->getDocumentFromSomeId($document_id);
 
         try {
-            if ($request->url) {
-                $this->validate($request, [
-                    'url' => 'required|url',
-                ]);
-                $cover = $doc->storeCover($request->url);
+            if (isset($request->url)) {
+                if (empty($request->url)) {
+                    if ($doc->cover) {
+                        \Log::debug("[DocumentsController] Removing cover from document {$doc->id}");
+                        $doc->cover->delete();
+                    } else {
+                        return response()->json([
+                            'result' => 'error',
+                            'error'  => 'There were no cover to remove',
+                        ]);
+                    }
+                    $cover = null;
+                } else {
+                    $this->validate($request, [
+                        'url' => 'required|url',
+                    ]);
+                    $cover = $doc->storeCover($request->url);
+                    $cover = $cover->toArray();
+                }
             } else {
                 $data = $request->getContent();
                 $cover = $doc->storeCoverFromBlob($data);
+                $cover = $cover->toArray();
             }
         } catch (\ErrorException $e) {
             \Log::error('Failed to cache cover, got error: ' . $e->getMessage());
@@ -182,7 +197,7 @@ class DocumentsController extends Controller
 
         return response()->json([
             'result' => 'ok',
-            'cover'  => $cover->toArray(),
+            'cover'  => $cover,
         ]);
     }
 
