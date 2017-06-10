@@ -25,3 +25,5 @@ Route::post('documents/{document}/cover',
     ['as' => 'api.documents.cover.store', 'uses' => 'DocumentsController@storeCover']);
 Route::post('documents/{document}/description',
     ['as' => 'api.documents.description.store', 'uses' => 'DocumentsController@storeDescription']);
+Route::post('documents/{document}/cannotFindCover',
+    ['as' => 'api.documents.cover.cannotfind', 'uses' => 'DocumentsController@cannotFindCover']);

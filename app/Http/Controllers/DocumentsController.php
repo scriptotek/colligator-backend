@@ -231,4 +231,35 @@ class DocumentsController extends Controller
             'result' => 'ok',
         ]);
     }
+
+    /**
+     * Store "Cannot find cover"
+     *
+     * @return Response
+     */
+    public function cannotFindCover($document_id, Request $request, DocumentsIndex $se)
+    {
+        $doc = $this->getDocumentFromSomeId($document_id);
+
+        try {
+            \Log::debug("[DocumentsController] Adding 'cannotFindCover' status to {$doc->id}");
+            $doc->setCannotFindCover();
+            $doc->save();
+
+        } catch (\ErrorException $e) {
+            \Log::error('Failed to store status, got error: ' . $e->getMessage());
+
+            return response()->json([
+                'result' => 'error',
+                'error'  => 'Failed to store status. Details: ' . $e->getMessage(),
+            ]);
+        }
+
+        $se->indexById($doc->id);
+
+        return response()->json([
+            'result' => 'ok',
+            'cannot_find_cover' => $doc->cannot_find_cover,
+        ]);
+    }
 }

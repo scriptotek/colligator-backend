@@ -100,6 +100,15 @@ class Document extends Model
         return $cover;
     }
 
+    public function setCannotFindCover()
+    {
+        if ($this->cannot_find_cover) {
+            $this->cannot_find_cover = $this->cannot_find_cover + 1;
+        } else {
+            $this->cannot_find_cover = 1;
+        }
+    }
+
     public function isElectronic()
     {
         return $this->bibliographic['electronic'];
