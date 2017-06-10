@@ -19,11 +19,26 @@ Route::resource('documents', 'DocumentsController',
 Route::resource('ontosaurs', 'OntosaurController',
     ['only' => ['index', 'show']]);
 
-Route::get('documents/{document}/cover',
-    ['as' => 'api.documents.cover.show', 'uses' => 'DocumentsController@cover']);
-Route::post('documents/{document}/cover',
-    ['as' => 'api.documents.cover.store', 'uses' => 'DocumentsController@storeCover']);
-Route::post('documents/{document}/description',
-    ['as' => 'api.documents.description.store', 'uses' => 'DocumentsController@storeDescription']);
-Route::post('documents/{document}/cannotFindCover',
-    ['as' => 'api.documents.cover.cannotfind', 'uses' => 'DocumentsController@cannotFindCover']);
+Route::get('documents/{document}/cover', [
+	'as' => 'api.documents.cover.show',
+	'uses' => 'DocumentsController@cover',
+]);
+Route::post('documents/{document}/cover', [
+	'as' => 'api.documents.cover.store',
+	'uses' => 'DocumentsController@storeCover',
+    'middleware' => 'iplimit',
+]);
+Route::post('documents/{document}/description', [
+	'as' => 'api.documents.description.store',
+	'uses' => 'DocumentsController@storeDescription',
+    'middleware' => 'iplimit',
+]);
+Route::post('documents/{document}/cannotFindCover', [
+	'as' => 'api.documents.cover.cannotfind',
+	'uses' => 'DocumentsController@cannotFindCover',
+    'middleware' => 'iplimit',
+]);
+
+Route::get('ipcheck', function () {
+    return 'OK';
+})->middleware('iplimit');

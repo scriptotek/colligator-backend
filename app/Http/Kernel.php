@@ -37,6 +37,10 @@ class Kernel extends HttpKernel
             'throttle:300,1',
             'bindings',
         ],
+
+        'iplimit' => [
+            Middleware\IpWhitelist::class,
+        ],
     ];
 
     /**
