@@ -18,14 +18,14 @@ class Cover extends Model
      *
      * @var array
      */
-    protected $visible = ['url', 'cached', 'thumb'];
+    protected $visible = ['url', 'cached', 'thumb', 'created', 'modified'];
 
     /**
      * The accessors to append to the model's array form.
      *
      * @var array
      */
-    protected $appends = ['cached', 'thumb'];
+    protected $appends = ['cached', 'thumb', 'created', 'modified'];
 
     /**
      * The attributes that are mass assignable.
@@ -56,6 +56,22 @@ class Cover extends Model
             'width'  => $this->width,
             'height' => $this->height,
         ];
+    }
+
+    /**
+     * Get date part of ISO date-time
+     */
+    public function getCreatedAttribute()
+    {
+        return isset($this->created_at) ? substr($this->created_at, 0, 10) : null;
+    }
+
+    /**
+     * Get date part of ISO date-time
+     */
+    public function getModifiedAttribute()
+    {
+        return isset($this->modified_at) ? substr($this->modified_at, 0, 10) : null;
     }
 
     /**

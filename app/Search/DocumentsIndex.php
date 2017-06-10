@@ -304,6 +304,12 @@ class DocumentsIndex
                         'acquired' => ['type' => 'date'],
                     ],
                 ],
+                'cover' => [
+                    'properties' => [
+                        'created'  => ['type' => 'date'],
+                        'modified' => ['type' => 'date'],
+                    ],
+                ],
             ],
         ];
         $this->client->indices()->create($indexParams);

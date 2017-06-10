@@ -99,6 +99,9 @@ class SearchableDocument
             // $this->addHoldings($body['other_form'], $otherFormDoc);
         }
 
+        // Add 'cannot_find_cover'
+        $body['cannot_find_cover'] = $this->doc->cannot_find_cover;
+
         return $body;
     }
 
