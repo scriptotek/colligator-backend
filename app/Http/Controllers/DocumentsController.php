@@ -209,8 +209,8 @@ class DocumentsController extends Controller
     public function storeDescription($document_id, Request $request, DocumentsIndex $se)
     {
         $this->validate($request, [
-            'text'       => 'required',
-            'source'     => 'required',
+            // 'text'       => 'required',
+            // 'source'     => 'required',
             'source_url' => 'url',
         ]);
 
@@ -229,6 +229,7 @@ class DocumentsController extends Controller
 
         return response()->json([
             'result' => 'ok',
+            'description' => $doc->description,
         ]);
     }
 
