@@ -53,10 +53,10 @@ return [
         ],
 
         'testing' => [
-            'driver'    => 'mysql',
+            'driver'    => 'pgsql',
             'host'      => env('DB_HOST', 'localhost'),
             'database'  => 'colligator_test',
-            'username'  => env('DB_USERNAME', 'colligator'),
+            'username'  => env('DB_USERNAME', 'postgres'),
             'password'  => env('DB_PASSWORD', ''),
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
