@@ -9,8 +9,8 @@ before_script:
 - mysql -uroot -e 'CREATE DATABASE colligator_test;'
 - printf "\n" | pecl install imagick
 - php -m
-- composer install -o -n
 - cp .env.example .env
+- composer install -o -n
 - php artisan key:generate
 script:
 - DB_USERNAME=root DB_PASSWORD= vendor/bin/phpunit
