@@ -13,7 +13,7 @@ before_script:
 - composer install -o -n
 - php artisan key:generate
 script:
-- DB_USERNAME=postgres DB_PASSWORD= vendor/bin/phpunit
+- DB_CONNECTION=pgsql DB_USERNAME=postgres DB_PASSWORD= vendor/bin/phpunit
 notifications:
   email: false
   slack:
