@@ -22,8 +22,8 @@
         "php": ">=7.0.0",
         "ext-imagick": "*",
         "laravel/framework": "5.3.*",
-        "scriptotek/simplemarcparser": "^0.8.1",
-        "danmichaelo/quitesimplexmlelement": "~0.4",
+        "scriptotek/simplemarcparser": "^0.9.1",
+        "danmichaelo/quitesimplexmlelement": "~1.0",
         "shift31/laravel-elasticsearch": "~1.0",
         "barryvdh/laravel-cors": "~0.8.2",
         "barryvdh/laravel-ide-helper": "~2.0@dev",
@@ -39,7 +39,8 @@
         "scriptotek/google-books": "^0.2.0",
         "arcanedev/log-viewer": "^4.1",
         "caseyamcl/phpoaipmh": "^2.5",
-        "sentry/sentry-laravel": "^0.6.1"
+        "sentry/sentry-laravel": "^0.6.1",
+        "php-http/guzzle6-adapter": "^1.1"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
