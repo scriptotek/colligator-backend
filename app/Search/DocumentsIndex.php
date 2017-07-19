@@ -52,6 +52,10 @@ class DocumentsIndex
             $payload['body']['query']['query_string']['query'] = $query;
         }
 
+        if ($request->has('sort')) {
+            $payload['body']['sort'][$request->sort]['order'] = $request->get('order', 'asc');
+        }
+
         try {
             $response = $this->client->search($payload);
         } catch (BadRequest400Exception $e) {
