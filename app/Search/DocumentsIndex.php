@@ -59,8 +59,9 @@ class DocumentsIndex
         try {
             $response = $this->client->search($payload);
         } catch (BadRequest400Exception $e) {
-            $msg = json_decode($e->getMessage(), true);
-            throw new InvalidQueryException($msg['error']);
+            $response = json_decode($e->getMessage(), true);
+            $msg = array_get($response, 'error.root_cause.0.reason') ?: array_get($response, 'error');
+            throw new InvalidQueryException($msg);
         }
         $response['offset'] = $payload['from'];
 
