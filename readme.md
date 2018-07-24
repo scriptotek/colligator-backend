@@ -49,6 +49,38 @@ run [laravel-ide-helper](https://github.com/barryvdh/laravel-ide-helper):
 	php artisan ide-helper:models -N
 	php artisan optimize
 
+## Queue worker
+
+By default, Laravel will impose a job timeout of 60 seconds! Make sure you override by setting `--timeout`.
+Here's our `/etc/supervisord.d/colligator.ini`:
+
+```
+[program:ub-colligator]
+process_name=worker_%(process_num)02d
+command=/opt/rh/rh-php71/root/usr/bin/php /srv/ub-www01.uio.no/colligator/backend/artisan queue:work database --sleep=3 --tries=1 --timeout 604800
+autostart=true
+autorestart=true
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/srv/ub-www01.uio.no/colligator/backend/storage/logs/worker.log
+```
+
+## Queue worker
+
+By default, Laravel will impose a job timeout of 60 seconds! Make sure you override by setting `--timeout`.
+Here's our `/etc/supervisord.d/colligator.ini`:
+
+```
+[program:ub-colligator]
+process_name=worker_%(process_num)02d
+command=/opt/rh/rh-php71/root/usr/bin/php /srv/ub-www01.uio.no/colligator/backend/artisan queue:work database --sleep=3 --tries=1 --timeout 604800
+autostart=true
+autorestart=true
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/srv/ub-www01.uio.no/colligator/backend/storage/logs/worker.log
+```
+
 ## CLI
 
 Run `php artisan` for a list of commands. Colligator-specific

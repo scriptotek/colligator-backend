@@ -2,10 +2,12 @@
 
 namespace Colligator\Http\Controllers;
 
+use Carbon\Carbon;
 use Colligator\Cover;
 use Colligator\Document;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\Search\DocumentsIndex;
+use Colligator\Timing;
 use Illuminate\Http\Request;
 
 class DocumentsController extends Controller
@@ -17,15 +19,28 @@ class DocumentsController extends Controller
      */
     public function index(SearchDocumentsRequest $request, DocumentsIndex $se)
     {
+        $t0 = microtime(true);
+
         // Query ElasticSearch
         $response = $se->search($request);
+
+        $t1 = microtime(true);
 
         // Build response, include pagination data
         $out = [
             'warnings' => $request->warnings,
             'offset'   => $response['offset'],
             'total'    => intval($response['hits']['total']),
+            'timing'   => [
+                'elasticsearch' => $t1 - $t0,
+            ]
         ];
+        Timing::create([
+            'event' => 'elasticsearch_request',
+            'event_time' => Carbon::now(),
+            'msecs' => round(($t1 - $t0) * 1000),
+            'data' => 'results:' . count($response['hits']['hits']),
+        ]);
         $hits = count($response['hits']['hits']);
         if ($response['offset'] + $hits < $out['total']) {
             $out['continue'] = $response['offset'] + $hits;
