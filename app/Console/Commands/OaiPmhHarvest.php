@@ -108,18 +108,15 @@ class OaiPmhHarvest extends Command
         $this->comment(' - Schema: ' . $harvestConfig['schema']);
         $this->comment(' - Set: ' . $harvestConfig['set']);
 
-        foreach (['from', 'until', 'resume', 'daily'] as $key) {
-            if (!is_null($this->option($key))) {
-                $this->comment(sprintf(' - %s: %s', ucfirst($key), $this->option($key)));
-            }
-        }
-
-        $from = $this->option('from');
-        $until = $this->option('until');
         if ($this->option('daily')) {
-            $from = Carbon::now()->subDay()->toDateString();
-            $until = $from;
+            $from = Carbon::now()->setTime(0,0,0)->subDay();
+            $until = Carbon::now()->setTime(0,0,0);
+        } else {
+            $from = $this->option('from') ? Carbon::parse($this->option('from')) : null;
+            $until = $this->option('until') ? Carbon::parse($this->option('until')) : null;
         }
+        $this->comment(' - From: ' . ($from ? $from->toDateTimeString() : '(unspecified)'));
+        $this->comment(' - Until: ' . ($until ? $until->toDateTimeString() : '(unspecified)'));
 
         $this->dispatch(
             new OaiPmhHarvestJob(

@@ -3,11 +3,13 @@
 namespace Colligator\Jobs;
 
 use Colligator\Collection;
+use DateTime;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Log;
 use Phpoaipmh\Client;
 use Phpoaipmh\Endpoint;
-use Scriptotek\OaiPmh\ListRecordsResponse;
+use Phpoaipmh\Exception\OaipmhException;
+use Phpoaipmh\Granularity;
 use Storage;
 
 class OaiPmhHarvest extends Job
@@ -63,11 +65,11 @@ class OaiPmhHarvest extends Job
      *
      * @param string $name     Harvest name from config
      * @param array  $config   Harvest config array (url, set, schema)
-     * @param string $start    Start date (optional)
-     * @param string $until    End date (optional)
+     * @param DateTime $start    Start date (optional)
+     * @param DateTime $until    End date (optional)
      * @param string $resume   Resumption token for continuing an aborted harvest (optional)
      */
-    public function __construct($name, $config, $start = null, $until = null, $resume = null)
+    public function __construct($name, $config, DateTime $start = null, DateTime $until = null, $resume = null)
     {
         $this->name = $name;
         $this->url = $config['url'];
@@ -83,7 +85,7 @@ class OaiPmhHarvest extends Job
     public function fromNetwork()
     {
         $client = new Client($this->url);
-        $endpoint = new Endpoint($client);
+        $endpoint = new Endpoint($client,Granularity::DATE);
 
         $recordsHarvested = 0;
 
@@ -119,9 +121,12 @@ class OaiPmhHarvest extends Job
             return;
         }
 
-        $recordsHarvested = $this->fromNetwork();
-
-        Log::info('[OaiPmhHarvest] Harvest complete, got ' . $recordsHarvested . ' records.');
+        try {
+            $recordsHarvested = $this->fromNetwork();
+            Log::info('[OaiPmhHarvest] Harvest complete, got ' . $recordsHarvested . ' records.');
+        } catch (OaipmhException $e) {
+            Log::warning('[OaiPmhHarvest] Harvest stopped with error ' . $e->getCode() . ': ' . $e->getMessage());
+        }
     }
 
     /**

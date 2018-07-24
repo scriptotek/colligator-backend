@@ -30,7 +30,11 @@ This is the backend for the [Colligator frontend](https://github.com/scriptotek/
 
 ## Development
 
-To start a development server on port 8000:
+Start Elasticsearch:
+
+	docker run -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:6.3.1
+
+Start a development server on port 8000:
 
 	php artisan serve
 
