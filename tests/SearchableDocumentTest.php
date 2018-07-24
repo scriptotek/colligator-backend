@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Colligator\Document;
+use Colligator\Search\SearchableDocument;
 use Colligator\Subject;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -26,7 +27,7 @@ class SearchableDocumentTest extends BrowserKitTestCase
         $doc = Document::with('subjects')->first();
         $doc->description = ['text' => 'Bla bla bla', 'source' => 'Selfmade'];
 
-        $sdoc = app('Colligator\Search\SearchableDocument', [$doc]);
+        $sdoc = $this->app->makeWith(SearchableDocument::class, ['doc' => $doc]);
         $pl = $sdoc->toArray();
 
         $this->assertSame($doc->id, $pl['id']);

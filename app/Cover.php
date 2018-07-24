@@ -162,7 +162,7 @@ class Cover extends Model
         if ($orig->height() > $this->defaultThumbHeight) {
             \Log::debug("[Cover] Making cover thumbnail since height exceeds {$this->defaultThumbHeight}px");
 
-            $thumb = $orig->thumb($this->defaultThumbHeight);
+            $thumb = \CoverCache::thumb($orig->cacheKey, $this->defaultThumbHeight);
             $this->thumb_width = $thumb->width();
             $this->thumb_height = $thumb->height();
             $this->thumb_key = $thumb->cacheKey;

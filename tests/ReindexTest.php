@@ -4,6 +4,7 @@ namespace Tests;
 
 use Colligator\Console\Commands\Reindex;
 use Colligator\Document;
+use Colligator\Search\DocumentsIndex;
 use Faker\Factory as Faker;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Mockery;
@@ -25,8 +26,11 @@ class ReindexTest extends BrowserKitTestCase
         $this->baseVersion = $faker->randomNumber();
         $this->newVersion = $this->baseVersion + 1;
 
-        $this->docIndexMock = Mockery::mock('Colligator\Search\DocumentsIndex');
-        App::instance('Colligator\Search\DocumentsIndex', $this->docIndexMock);
+        $this->docIndexMock = Mockery::mock(DocumentsIndex::class);
+
+        $this->app->singleton('Colligator\Search\DocumentsIndex', function ($app) {
+            return $this->docIndexMock;
+        });
 
         $this->docIndexMock->shouldReceive('getCurrentVersion')
             ->andReturn($this->baseVersion);

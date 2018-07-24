@@ -226,7 +226,7 @@ class DocumentsIndex
         $query = \DB::table('entities')
                     ->select(['entity_id', 'entity_type', \DB::raw('count(document_id) as doc_count')])
                     ->groupBy('entity_id', 'entity_type');
-        $query->chunk(5000, function ($rows) use ($typemap) {
+        $query->orderBy('entity_id')->orderBy('entity_type')->chunk(5000, function ($rows) use ($typemap) {
             foreach ($rows as $row) {
                 $type = $typemap[$row->entity_type];
                 array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));

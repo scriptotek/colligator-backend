@@ -84,8 +84,8 @@ class DocumentsIndexTest extends BrowserKitTestCase
     public function testCollectionQueryString()
     {
         $collections = factory(Collection::class, 5)->create();
-        $request1 = new SearchDocumentsRequest(['collection' => '1']);
-        $request2 = new SearchDocumentsRequest(['collection' => '3']);
+        $request1 = new SearchDocumentsRequest(['collection' => $collections[0]->id]);
+        $request2 = new SearchDocumentsRequest(['collection' => $collections[2]->id]);
         $docIndex = $this->getDocumentsIndex();
 
         $this->assertSame('collections:"' . $collections[0]->name . '"', $docIndex->queryStringFromRequest($request1));

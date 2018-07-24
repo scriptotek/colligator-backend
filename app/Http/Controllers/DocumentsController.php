@@ -160,7 +160,7 @@ class DocumentsController extends Controller
 
         try {
             if (isset($request->url)) {
-                if (empty($request->url)) {
+                if ($request->url == 'REMOVE') {
                     if ($doc->cover) {
                         \Log::debug("[DocumentsController] Removing cover from document {$doc->id}");
                         $doc->cover->delete();
@@ -180,6 +180,11 @@ class DocumentsController extends Controller
                 }
             } else {
                 $data = $request->getContent();
+                if (empty($data)) {
+                    $this->validate($request, [
+                        'url' => 'required|url',
+                    ]);
+                }
                 $cover = $doc->storeCoverFromBlob($data);
                 $cover = $cover->toArray();
             }
@@ -211,7 +216,7 @@ class DocumentsController extends Controller
         $this->validate($request, [
             // 'text'       => 'required',
             // 'source'     => 'required',
-            'source_url' => 'url',
+            'source_url' => 'url|required',
         ]);
 
         $doc = $this->getDocumentFromSomeId($document_id);

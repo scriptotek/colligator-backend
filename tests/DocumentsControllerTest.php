@@ -36,11 +36,11 @@ class DocumentsControllerTest extends BrowserKitTestCase
         $mock->shouldReceive('width')->once()->andReturn(300);
         $mock->shouldReceive('height')->twice()->andReturn(500);
         $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
-        $mock->shouldReceive('basename')->once()->andReturn('random');
-        $mock->shouldReceive('thumb')->times(0);
+        // $mock->shouldReceive('basename')->once()->andReturn('random');
+        \CoverCache::shouldReceive('thumb')->times(0);
 
         \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
-        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
+        \CoverCache::shouldReceive('putUrl')->once()->andReturn($mock);
 
         // Generate dummy data
         $doc = factory(Document::class)->create();
@@ -61,17 +61,17 @@ class DocumentsControllerTest extends BrowserKitTestCase
         $mock2->shouldReceive('width')->once()->andReturn(600);
         $mock2->shouldReceive('height')->once()->andReturn(1200);
         $mock2->shouldReceive('mime')->times(0);
-        $mock2->shouldReceive('basename')->once()->andReturn('random2');
+        // $mock2->shouldReceive('basename')->once()->andReturn('random2');
 
         $mock = \Mockery::mock('Colligator\CachedImage');
         $mock->shouldReceive('width')->once()->andReturn(600);
         $mock->shouldReceive('height')->twice()->andReturn(1200);
         $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
-        $mock->shouldReceive('basename')->once()->andReturn('random');
-        $mock->shouldReceive('thumb')->once()->andReturn($mock2);
+        // $mock->shouldReceive('basename')->once()->andReturn('random');
+        \CoverCache::shouldReceive('thumb')->times(0)->once()->andReturn($mock2);
 
         \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
-        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
+        \CoverCache::shouldReceive('putUrl')->once()->andReturn($mock);
 
         // Generate dummy data
         $doc = factory(Document::class)->create();
@@ -91,10 +91,10 @@ class DocumentsControllerTest extends BrowserKitTestCase
         $mock->shouldReceive('width')->once()->andReturn(300);
         $mock->shouldReceive('height')->twice()->andReturn(500);
         $mock->shouldReceive('mime')->once()->andReturn('image/jpeg');
-        $mock->shouldReceive('basename')->once()->andReturn('random');
+        // $mock->shouldReceive('basename')->once()->andReturn('random');
         $mock->shouldReceive('thumb')->times(0);
         \CoverCache::shouldReceive('url')->andReturn('http://example.com/random');
-        \CoverCache::shouldReceive('put')->once()->andReturn($mock);
+        \CoverCache::shouldReceive('putUrl')->once()->andReturn($mock);
         $doc = factory(Document::class)->create();
 
         $this->post('/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
@@ -128,9 +128,10 @@ class DocumentsControllerTest extends BrowserKitTestCase
         // Generate dummy data
         $doc = factory(Document::class)->create();
         $cover = factory(Cover::class)->make();
+
         $doc->cover()->save($cover);
 
-        $this->get('/documents/1/cover')
+        $this->get("/documents/{$doc->id}/cover")
             ->seeJSON(['url' => $cover->url]);
     }
 
@@ -166,6 +167,6 @@ class DocumentsControllerTest extends BrowserKitTestCase
 
         $response = $this->post('/documents/1/description', ['text' => 'Some description'], ['Accept' => 'application/json']);
         $response->assertResponseStatus(422);
-        $response->seeJSON(['source' => ['The source field is required.']]);
+        $response->seeJSON(['source_url' => ['The source url field is required.']]);
     }
 }
