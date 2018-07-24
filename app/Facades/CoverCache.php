@@ -8,6 +8,6 @@ class CoverCache extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'covercache';
+        return \Colligator\CoverCache::class;
     }
 }

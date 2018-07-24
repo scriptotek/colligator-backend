@@ -1,7 +1,10 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Collection;
 use Colligator\Document;
+use Colligator\Exceptions\CollectionNotFoundException;
 use Colligator\Genre;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\Search\DocumentsIndex;
@@ -9,7 +12,7 @@ use Colligator\Subject;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class DocumentsIndexTest extends TestCase
+class DocumentsIndexTest extends BrowserKitTestCase
 {
     // Rollback after each test
     // use DatabaseTransactions;
@@ -20,7 +23,7 @@ class DocumentsIndexTest extends TestCase
      */
     public function getDocumentsIndex()
     {
-        return app('Colligator\Search\DocumentsIndex');
+        return app(DocumentsIndex::class);
     }
 
     public function testUsageCache()
@@ -59,7 +62,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap" OR genres.noubomn.prefLabel:"Naturvitenskap")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap" OR subjects.bare.prefLabel:"Naturvitenskap" OR genres.noubomn.prefLabel:"Naturvitenskap")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testComplexSubjectQueryString()
@@ -67,7 +70,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('(subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.bare.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testCompoundQueryString()
@@ -75,7 +78,7 @@ class DocumentsIndexTest extends TestCase
         $request = new SearchDocumentsRequest(['subject' => 'Naturvitenskap : Filosofi', 'q' => '_exists_:subjects.lcsh']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->assertSame('_exists_:subjects.lcsh AND (subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.NOTrBIB.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
+        $this->assertSame('_exists_:subjects.lcsh AND (subjects.noubomn.prefLabel:"Naturvitenskap \\: Filosofi" OR subjects.bare.prefLabel:"Naturvitenskap \\: Filosofi" OR genres.noubomn.prefLabel:"Naturvitenskap \\: Filosofi")', $docIndex->queryStringFromRequest($request));
     }
 
     public function testCollectionQueryString()
@@ -94,7 +97,7 @@ class DocumentsIndexTest extends TestCase
         $request1 = new SearchDocumentsRequest(['collection' => '1']);
         $docIndex = $this->getDocumentsIndex();
 
-        $this->setExpectedException('Colligator\Exceptions\CollectionNotFoundException');
+        $this->expectException(CollectionNotFoundException::class);
         $docIndex->queryStringFromRequest($request1);
     }
 }

@@ -13,12 +13,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\OaiPmhHarvest::class,
-        Commands\CreateCollection::class,
-        Commands\Reindex::class,
-        Commands\EnrichDocuments::class,
-        Commands\HarvestXisbn::class,
-        Commands\ImportOntosaur::class,
+        //
     ];
 
     /**
@@ -38,5 +33,17 @@ class Kernel extends ConsoleKernel
         // Check new documents for xisbn
         $schedule->command('colligator:harvest-xisbn')
                  ->weekly()->saturdays()->at('04:00');
+    }
+
+    /**
+     * Register the commands for the application.
+     *
+     * @return void
+     */
+    protected function commands()
+    {
+        $this->load(__DIR__.'/Commands');
+
+        require base_path('routes/console.php');
     }
 }

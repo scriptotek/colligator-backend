@@ -1,8 +1,10 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Http\Requests\SearchDocumentsRequest;
 
-class SearchDocumentsRequestTest extends TestCase
+class SearchDocumentsRequestTest extends BrowserKitTestCase
 {
     protected function newReq($qs = [])
     {

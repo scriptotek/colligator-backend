@@ -1,12 +1,16 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Cover;
 use Colligator\Document;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 
-class DocumentsControllerTest extends TestCase
+class DocumentsControllerTest extends BrowserKitTestCase
 {
     use DatabaseMigrations;
+    use WithoutMiddleware;
 
     public function esMock()
     {
@@ -41,7 +45,7 @@ class DocumentsControllerTest extends TestCase
         // Generate dummy data
         $doc = factory(Document::class)->create();
 
-        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+        $this->post('/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeStatusCode(200)
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url'    => $exampleUrl]);
@@ -72,7 +76,7 @@ class DocumentsControllerTest extends TestCase
         // Generate dummy data
         $doc = factory(Document::class)->create();
 
-        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+        $this->post('/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url'    => $exampleUrl]);
     }
@@ -93,11 +97,11 @@ class DocumentsControllerTest extends TestCase
         \CoverCache::shouldReceive('put')->once()->andReturn($mock);
         $doc = factory(Document::class)->create();
 
-        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+        $this->post('/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url'    => $exampleUrl]);
 
-        $this->post('/api/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
+        $this->post('/documents/1/cover', ['url' => $exampleUrl], ['Accept' => 'application/json'])
             ->seeJSON(['result' => 'ok'])
             ->seeJson(['url'    => $exampleUrl]);
     }
@@ -112,7 +116,7 @@ class DocumentsControllerTest extends TestCase
         factory(Document::class)->create();
 
         $exampleUrl = 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Example.jpg';
-        $response = $this->post('/api/documents/1/cover', ['urls' => $exampleUrl], ['Accept' => 'application/json']);
+        $response = $this->post('/documents/1/cover', ['urls' => $exampleUrl], ['Accept' => 'application/json']);
         $response->assertResponseStatus(422);
         $response->seeJSON(['url' => ['The url field is required.']]);
     }
@@ -126,7 +130,7 @@ class DocumentsControllerTest extends TestCase
         $cover = factory(Cover::class)->make();
         $doc->cover()->save($cover);
 
-        $this->get('/api/documents/1/cover')
+        $this->get('/documents/1/cover')
             ->seeJSON(['url' => $cover->url]);
     }
 
@@ -144,7 +148,7 @@ class DocumentsControllerTest extends TestCase
             'source_url' => $faker->url,
         ];
 
-        $this->post('/api/documents/1/description', $postData)
+        $this->post('/documents/1/description', $postData)
             ->assertResponseOk();
 
         $doc = Document::find(1);
@@ -160,7 +164,7 @@ class DocumentsControllerTest extends TestCase
         // Generate dummy data
         factory(Document::class)->create();
 
-        $response = $this->post('/api/documents/1/description', ['text' => 'Some description'], ['Accept' => 'application/json']);
+        $response = $this->post('/documents/1/description', ['text' => 'Some description'], ['Accept' => 'application/json']);
         $response->assertResponseStatus(422);
         $response->seeJSON(['source' => ['The source field is required.']]);
     }

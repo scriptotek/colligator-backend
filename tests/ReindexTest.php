@@ -1,12 +1,15 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Console\Commands\Reindex;
 use Colligator\Document;
 use Faker\Factory as Faker;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Mockery;
 use Tests\Helpers\ConsoleCommandTestHelper;
 
-class ReindexTest extends TestCase
+class ReindexTest extends BrowserKitTestCase
 {
     use DatabaseMigrations;
     use ConsoleCommandTestHelper;

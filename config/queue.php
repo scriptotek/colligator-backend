@@ -56,7 +56,8 @@ return [
     */
 
     'failed' => [
-        'database' => 'pgsql', 'table' => 'failed_jobs',
+        'database' => env('DB_CONNECTION', 'pgsql'),
+        'table' => 'failed_jobs',
     ],
 
 ];

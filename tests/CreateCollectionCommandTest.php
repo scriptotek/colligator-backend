@@ -1,12 +1,14 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Collection;
 use Colligator\Console\Commands\CreateCollection;
 use Faker\Factory as Faker;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Tests\Helpers\ConsoleCommandTestHelper;
 
-class CreateCollectionCommandTest extends TestCase
+class CreateCollectionCommandTest extends BrowserKitTestCase
 {
     use DatabaseMigrations;
     use ConsoleCommandTestHelper;

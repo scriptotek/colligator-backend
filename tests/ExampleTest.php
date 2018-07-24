@@ -1,14 +1,15 @@
 <?php
 
+namespace Tests;
 
-class ExampleTest extends TestCase
+class ExampleTest extends BrowserKitTestCase
 {
     /**
      * A basic functional test example.
      */
     public function testBasicExample()
     {
-        $this->visit('/api/')
+        $this->visit('/')
              ->see('colligator');
     }
 }

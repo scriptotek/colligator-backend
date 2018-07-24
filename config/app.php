@@ -51,7 +51,7 @@ return [
     |
     */
 
-    'url' => 'https://ub-www01.uio.no/colligator/',
+    'url' => env('APP_URL', 'http://localhost'),
 
     /*
     |--------------------------------------------------------------------------
@@ -103,25 +103,9 @@ return [
     |
     */
 
-    'key' => env('APP_KEY', 'SomeRandomString'),
+    'key' => env('APP_KEY'),
 
     'cipher' => 'AES-256-CBC',
-
-    /*
-    |--------------------------------------------------------------------------
-    | Logging Configuration
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the log settings for your application. Out of
-    | the box, Laravel uses the Monolog PHP logging library. This gives
-    | you a variety of powerful log handlers / formatters to utilize.
-    |
-    | Available Settings: "single", "daily", "syslog", "errorlog"
-    |
-    */
-    'log' => env('APP_LOG', 'daily'),
-
-    'log_level' => env('APP_LOG_LEVEL', 'debug'),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,12 +152,10 @@ return [
         Shift31\LaravelElasticsearch\ElasticsearchServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
-        Maknz\Slack\SlackServiceProvider::class,
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,
         Scriptotek\Sru\Providers\SruServiceProvider::class,
         Scriptotek\GoogleBooks\GoogleBooksServiceProvider::class,
         Arcanedev\LogViewer\LogViewerServiceProvider::class,
-        Sentry\SentryLaravel\SentryLaravelServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -235,9 +217,7 @@ return [
         'View'           => Illuminate\Support\Facades\View::class,
         'CoverCache'     => Colligator\Facades\CoverCache::class,
         'Image'          => Intervention\Image\Facades\Image::class,
-        'Slack'          => Maknz\Slack\Facades\Slack::class,
         'SruClient'      => Scriptotek\Sru\Facades\SruClient::class,
-        'Sentry'         => Sentry\SentryLaravel\SentryFacade::class,
 
     ],
 

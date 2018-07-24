@@ -1,11 +1,13 @@
 <?php
 
+namespace Tests;
+
 use Carbon\Carbon;
 use Colligator\Marc21Importer;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Scriptotek\SimpleMarcParser\BibliographicRecord;
 
-class ImportMarc21RecordTest extends TestCase
+class ImportMarc21RecordTest extends BrowserKitTestCase
 {
     use DatabaseMigrations;
 

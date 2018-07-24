@@ -1,11 +1,13 @@
 <?php
 
+namespace Tests;
+
 use Colligator\Document;
 use Colligator\Subject;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
-class SearchableDocumentTest extends TestCase
+class SearchableDocumentTest extends BrowserKitTestCase
 {
     // Rollback after each test
     // use DatabaseTransactions;
