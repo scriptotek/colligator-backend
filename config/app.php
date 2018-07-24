@@ -149,7 +149,6 @@ return [
         /*
          * Package Providers...
          */
-        Shift31\LaravelElasticsearch\ElasticsearchServiceProvider::class,
         Barryvdh\Cors\ServiceProvider::class,
         Intervention\Image\ImageServiceProvider::class,
         Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class,

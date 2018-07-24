@@ -298,9 +298,9 @@ class DocumentsIndex
                 'id'        => ['type' => 'integer'],
                 'created'   => ['type' => 'date'],
                 'modified'  => ['type' => 'date'],
-                'bibsys_id' => ['type' => 'string', 'index' => 'not_analyzed'],
+                'bibsys_id' => ['type' => 'keyword'],
                 'isbns'     => [
-                    'type'     => 'string',
+                    'type'     => 'text',
                     'analyzer' => 'isbn_analyzer',
                 ],
                 'holdings' => [

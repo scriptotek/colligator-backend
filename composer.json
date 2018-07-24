@@ -43,7 +43,7 @@
         "scriptotek/simplemarcparser": "^0.9.1",
         "scriptotek/sru-client": "dev-master",
         "sentry/sentry-laravel": "^0.9",
-        "shift31/laravel-elasticsearch": "~1.0"
+        "cviebrock/laravel-elasticsearch": "~3.1"
     },
     "require-dev": {
         "filp/whoops": "^2.0",
