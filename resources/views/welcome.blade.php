@@ -2,6 +2,7 @@
 <html>
     <head>
         <title>Colligator API</title>
+        <base href="https://ub-www01.uio.no/colligator/">
 
         <style>
             html, body {
@@ -81,7 +82,7 @@
 </h3>
 <ul>
     <li>
-        <a href="/api/collections">/api/collections</a>
+        <a href="api/collections">/api/collections</a>
         – <em>all collections</em>
     </li>
 </ul>
@@ -149,7 +150,7 @@ it might in the future)
 
     <li>
 Documents about "Havforskning":
-        <a href="/api/documents?subject=Havforskning">
+        <a href="api/documents?subject=Havforskning">
             ?subject=Havforskning
         </a>
         <em>
@@ -159,24 +160,24 @@ in the future.</em>
 
     <li>
 Documents with form/genre "Tegneserier":
-        <a href="/api/documents?subject=Tegneserier">
+        <a href="api/documents?subject=Tegneserier">
             ?genre=Tegneserier
         </a>
     </li>
 
     <li>Einstein as author/creator:
-        <a href='/api/documents?q=creators.normalizedName:"Einstein,%20Albert"'>
+        <a href='api/documents?q=creators.normalizedName:"Einstein,%20Albert"'>
             ?q=creators.normalizedName:"Einstein, Albert"
         </a>,
 or using the Bibsys authority id,
-        <a href="/api/documents?q=creators.id:x90053072">
+        <a href="api/documents?q=creators.id:x90053072">
             ?q=creators.id:x90053072
         </a>
 </em>
     </li>
     <li>
 Einstein as the subject:
-        <a href="/api/documents?subject=Einstein,%20Albert">
+        <a href="api/documents?subject=Einstein,%20Albert">
             ?subject=Einstein, Albert
         </a>
 <em>
@@ -186,14 +187,14 @@ Bibsys doesn't add those to the 6XX fields for some reason.
 </em>
     </li>
     <li>
-        "New books": <a href="/api/documents?q=acquired:{2015-01-01%20TO%20*}">
+        "New books": <a href="api/documents?q=acquired:{2015-01-01%20TO%20*}">
             ?q=acquired:{2015-01-01 TO *}
         </a>
         –
         <em>acquired since January 1st, 2015</em>
     </li>
     <li>
-        "Also as e-book": <a href="/api/documents?q=electronic:false%20AND%20other_form.fulltext.access:true">
+        "Also as e-book": <a href="api/documents?q=electronic:false%20AND%20other_form.fulltext.access:true">
             ?q=electronic:false AND other_form.fulltext.access:true
         </a>
         –
