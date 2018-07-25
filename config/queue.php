@@ -39,7 +39,9 @@ return [
             'driver'      => 'database',
             'table'       => 'jobs',
             'queue'       => 'default',
-            'retry_after' => 3600,
+
+            // Typically, you should set the retry_after value to the maximum number of seconds your jobs should reasonably take to complete processing.
+            'retry_after' => 704800,
         ],
 
     ],
