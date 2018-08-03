@@ -2,6 +2,8 @@
 
 namespace Colligator;
 
+use Http\Client\HttpClient;
+use Http\Message\MessageFactory;
 use Intervention\Image\ImageManager;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config as FlysystemConfig;
@@ -11,12 +13,22 @@ class CoverCache
     protected $filesystem;
     protected $imageManager;
     protected $fsConfig;
+    protected $http;
+    protected $messageFactory;
 
-    public function __construct(AdapterInterface $filesystem, ImageManager $imageManager, FlysystemConfig $fsConfig)
+    public function __construct(
+        AdapterInterface $filesystem,
+        ImageManager $imageManager,
+        FlysystemConfig $fsConfig,
+        HttpClient $http,
+        MessageFactory $messageFactory
+    )
     {
         $this->filesystem = $filesystem;
         $this->imageManager = $imageManager;
         $this->fsConfig = $fsConfig;
+        $this->http = $http;
+        $this->messageFactory = $messageFactory;
     }
 
     /**
@@ -66,9 +78,9 @@ class CoverCache
      */
     protected function download($sourceUrl)
     {
-        // TODO: Use flysystem-http-downloader instead, but needs update
-        // https://github.com/indigophp/flysystem-http-downloader/pull/2
-        return file_get_contents($sourceUrl);
+        $request = $this->messageFactory->createRequest('GET', $sourceUrl);
+
+        return (string) $this->http->sendRequest($request)->getBody();
     }
 
     /**

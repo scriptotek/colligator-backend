@@ -164,6 +164,7 @@ return [
         Colligator\Providers\EventServiceProvider::class,
         Colligator\Providers\RouteServiceProvider::class,
         Colligator\Providers\CoverCacheServiceProvider::class,
+        Colligator\Providers\HttpClientProvider::class,
 
     ],
 

@@ -3,7 +3,9 @@
 namespace Tests;
 
 use Colligator\CoverCache;
+use Http\Message\MessageFactory\GuzzleMessageFactory;
 use Intervention\Image\ImageManager;
+use Http\Mock\Client as MockHttp;
 use League\Flysystem\AwsS3v3\AwsS3Adapter;
 use League\Flysystem\Config as FlysystemConfig;
 
@@ -28,7 +30,9 @@ class CoverCacheTest extends BrowserKitTestCase
         $cache = new CoverCache(
             $filesystem,
             new ImageManager(),
-            new FlysystemConfig()
+            new FlysystemConfig(),
+            new MockHttp(),
+            new GuzzleMessageFactory()
         );
         $image = $cache->putBlob(file_get_contents($fakeImage));
 
