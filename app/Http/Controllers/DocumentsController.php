@@ -173,9 +173,11 @@ class DocumentsController extends Controller
     {
         $doc = $this->getDocumentFromSomeId($document_id);
 
+        $inp = $request->input();
+
         try {
-            if (isset($request->url)) {
-                if ($request->url == 'REMOVE') {
+            if (array_key_exists('url', $inp)) {
+                if (is_null($inp['url'])) {
                     if ($doc->cover) {
                         \Log::debug("[DocumentsController] Removing cover from document {$doc->id}");
                         $doc->cover->delete();
@@ -231,7 +233,7 @@ class DocumentsController extends Controller
         $this->validate($request, [
             // 'text'       => 'required',
             // 'source'     => 'required',
-            'source_url' => 'url|required',
+            // 'source_url' => 'url|required',
         ]);
 
         $doc = $this->getDocumentFromSomeId($document_id);
@@ -241,9 +243,15 @@ class DocumentsController extends Controller
             'source'     => $request->source,
             'source_url' => $request->source_url,
         ];
-        $doc->save();
 
-        \Log::info('Stored new description for ' . $doc->id);
+        if (is_null($request->text)) {
+            \Log::info('Cleared description for ' . $doc->id);
+            $doc->description = null;
+        } else {
+            \Log::info('Stored new description for ' . $doc->id);
+        }
+
+        $doc->save();
 
         $se->indexById($doc->id);
 
