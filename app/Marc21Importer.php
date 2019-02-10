@@ -214,6 +214,9 @@ class Marc21Importer
 
         $doc = $this->importParsedRecord($biblio, $holdings);
 
+        $doc->marc = $record->asXML();
+        $doc->save();
+
         \Log::debug('[Marc21Importer] Imported ' . $doc->bibsys_id . ' as ' . $doc->id);
 
         if (!is_null($doc)) {

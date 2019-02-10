@@ -84,6 +84,11 @@ class DocumentsController extends Controller
      */
     public function show(Request $request, DocumentsIndex $se, $id)
     {
+        if ($request->marc) {
+            $doc = Document::find($id);
+            return response($doc->marc)
+                ->withHeaders(['Content-Type' => 'application/xml']);
+        }
         if ($request->raw) {
             $doc = Document::find($id);
         } else {
