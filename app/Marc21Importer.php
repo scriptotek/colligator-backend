@@ -3,106 +3,114 @@
 namespace Colligator;
 
 use Colligator\Events\Marc21RecordImported;
-use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use Event;
+use Scriptotek\Marc\BibliographicRecord;
 use Scriptotek\Marc\Record as MarcRecord;
-use Scriptotek\SimpleMarcParser\BibliographicRecord;
-use Scriptotek\SimpleMarcParser\HoldingsRecord;
-use Scriptotek\SimpleMarcParser\Parser as MarcParser;
-use Scriptotek\SimpleMarcParser\ParserException;
+
 
 class Marc21Importer
 {
     public $record;
-    public $parser;
 
     /**
      * Create a new job instance.
      *
      * @param $record
      */
-    public function __construct(MarcParser $parser = null, DescriptionScraper $scraper)
+    public function __construct(DescriptionScraper $scraper)
     {
-        $this->parser = $parser ?: new MarcParser();
         $this->scraper = $scraper ?: new DescriptionScraper();
     }
 
     /**
-     * Parse using SimpleMarcParser and separate bibliographic and holdings.
+     * Process using php-marc and separate bibliographic and holdings.
      *
-     * @param QuiteSimpleXMLElement $data
+     * @param MarcRecord $biblio
      *
      * @return array
      */
-    public function parseRecord(QuiteSimpleXMLElement $data)
+    public function parseRecord(MarcRecord $rec)
     {
-        $data->registerXPathNamespaces([
-            'marc' => 'http://www.loc.gov/MARC21/slim'
-        ]);
-        $biblio = null;
+        // ---------------------------------------------
+
+        $physicalItemMap = [
+            'x' => 'location',  // OBS: 1030310
+            'y' => 'shelvinglocation',  // OBS: k00475
+            'b' => 'barcode',
+            'z' => 'callcode',
+            'a' => 'id',
+            'd' => 'due_back_date',
+            'p' => 'process_type',
+            's' => 'item_status',
+            'n' => 'public_note',
+        ];
+
+        $electronicPortfolioMap = [
+            'a' => 'id',
+            'f' => 'activation_date',
+            'u' => 'linking_params',
+            'v' => 'link_resolver_base_url',
+            's' => 'status',
+            'z' => 'collection',
+            'y' => 'portfolio_id',
+            'n' => 'public_note',
+        ];
+
         $holdings = [];
-        foreach ($data->xpath('.//marc:record') as $rec) {
-            $parsed = $this->parser->parse($rec);
-            if ($parsed instanceof BibliographicRecord) {
-                $biblio = $parsed->toArray();
-            } elseif ($parsed instanceof HoldingsRecord) {
-                $holdings[] = $parsed->toArray();
-            }
-        }
+        foreach ($rec->getFields('909') as $field) {
+            $holding = [];
 
-        if (!count($holdings)) {
-            // Oh, hello Alma...
-            $q = $data->first('.//marc:record')->asXML();
-
-            $rec = MarcRecord::fromString($q);
-
-            $itemMap = [
-                'x' => 'location',  // OBS: 1030310
-                'y' => 'shelvinglocation',  // OBS: k00475
-                'b' => 'barcode',
-                'z' => 'callcode',
-                'a' => 'id',
-                'd' => 'due_back_date',
-                'p' => 'process_type',
-                's' => 'item_status',
-                'n' => 'public_note',
-            ];
-
-            foreach ($rec->getFields('909') as $field) {
-                $holding = [];
-
-                foreach ($itemMap as $c => $f) {
-                    $sf = $field->getSubfield($c);
-                    if ($sf) {
-                        $holding[$f] = $sf->getData();
-                    }
-                }
-
-                $sf = $field->getSubfield('s');
+            foreach ($physicalItemMap as $c => $f) {
+                $sf = $field->getSubfield($c);
                 if ($sf) {
-                    $sft = $sf->getData();
-                    if ($sft) {
-                        $holding['circulation_status'] = 'Available';
-                    } else {
-                        $holding['circulation_status'] = 'Unavailable';
-                    }
+                    $holding[$f] = $sf->getData();
                 }
-
-                $holdings[] = $holding;
             }
+
+            $sf = $field->getSubfield('s');
+            if ($sf) {
+                $sft = $sf->getData();
+                if ($sft) {
+                    $holding['circulation_status'] = 'Available';
+                } else {
+                    $holding['circulation_status'] = 'Unavailable';
+                }
+            }
+
+            $holdings[] = $holding;
         }
+        foreach ($rec->getFields('910') as $field) {
+            $holding = [];
+
+            foreach ($electronicPortfolioMap as $c => $f) {
+                $sf = $field->getSubfield($c);
+                if ($sf) {
+                    $holding[$f] = $sf->getData();
+                }
+            }
+
+            $sf = $field->getSubfield('s');
+            if ($sf) {
+                $sft = $sf->getData();
+                if ($sft) {
+                    $holding['circulation_status'] = 'Available';
+                } else {
+                    $holding['circulation_status'] = 'Unavailable';
+                }
+            }
+
+            $holdings[] = $holding;
+        }
+
+        // ---------------------------------------------------------------
+
+        $biblio = $rec->jsonSerialize();
+        $biblio['electronic'] = $this->isElectronic($rec);
+
+        $biblio['cover_image'] = $this->getCoverImage($rec);
+        $biblio['description'] = $this->getDescription($rec);
 
         return [$biblio, $holdings];
-    }
-
-    /**
-     * Fixes wrong vocabulary codes returned by the Bibsys SRU service.
-     * Bibsys strips dashes in 648, 650, 655, but not in 651, so we have
-     * to do that ourselves. This affects 'no-ubo-mn' and 'no-ubo-mr'.
-     */
-    public function fixVocabularyCode($code)
-    {
-        return str_replace('-', '', $code);
     }
 
     /**
@@ -164,25 +172,28 @@ class Marc21Importer
 
         // Sync subjects
         $subject_ids = [];
+        $genre_ids = [];
         foreach ($biblio['subjects'] as $value) {
-            $value['vocabulary'] = $this->fixVocabularyCode($value['vocabulary']);
-            $subject = Subject::lookup($value['vocabulary'], $value['term'], $value['type']);
-            if (is_null($subject)) {
-                $subject = Subject::create($value);
+            if (!isset($value['vocabulary'])) {
+                continue;
             }
-            $subject_ids[] = $subject->id;
+
+            if (in_array($value['type'], ['648', '650', '651'])) {
+                $subject = Subject::lookup($value['vocabulary'], $value['term'], $value['type']);
+                if (is_null($subject)) {
+                    $subject = Subject::create($value);
+                }
+                $subject_ids[] = $subject->id;
+
+            } elseif ($value['type'] == '655') {
+                $genre = Genre::lookup($value['vocabulary'], $value['term']);
+                if (is_null($genre)) {
+                    $genre = Genre::create($value);
+                }
+                $genre_ids[] = $genre->id;
+            }
         }
         $doc->subjects()->sync($subject_ids);
-
-        // Sync genres
-        $genre_ids = [];
-        foreach ($biblio['genres'] as $value) {
-            $genre = Genre::lookup($value['vocabulary'], $value['term']);
-            if (is_null($genre)) {
-                $genre = Genre::create($value);
-            }
-            $genre_ids[] = $genre->id;
-        }
         $doc->genres()->sync($genre_ids);
 
         // Extract cover from bibliographic record if no local cover exists
@@ -199,10 +210,10 @@ class Marc21Importer
 
     /**
      * Execute the job.
-     * @param QuiteSimpleXMLElement $record
+     * @param BibliographicRecord $record
      * @return int|null
      */
-    public function import(QuiteSimpleXMLElement $record)
+    public function import(BibliographicRecord $record)
     {
         try {
             list($biblio, $holdings) = $this->parseRecord($record);
@@ -211,10 +222,11 @@ class Marc21Importer
 
             return null;
         }
+        \Log::debug(json_encode($biblio));
 
         $doc = $this->importParsedRecord($biblio, $holdings);
 
-        $doc->marc = $record->asXML();
+        $doc->marc = $record->toXML('UTF-8', false, false);
         $doc->save();
 
         \Log::debug('[Marc21Importer] Imported ' . $doc->bibsys_id . ' as ' . $doc->id);
@@ -224,5 +236,57 @@ class Marc21Importer
         }
 
         return $doc->id;
+    }
+
+    protected function isElectronic(BibliographicRecord $rec)
+    {
+        $f007 = $rec->getField('007');
+        if (isset($f007)) {
+            if (substr($f007->getData(), 0, 2) == 'cr') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    // <marc:datafield tag="956" ind1="4" ind2="2">
+    //     <marc:subfield code="3">Omslagsbilde</marc:subfield>
+    //     <marc:subfield code="u">http://innhold.bibsys.no/bilde/forside/?size=mini&amp;id=9780521176835.jpg</marc:subfield>
+    //     <marc:subfield code="q">image/jpeg</marc:subfield>
+    // </marc:datafield>
+    protected function getCoverImage(BibliographicRecord $rec)
+    {
+        foreach ($rec->getFields('(856|956)', true) as $field) {
+            $sf_3 = $field->getSubfield('3');
+            $sf_u = $field->getSubfield('u');
+            if ($sf_3 && $sf_u) {
+                if (in_array($sf_3->getData(), ['Cover image', 'Omslagsbilde'])) {
+                    return str_replace(
+                        ['mini', 'LITE'],
+                        ['stor', 'STOR'],
+                        $sf_u->getData()
+                    );
+                }
+
+            }
+        }
+    }
+
+    // <marc:datafield tag="856" ind1="4" ind2="2">
+    //     <marc:subfield code="3">Beskrivelse fra forlaget (kort)</marc:subfield>
+    //     <marc:subfield code="u">http://content.bibsys.no/content/?type=descr_publ_brief&amp;isbn=0521176832</marc:subfield>
+    // </marc:datafield>
+    protected function getDescription(BibliographicRecord $rec)
+    {
+        foreach ($rec->getFields('(856|956)', true) as $field) {
+            $sf_3 = $field->getSubfield('3');
+            $sf_u = $field->getSubfield('u');
+            if ($sf_3 && $sf_u) {
+                if (preg_match('/beskrivelse fra forlaget/i', $sf_3->getData())) {
+                    return $sf_u->getData();
+                }
+            }
+        }
     }
 }

@@ -3,6 +3,7 @@
 namespace Colligator\Jobs;
 
 use Colligator\Collection;
+use Danmichaelo\QuiteSimpleXMLElement\QuiteSimpleXMLElement;
 use DateTime;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Log;
@@ -80,12 +81,14 @@ class OaiPmhHarvest extends Job
         $this->resume = $resume;
         $this->maxRetries = array_get($config, 'max-retries', 1000);
         $this->sleepTimeOnError = array_get($config, 'sleep-time-on-error', 60);
+
+        $this->collection = Collection::where('name', '=', $this->name)->first();
     }
 
     public function fromNetwork()
     {
         $client = new Client($this->url);
-        $endpoint = new Endpoint($client,Granularity::DATE);
+        $endpoint = new Endpoint($client, Granularity::DATE);
 
         $recordsHarvested = 0;
 
@@ -94,7 +97,15 @@ class OaiPmhHarvest extends Job
         foreach ($endpoint->listRecords($this->schema, $this->start, $this->until, $this->set, $this->resume) as $record) {
             ++$recordsHarvested;
 
-            $this->dispatch(new ImportRecord($this->collection, $record->asXML()));
+            $this->dispatch(
+                new ImportRecord(
+                    $this->collection,
+                    QuiteSimpleXMLElement::make($record, [
+                        'oai' => 'http://www.openarchives.org/OAI/2.0/',
+                        'marc' => 'http://www.loc.gov/MARC21/slim',
+                    ])
+                )
+            );
 
             if ($recordsHarvested % $this->statusUpdateEvery == 0) {
                 $this->status($recordsHarvested, $recordsHarvested);
@@ -114,7 +125,6 @@ class OaiPmhHarvest extends Job
         // For timing
         $this->startTime = $this->batchTime = microtime(true) - 1;
 
-        $this->collection = Collection::where('name', '=', $this->name)->first();
         if (is_null($this->collection)) {
             $this->error("Collection '$this->name' not found in DB");
 
@@ -154,5 +164,15 @@ class OaiPmhHarvest extends Job
             $avgSpeed,
             $mem
         ));
+    }
+
+    /**
+     * Get the tags that should be assigned to the job.
+     *
+     * @return array
+     */
+    public function tags()
+    {
+        return ['oai-harvest', 'collection:' . $this->collection->name];
     }
 }
