@@ -40,12 +40,21 @@ class ImportRecords extends Job
         \Log::info('Importing ' . count($this->records) . ' records');
         foreach ($this->records as $rec) {
             try {
-                \Log::info('Importing MARC record ' . $rec['oai_id']);
-                $marc = Record::fromString($rec['marc']);
-                $doc = $this->importRecord($importer, $marc, $rec['oai_id']);
-                $docIndex->index($doc);
+                if (is_null($rec['marc'])) {
+                    $doc = Document::where('oai_id', '=', $rec['oai_id'])->first();
+                    if (!is_null($doc)) {
+                        \Log::info('Deleting OAI record ' . $rec['oai_id']);
+                        $docIndex->remove($doc->id);
+                        $doc->delete();
+                    }
+                } else {
+                    \Log::info('Importing OAI record ' . $rec['oai_id']);
+                    $marc = Record::fromString($rec['marc']);
+                    $doc = $this->importRecord($importer, $marc, $rec['oai_id']);
+                    $docIndex->index($doc);
+                }
             } catch (\Error $exception) {
-                \Log::error('Failed to import MARC record ' . $rec['oai_id']);
+                \Log::error("Failed to import MARC record {$rec['oai_id']}:\n{$exception->getMessage()}");
             }
         }
     }

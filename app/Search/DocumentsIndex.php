@@ -262,6 +262,30 @@ class DocumentsIndex
     }
 
     /**
+     * Remove a document from the ElasticSearch index.
+     *
+     * @param string $doc_id
+     * @param int    $indexVersion
+     *
+     * @throws \ErrorException
+     */
+    public function remove(string $doc_id, $indexVersion = null)
+    {
+        $payload = $this->basePayload();
+        if (!is_null($indexVersion)) {
+            $payload['index'] = $this->esIndex . '_v' . $indexVersion;
+        }
+        $payload['id'] = $doc_id;
+
+        try {
+            $this->client->delete($payload);
+        } catch (BadRequest400Exception $e) {
+            \Log::error('ElasticSearch returned error: ' . $e->getMessage() . '. Our request: ' . var_export($payload, true));
+            throw new \ErrorException('ElasticSearch failed to index the document ' . $doc->id . '. Please see the log for payload and full error response. Error message: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Add or update a document in the ElasticSearch index, making it searchable.
      *
      * @param int $docId

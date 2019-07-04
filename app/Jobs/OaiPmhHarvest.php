@@ -101,11 +101,19 @@ class OaiPmhHarvest extends Job
             $record->registerXPathNamespace('d', 'http://purl.org/dc/elements/1.1/');
 
             $identifier = (string) $record->header->identifier;
-            $marc = $record->metadata->record->asXML();
-            $buffer[] = [
-                'oai_id' => $identifier,
-                'marc' => $marc,
-            ];
+            if (is_null($record->metadata->record)) {
+                \Log::info("OAI record has been deleted: {$identifier}");
+                $buffer[] = [
+                    'oai_id' => $identifier,
+                    'marc' => null,
+                ];
+            } else {
+                $marc = $record->metadata->record->asXML();
+                $buffer[] = [
+                    'oai_id' => $identifier,
+                    'marc' => $marc,
+                ];
+            }
 
             if (count($buffer) >= $this->bufferSize) {
                 $this->dispatch(new ImportRecords($this->collection, $buffer));
