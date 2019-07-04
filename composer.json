@@ -34,7 +34,6 @@
         "fideloper/proxy": "^4.0",
         "http-interop/http-factory-guzzle": "^1.0",
         "intervention/image": "~2.3",
-        "jeremykenedy/slack-laravel": "^2.3",
         "laravel/browser-kit-testing": "^4.0",
         "laravel/framework": "5.8.*",
         "laravel/tinker": "^1.0",
