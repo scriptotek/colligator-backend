@@ -110,7 +110,7 @@ class Document extends Model
      * @param $entityType
      * @param $values
      */
-    public function syncEntities($entityType, $values)
+    public function syncEntities(string $entityType, array $values)
     {
         if (!in_array($entityType, Entity::TYPES)) {
             \Log::error("Unsupported entity type given: $entityType");

@@ -297,4 +297,35 @@ class DocumentsController extends Controller
             'cannot_find_cover' => $doc->cannot_find_cover,
         ]);
     }
+
+    /**
+     * Store local entities
+     *
+     * @return Response
+     */
+    public function storeLocalEntities($document_id, Request $request, DocumentsIndex $se)
+    {
+        $this->validate($request, [
+            'entity_type'           => 'required|in:local_subject,local_genre',
+            'values' => 'array',
+            'values.*.vocabulary'   => 'required',
+            'values.*.term'         => 'required',
+            // 'source_url' => 'url|required',
+        ]);
+
+        $doc = $this->getDocumentFromSomeId($document_id);
+
+        $doc->syncEntities($request->entity_type, $request->values);
+
+        \Log::info('Stored local subjects for ' . $doc->id);
+
+        $doc->save();
+
+        $se->indexById($doc->id);
+
+        return response()->json([
+            'result' => 'ok',
+            // 'document' => $doc,
+        ]);
+    }
 }

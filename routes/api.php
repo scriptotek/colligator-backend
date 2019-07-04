@@ -38,6 +38,11 @@ Route::post('documents/{document}/cannotFindCover', [
 	'uses' => 'DocumentsController@cannotFindCover',
     'middleware' => 'iplimit',
 ]);
+Route::post('documents/{document}/local-entities', [
+	'as' => 'api.documents.cover.local_entities',
+	'uses' => 'DocumentsController@storeLocalEntities',
+    'middleware' => 'iplimit',
+]);
 
 Route::get('ipcheck', function () {
     return 'OK';
