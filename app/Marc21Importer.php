@@ -3,6 +3,7 @@
 namespace Colligator;
 
 use Colligator\Events\Marc21RecordImported;
+use Colligator\Exceptions\CannotFetchCover;
 use Event;
 use Scriptotek\Marc\BibliographicRecord;
 use Scriptotek\Marc\Record as MarcRecord;
@@ -200,8 +201,8 @@ class Marc21Importer
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {
             try {
                 $doc->storeCover($biblio['cover_image']);
-            } catch (RequestException $e) {
-                \Log::error('Failed to store cover: ' . $biblio['cover_image']);
+            } catch (CannotFetchCover $exception) {
+                \Log::error("Failed to fetch cover: {$biblio['cover_image']}. Error: {$exception->getMessage()}");
             }
         }
 

@@ -2,6 +2,7 @@
 
 namespace Colligator;
 
+use Colligator\Exceptions\CannotFetchCover;
 use Illuminate\Database\Eloquent\Model;
 
 class Cover extends Model
@@ -131,12 +132,12 @@ class Cover extends Model
     /**
      * Cache the cover and create thumbnail.
      *
-     * @throws \ErrorException
+     * @throws CannotFetchCover
      */
     public function cache($blob = null)
     {
         if (is_null($blob) && !isset($this->url)) {
-            throw new \ErrorException('[Cover] Cannot cache when no URL or blob is set.');
+            throw new CannotFetchCover('[Cover] Cannot cache when no URL or blob is set.');
         }
         if ($this->isCached()) {
             \Log::debug('[Cover] Already cached');
@@ -152,7 +153,6 @@ class Cover extends Model
             \Log::debug('[Cover] Add to cache from url: ' . $this->url);
             $orig = \CoverCache::putUrl($this->url);
         }
-
 
         $this->width = $orig->width();
         $this->height = $orig->height();

@@ -2,6 +2,7 @@
 
 namespace Colligator;
 
+use Colligator\Exceptions\CannotFetchCover;
 use Scriptotek\GoogleBooks\GoogleBooks;
 use Scriptotek\GoogleBooks\Exceptions\UsageRateExceeded;
 
@@ -50,7 +51,7 @@ class GoogleBooksService implements EnrichmentService
                 \Log::debug('[GoogleBooksService] Setting new cover to document #' . $doc->id);
                 try {
                     $doc->storeCover($cover_url);
-                } catch (\ErrorException $e) {
+                } catch (CannotFetchCover $e) {
                     \Log::error('[GoogleBooksService] Failed to store cover: ' . $cover_url . "\n" . $e->getMessage());
                 }
             }

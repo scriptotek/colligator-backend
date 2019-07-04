@@ -2,9 +2,12 @@
 
 namespace Colligator;
 
+use Colligator\Exceptions\CannotFetchCover;
+use Intervention\Image\Exception\NotReadableException;
 use Intervention\Image\ImageManager;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config as FlysystemConfig;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 
@@ -49,7 +52,7 @@ class CoverCache
      * @param string $url
      * @param int    $maxHeight
      *
-     * @throws \ErrorException
+     * @throws CannotFetchCover
      *
      * @return CachedImage
      */
@@ -62,7 +65,7 @@ class CoverCache
      * @param string $blob
      * @param int    $maxHeight
      *
-     * @throws \ErrorException
+     * @throws CannotFetchCover
      *
      * @return CachedImage
      */
@@ -75,6 +78,7 @@ class CoverCache
      * Retrieves the content of an URL.
      *
      * @return string
+     * @throws ClientExceptionInterface
      */
     protected function download($sourceUrl)
     {
@@ -90,37 +94,44 @@ class CoverCache
      * @param string $data
      * @param int $maxHeight
      * @return CachedImage
-     * @throws \ErrorException
+     * @throws CannotFetchCover
      */
     protected function store($sourceUrl = null, $data = null, $maxHeight = 0)
     {
         if (is_null($data)) {
-            $data = $this->download($sourceUrl);
+            try {
+                $data = $this->download($sourceUrl);
+            } catch (ClientExceptionInterface $exception) {
+                throw new CannotFetchCover("[CoverCache] Failed to download {$sourceUrl}: {$exception->getMessage()}");
+            }
             if (!$data) {
-                throw new \ErrorException('[CoverCache] Failed to download ' . $sourceUrl);
+                throw new CannotFetchCover("[CoverCache] Failed to download {$sourceUrl}");
             }
         }
 
         $cacheKey = sha1($data);
 
-        $img = $this->imageManager->make($data);
+        try {
+            $img = $this->imageManager->make($data);
+        } catch (NotReadableException $e) {
+            throw new CannotFetchCover("[CoverCache] Not a valid image file: {$sourceUrl}");
+        }
         if ($maxHeight && $img->height() > $maxHeight) {
-            \Log::debug('[CachedImage] Resizing from ' . $img->height() . ' to ' . $maxHeight);
+            \Log::debug('[CoverCache] Resizing from ' . $img->height() . ' to ' . $maxHeight);
             $img->heighten($maxHeight);
             $data = strval($img->encode('jpg'));
         }
 
         if ($img->width() / $img->height() > 1.4) {
-            throw new \ErrorException('[CoverCache] Not accepting images with w/h ratio > 1.4');
+            throw new CannotFetchCover('[CoverCache] Not accepting images with w/h ratio > 1.4');
         }
 
-
-        \Log::debug('[CachedImage] Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
+        \Log::debug('[CoverCache] Storing image as ' . $img->width() . ' x ' . $img->height() . ', ' . strlen($data) . ' bytes');
         if (!$this->filesystem->write($cacheKey, $data, $this->fsConfig)) {
-            throw new \ErrorException('[CoverCache] Failed to upload thumb to S3');
+            throw new CannotFetchCover('[CoverCache] Failed to upload thumb to S3');
         }
 
-        \Log::debug('[CachedImage] Wrote cached version as ' . $cacheKey);
+        \Log::debug('[CoverCache] Wrote cached version as ' . $cacheKey);
 
         return new CachedImage($this, $cacheKey);
     }
@@ -142,16 +153,14 @@ class CoverCache
      * Return a representation with height no more than $maxHeight.
      *
      * @param string $maxHeight
-     *
-     * @throws \ErrorException
-     *
      * @return CachedImage
+     * @throws CannotFetchCover
      */
     public function thumb($cacheKey, $maxHeight)
     {
         $data = $this->filesystem->read($cacheKey);
         $blob = strval($data['contents']);
-        \Log::debug('[CachedImage] Read ' .$cacheKey . ': ' . strlen($blob) . ' bytes');
+        \Log::debug('[CoverCache] Read ' .$cacheKey . ': ' . strlen($blob) . ' bytes');
 
         return $this->putBlob($blob, $maxHeight);
     }

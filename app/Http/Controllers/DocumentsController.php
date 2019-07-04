@@ -5,6 +5,7 @@ namespace Colligator\Http\Controllers;
 use Carbon\Carbon;
 use Colligator\Cover;
 use Colligator\Document;
+use Colligator\Exceptions\CannotFetchCover;
 use Colligator\Http\Requests\SearchDocumentsRequest;
 use Colligator\Search\DocumentsIndex;
 use Colligator\Timing;
@@ -210,8 +211,8 @@ class DocumentsController extends Controller
                 $cover = $doc->storeCoverFromBlob($data);
                 $cover = $cover->toArray();
             }
-        } catch (\ErrorException $e) {
-            \Log::error('Failed to cache cover, got error: ' . $e->getMessage());
+        } catch (CannotFetchCover $e) {
+            \Log::error('Failed to fetch/cache cover, got error: ' . $e->getMessage());
 
             return response()->json([
                 'result' => 'error',
@@ -280,7 +281,7 @@ class DocumentsController extends Controller
             $doc->setCannotFindCover();
             $doc->save();
 
-        } catch (\ErrorException $e) {
+        } catch (\Exception $e) {
             \Log::error('Failed to store status, got error: ' . $e->getMessage());
 
             return response()->json([
