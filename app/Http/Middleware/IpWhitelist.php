@@ -18,6 +18,7 @@ class IpWhitelist
     {
         // https://www.uio.no/english/services/it/security/cert/about-cert/constituency.html
         $whitelist = [
+            '127.0.0.1-127.0.0.255',
             '193.157.108.0-193.157.255.255',
             '129.240.0.0-129.240.255.255',
             '158.36.184.0-158.36.191.255',
