@@ -4,7 +4,6 @@ namespace Colligator;
 
 use Colligator\Events\Marc21RecordImported;
 use Event;
-use Http\Client\Exception\RequestException;
 use Scriptotek\Marc\BibliographicRecord;
 use Scriptotek\Marc\Record as MarcRecord;
 
@@ -210,7 +209,8 @@ class Marc21Importer
     }
 
     /**
-     * Execute the job.
+     * Add/update a single bibliographic record.
+     *
      * @param BibliographicRecord $record
      * @return int|null
      */
