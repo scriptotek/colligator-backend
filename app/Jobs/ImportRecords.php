@@ -69,8 +69,8 @@ class ImportRecords extends Job
     {
         $docId = $importer->import($marc);
 
-        // Load subjects, genres, cover because we will use that when indexing in ES later
-        $doc = Document::with('subjects', 'genres', 'cover')->find($docId);
+        // Load entities and cover because we will use that when indexing in ES later
+        $doc = Document::with('entities', 'cover')->find($docId);
         $doc->oai_id = $oaiId;
         $doc->save();
 

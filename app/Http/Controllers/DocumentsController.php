@@ -146,11 +146,11 @@ class DocumentsController extends Controller
     protected function getDocumentFromSomeId($document_id)
     {
         if (strlen($document_id) > 16) {
-            return Document::with('cover')
+            return Document::with('entities', 'cover')
                 ->where('bibsys_id', '=', $document_id)
                 ->firstOrFail();
         }
-        return Document::with('cover')
+        return Document::with('entities', 'cover')
             ->where('id', '=', $document_id)
             ->orWhere('id', '=', $document_id)
             ->firstOrFail();

@@ -171,31 +171,22 @@ class Marc21Importer
             // @TODO: Add a separate jobb that updates e-books weekly or so..
         }
 
-        // Sync subjects
-        $subject_ids = [];
-        $genre_ids = [];
+        // Sync subjects and genres
+        $subjects = [];
+        $genres = [];
         foreach ($biblio['subjects'] as $value) {
             if (!isset($value['vocabulary']) || !isset($value['term'])) {
                 continue;
             }
-
             if (in_array($value['type'], ['648', '650', '651'])) {
-                $subject = Subject::lookup($value['vocabulary'], $value['term'], $value['type']);
-                if (is_null($subject)) {
-                    $subject = Subject::create($value);
-                }
-                $subject_ids[] = $subject->id;
+                $subjects[] = $value;
 
             } elseif ($value['type'] == '655') {
-                $genre = Genre::lookup($value['vocabulary'], $value['term']);
-                if (is_null($genre)) {
-                    $genre = Genre::create($value);
-                }
-                $genre_ids[] = $genre->id;
+                $genres[] = $value;
             }
         }
-        $doc->subjects()->sync($subject_ids);
-        $doc->genres()->sync($genre_ids);
+        $doc->syncEntities(Entity::SUBJECT, $subjects);
+        $doc->syncEntities(Entity::GENRE, $genres);
 
         // Extract cover from bibliographic record if no local cover exists
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {

@@ -3,6 +3,7 @@
 namespace Colligator\Search;
 
 use Colligator\Document;
+use Colligator\Entity;
 use Colligator\XisbnResponse;
 
 class SearchableDocument
@@ -53,24 +54,22 @@ class SearchableDocument
         // Add cover
         $body['cover'] = $this->doc->cover ? $this->doc->cover->toArray() : null;
 
-        // Add subjects
-        $body['subjects'] = [];
-        foreach ($this->doc->subjects as $subject) {
-            $body['subjects'][$subject['vocabulary'] ?: 'keywords'][] = [
-                'id'        => array_get($subject, 'id'),
-                'prefLabel' => str_replace('--', ' : ', array_get($subject, 'term')),
-                'type'      => array_get($subject, 'type'),
-                'count'     => $this->docIndex->getUsageCount(array_get($subject, 'id'), 'subject'),
-            ];
+        // Add entities
+        $entityKeys = [
+            Entity::SUBJECT => 'subjects',
+            Entity::GENRE => 'genres',
+            Entity::LOCAL_SUBJECT => 'local_subjects',
+            Entity::LOCAL_GENRE => 'local_genres',
+        ];
+        foreach ($entityKeys as $key => $val) {
+            $body[$val] = [];
         }
-
-        // Add genres
-        $body['genres'] = [];
-        foreach ($this->doc->genres as $genre) {
-            $body['genres'][$genre['vocabulary'] ?: 'keywords'][] = [
-                'id'        => array_get($genre, 'id'),
-                'prefLabel' => array_get($genre, 'term'),
-                'count'     => $this->docIndex->getUsageCount(array_get($genre, 'id'), 'genre'),
+        foreach ($this->doc->entities as $entity) {
+            $body[$entityKeys[$entity->type]][$entity['vocabulary'] ?: 'keywords'][] = [
+                'id' => $entity->id,
+                'prefLabel' => str_replace('--', ' : ', $entity->term),
+                'type' => $entity->type,
+                'count' => $this->docIndex->getUsageCount($entity->id),
             ];
         }
 

@@ -180,56 +180,50 @@ class DocumentsIndex
      *
      * @return int
      */
-    public function getUsageCount($id, $type)
+    public function getUsageCount($id)
     {
-        $this->getFullType($type);
-        $arg = $type . '.' . $id;
-        if (is_null(array_get($this->usage, $arg))) {
-            $this->addToUsageCache($id, $type);
+        if (is_null(array_get($this->usage, $id))) {
+            $this->addToUsageCache($id);
         }
 
-        return array_get($this->usage, $arg);
+        return array_get($this->usage, $id);
     }
 
     /**
      * Build an array of document usage count per subject.
      *
-     * @param array|int $subject_ids
+     * @param array|int $entity_ids
      *
      * @return array
      */
-    public function addToUsageCache($entity_ids, $type)
+    public function addToUsageCache($entity_ids)
     {
-        $fullType = $this->getFullType($type);
         if (!is_array($entity_ids)) {
             $entity_ids = [$entity_ids];
         }
-        $res = \DB::table('entities')
+        $res = \DB::table('document_entity')
             ->select(['entity_id', \DB::raw('count(document_id) as doc_count')])
             ->whereIn('entity_id', $entity_ids)
-            ->where('entity_type', $fullType)
             ->groupBy('entity_id')
             ->get();
 
-        foreach ($entity_ids as $sid) {
-            array_set($this->usage, $type . '.' . $sid, 0);
+        foreach ($entity_ids as $entity_id) {
+            array_set($this->usage, $entity_id, 0);
         }
 
         foreach ($res as $row) {
-            array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));
+            array_set($this->usage, $row->entity_id, intval($row->doc_count));
         }
     }
 
     public function buildCompleteUsageCache()
     {
-        $typemap = ['Colligator\\Subject' => 'subject', 'Colligator\\Genre' => 'genre'];
-        $query = \DB::table('entities')
-                    ->select(['entity_id', 'entity_type', \DB::raw('count(document_id) as doc_count')])
-                    ->groupBy('entity_id', 'entity_type');
-        $query->orderBy('entity_id')->orderBy('entity_type')->chunk(5000, function ($rows) use ($typemap) {
+        $query = \DB::table('document_entity')
+                    ->select(['entity_id', \DB::raw('count(document_id) as doc_count')])
+                    ->groupBy('entity_id');
+        $query->orderBy('entity_id')->chunk(5000, function ($rows) {
             foreach ($rows as $row) {
-                $type = $typemap[$row->entity_type];
-                array_set($this->usage, $type . '.' . $row->entity_id, intval($row->doc_count));
+                array_set($this->usage, $row->entity_id, intval($row->doc_count));
             }
         });
     }
@@ -281,7 +275,7 @@ class DocumentsIndex
             $this->client->delete($payload);
         } catch (BadRequest400Exception $e) {
             \Log::error('ElasticSearch returned error: ' . $e->getMessage() . '. Our request: ' . var_export($payload, true));
-            throw new \ErrorException('ElasticSearch failed to index the document ' . $doc->id . '. Please see the log for payload and full error response. Error message: ' . $e->getMessage());
+            throw new \ErrorException('ElasticSearch failed to index the document ' . $doc_id . '. Please see the log for payload and full error response. Error message: ' . $e->getMessage());
         }
     }
 
@@ -294,7 +288,7 @@ class DocumentsIndex
      */
     public function indexById($docId)
     {
-        $this->index(Document::with('subjects', 'cover')->findOrFail($docId));
+        $this->index(Document::with('entities', 'cover')->findOrFail($docId));
     }
 
     public function createVersion($version = null)

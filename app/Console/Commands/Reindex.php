@@ -58,7 +58,7 @@ class Reindex extends Command
         $docCount = Document::count();
         $this->output->progressStart($docCount);
 
-        Document::with('subjects', 'genres', 'cover')->chunk(1000, function ($docs) use ($docIndex, $newVersion) {
+        Document::with('entities', 'cover')->chunk(1000, function ($docs) use ($docIndex, $newVersion) {
             foreach ($docs as $doc) {
                 $docIndex->index($doc, $newVersion);
                 $this->output->progressAdvance();

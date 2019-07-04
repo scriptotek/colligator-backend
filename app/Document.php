@@ -27,19 +27,11 @@ class Document extends Model
     ];
 
     /**
-     * Get subjects associated with this document.
+     * The entities associated with this document.
      */
-    public function subjects()
+    public function entities()
     {
-        return $this->morphedByMany('Colligator\Subject', 'entity')->withTimestamps();
-    }
-
-    /**
-     * Get genres associated with this document.
-     */
-    public function genres()
-    {
-        return $this->morphedByMany('Colligator\Genre', 'entity')->withTimestamps();
+        return $this->belongsToMany('Colligator\Entity')->withTimestamps();
     }
 
     /**
@@ -112,5 +104,49 @@ class Document extends Model
     public function isElectronic()
     {
         return $this->bibliographic['electronic'];
+    }
+
+    /**
+     * @param $entityType
+     * @param $values
+     */
+    public function syncEntities($entityType, $values)
+    {
+        if (!in_array($entityType, Entity::TYPES)) {
+            \Log::error("Unsupported entity type given: $entityType");
+            return;
+        }
+
+        $currentIds = $this->entities->where('type', $entityType)->pluck('id')->toArray();
+
+        // 1. Find the ids of the entities
+        $ids = [];
+        foreach ($values as $value) {
+            if (!isset($value['vocabulary']) || !isset($value['term'])) {
+                continue;
+            }
+
+            // Re-map $0 to local_id
+            if (isset($value['id'])) {
+                $value['local_id'] = $value['id'];
+                unset($value['id']);
+            }
+
+            $entity = Entity::lookup($value['vocabulary'], $value['term'], $entityType);
+            if (is_null($entity)) {
+                $value['type'] = $entityType;
+                $entity = Entity::create($value);
+            }
+            $ids[] = $entity->id;
+
+        }
+
+        $toAttach = array_diff($ids, $currentIds);
+        $toDetach = array_diff($currentIds, $ids);
+
+        $this->entities()->attach($toAttach);
+        $this->entities()->detach($toDetach);
+
+        \Log::info(sprintf('%s: Attached %d entities of type %s, removed %d', $this->bibsys_id, count($toAttach), $entityType, count($toDetach)));
     }
 }

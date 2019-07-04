@@ -16,7 +16,7 @@ class CreateDocumentsTable extends Migration
             $table->increments('id');
             $table->timestamps();
             $table->string('bibsys_id')->unique();
-            $table->text('bibliographic');
+            $table->mediumText('bibliographic');
             $table->mediumText('holdings');
         });
 
