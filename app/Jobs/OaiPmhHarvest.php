@@ -54,12 +54,11 @@ class OaiPmhHarvest extends Job
     public $collection;
 
     /**
-     * Number of records retrieved between each emitted OaiPmhHarvestStatus event.
-     * A too small number will cause CPU overhead.
+     * Number of records to collect before dispatching an import job.
      *
      * @var int
      */
-    protected $statusUpdateEvery = 50;
+    protected $bufferSize = 50;
 
     /**
      * Create a new job instance.
@@ -94,22 +93,30 @@ class OaiPmhHarvest extends Job
 
         // Loop over all records using an iterator that pulls in more data when
         // the buffer is exhausted.
+        $buffer = [];
+
         foreach ($endpoint->listRecords($this->schema, $this->start, $this->until, $this->set, $this->resume) as $record) {
             ++$recordsHarvested;
 
-            $this->dispatch(
-                new ImportRecord(
-                    $this->collection,
-                    QuiteSimpleXMLElement::make($record, [
-                        'oai' => 'http://www.openarchives.org/OAI/2.0/',
-                        'marc' => 'http://www.loc.gov/MARC21/slim',
-                    ])
-                )
-            );
+            $record->registerXPathNamespace('d', 'http://purl.org/dc/elements/1.1/');
 
-            if ($recordsHarvested % $this->statusUpdateEvery == 0) {
+            $identifier = (string) $record->header->identifier;
+            $marc = $record->metadata->record->asXML();
+            $buffer[] = [
+                'oai_id' => $identifier,
+                'marc' => $marc,
+            ];
+
+            if (count($buffer) >= $this->bufferSize) {
+                $this->dispatch(new ImportRecords($this->collection, $buffer));
+                $buffer = [];
+
                 $this->status($recordsHarvested, $recordsHarvested);
             }
+        }
+
+        if (count($buffer) >= 0) {
+            $this->dispatch(new ImportRecords($this->collection, $buffer));
         }
 
         return $recordsHarvested;
@@ -157,7 +164,7 @@ class OaiPmhHarvest extends Job
         $this->batchTime = microtime(true);
         $this->batchPos = $fetched;
 
-        Log::debug(sprintf(
+        Log::info(sprintf(
             '[OaiPmhHarvest] Got %d records so far - Recs/sec: %.1f (current), %.1f (avg) - Mem: %.1f MB.',
             $current,
             $currentSpeed,
