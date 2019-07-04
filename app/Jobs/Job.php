@@ -27,6 +27,6 @@ abstract class Job implements ShouldQueue
     protected function error($msg)
     {
         \Log::error($msg);
-        Event::fire(new JobError($msg));
+        Event::dispatch(new JobError($msg));
     }
 }

@@ -2,11 +2,11 @@
 
 namespace Colligator;
 
-use Http\Client\HttpClient;
-use Http\Message\MessageFactory;
 use Intervention\Image\ImageManager;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config as FlysystemConfig;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 class CoverCache
 {
@@ -14,21 +14,21 @@ class CoverCache
     protected $imageManager;
     protected $fsConfig;
     protected $http;
-    protected $messageFactory;
+    protected $requestFactory;
 
     public function __construct(
         AdapterInterface $filesystem,
         ImageManager $imageManager,
         FlysystemConfig $fsConfig,
-        HttpClient $http,
-        MessageFactory $messageFactory
+        ClientInterface $http,
+        RequestFactoryInterface $requestFactory
     )
     {
         $this->filesystem = $filesystem;
         $this->imageManager = $imageManager;
         $this->fsConfig = $fsConfig;
         $this->http = $http;
-        $this->messageFactory = $messageFactory;
+        $this->requestFactory = $requestFactory;
     }
 
     /**
@@ -78,7 +78,7 @@ class CoverCache
      */
     protected function download($sourceUrl)
     {
-        $request = $this->messageFactory->createRequest('GET', $sourceUrl);
+        $request = $this->requestFactory->createRequest('GET', $sourceUrl);
 
         return (string) $this->http->sendRequest($request)->getBody();
     }

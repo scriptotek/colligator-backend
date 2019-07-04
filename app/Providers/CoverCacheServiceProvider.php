@@ -3,11 +3,11 @@
 namespace Colligator\Providers;
 
 use Colligator\CoverCache;
-use Http\Client\HttpClient;
-use Http\Message\MessageFactory;
 use Illuminate\Support\ServiceProvider;
 use Intervention\Image\ImageManager;
 use League\Flysystem\Config as FlysystemConfig;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 class CoverCacheServiceProvider extends ServiceProvider
 {
@@ -32,9 +32,9 @@ class CoverCacheServiceProvider extends ServiceProvider
                 // Default: 30 days
                 'CacheControl' => 'max-age=' . env('IMAGE_CACHE_TIME', 3153600) . ', public',
             ]);
-            $http = $this->app->make(HttpClient::class);
-            $messageFactory = $this->app->make(MessageFactory::class);
-            return new CoverCache($fs, $im, $conf, $http, $messageFactory);
+            $http = $this->app->make(ClientInterface::class);
+            $requestFactory = $this->app->make(RequestFactoryInterface::class);
+            return new CoverCache($fs, $im, $conf, $http, $requestFactory);
         });
     }
 

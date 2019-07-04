@@ -4,6 +4,7 @@ namespace Colligator;
 
 use Colligator\Events\Marc21RecordImported;
 use Event;
+use Http\Client\Exception\RequestException;
 use Scriptotek\Marc\BibliographicRecord;
 use Scriptotek\Marc\Record as MarcRecord;
 
@@ -200,7 +201,7 @@ class Marc21Importer
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {
             try {
                 $doc->storeCover($biblio['cover_image']);
-            } catch (\ErrorException $e) {
+            } catch (RequestException $e) {
                 \Log::error('Failed to store cover: ' . $biblio['cover_image']);
             }
         }
@@ -232,7 +233,7 @@ class Marc21Importer
         \Log::debug('[Marc21Importer] Imported ' . $doc->bibsys_id . ' as ' . $doc->id);
 
         if (!is_null($doc)) {
-            Event::fire(new Marc21RecordImported($doc->id));
+            Event::dispatch(new Marc21RecordImported($doc->id));
         }
 
         return $doc->id;
