@@ -14,7 +14,7 @@ class AddOaiId extends Migration
     public function up()
     {
         Schema::table('documents', function (Blueprint $table) {
-            $table->text('oai_id')->nullable();
+            $table->text('oai_id')->nullable()->unique();
         });
     }
 
