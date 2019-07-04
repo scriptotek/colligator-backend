@@ -175,7 +175,7 @@ class Marc21Importer
         $subject_ids = [];
         $genre_ids = [];
         foreach ($biblio['subjects'] as $value) {
-            if (!isset($value['vocabulary'])) {
+            if (!isset($value['vocabulary']) || !isset($value['term'])) {
                 continue;
             }
 
