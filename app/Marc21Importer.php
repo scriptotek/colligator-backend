@@ -4,6 +4,7 @@ namespace Colligator;
 
 use Colligator\Events\Marc21RecordImported;
 use Colligator\Exceptions\CannotFetchCover;
+use Colligator\Search\EntitiesIndex;
 use Event;
 use Scriptotek\Marc\BibliographicRecord;
 use Scriptotek\Marc\Record as MarcRecord;
@@ -138,7 +139,7 @@ class Marc21Importer
      * @param array $biblio
      * @param array $holdings
      *
-     * @return null|Document
+     * @return array
      */
     public function importParsedRecord(array $biblio, array $holdings = [])
     {
@@ -191,9 +192,10 @@ class Marc21Importer
             // @TODO: Add a separate jobb that updates e-books weekly or so..
         }
 
-        // Sync subjects and genres
+        // Sync entities: subjects, genres and creators
         $subjects = [];
         $genres = [];
+        $creators = [];
         foreach ($biblio['subjects'] as $value) {
             if (!isset($value['vocabulary']) || !isset($value['term'])) {
                 continue;
@@ -205,11 +207,6 @@ class Marc21Importer
                 $genres[] = $value;
             }
         }
-        $doc->syncEntities(Entity::SUBJECT, $subjects);
-        $doc->syncEntities(Entity::GENRE, $genres);
-
-        // Sync creators
-        $creators = [];
         foreach ($biblio['creators'] as $value) {
             if (!isset($value['as_string'])) {
                 continue;
@@ -221,7 +218,11 @@ class Marc21Importer
                 'relationship' => array_get($value, 'relationship'),
             ];
         }
-        $doc->syncEntities(Entity::CREATOR, $creators);
+        $updatedEntities = array_merge(
+            $doc->syncEntities(Entity::SUBJECT, $subjects),
+            $doc->syncEntities(Entity::GENRE, $genres),
+            $doc->syncEntities(Entity::CREATOR, $creators)
+        );
 
         // Extract cover from bibliographic record if no local cover exists
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {
@@ -232,14 +233,14 @@ class Marc21Importer
             }
         }
 
-        return $doc;
+        return [$doc, $updatedEntities];
     }
 
     /**
      * Add/update a single bibliographic record.
      *
      * @param BibliographicRecord $record
-     * @return int|null
+     * @return array
      */
     public function import(BibliographicRecord $record)
     {
@@ -252,7 +253,7 @@ class Marc21Importer
         }
         \Log::debug(json_encode($biblio));
 
-        $doc = $this->importParsedRecord($biblio, $holdings);
+        list($doc, $updatedEntities) = $this->importParsedRecord($biblio, $holdings);
 
         $doc->marc = $record->toXML('UTF-8', false, false);
         $doc->save();
@@ -263,7 +264,7 @@ class Marc21Importer
             Event::dispatch(new Marc21RecordImported($doc->id));
         }
 
-        return $doc->id;
+        return [$doc->id, $updatedEntities];
     }
 
     protected function isElectronic(BibliographicRecord $rec)

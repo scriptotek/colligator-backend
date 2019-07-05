@@ -109,14 +109,19 @@ class Document extends Model
     }
 
     /**
+     * Sync entities.
+     *
      * @param $entityType
      * @param $values
+     * @return array IDs of new entities
      */
     public function syncEntities(string $entityType, array $values)
     {
+        $newEntities = [];
+
         if (!in_array($entityType, Entity::TYPES)) {
             \Log::error("Unsupported entity type given: $entityType");
-            return;
+            return [];
         }
 
         $currentIds = $this->entities->where('type', $entityType)->pluck('id')->toArray();
@@ -139,6 +144,7 @@ class Document extends Model
             if (is_null($entity)) {
                 $value['type'] = $entityType;
                 $entity = Entity::create($value);
+                $newEntities[] = $entity->id;
             }
             $ids[] = $entity->id;
 
@@ -156,6 +162,8 @@ class Document extends Model
         $this->entities()->attach($toAttach);
         $this->entities()->detach($toDetach);
 
-        \Log::info(sprintf('%s: Attached %d entities of type %s, removed %d', $this->bibsys_id, count($toAttach), $entityType, count($toDetach)));
+        // \Log::info(sprintf('%s: Attached %d entities of type %s, removed %d', $this->bibsys_id, count($toAttach), $entityType, count($toDetach)));
+
+        return $newEntities;
     }
 }

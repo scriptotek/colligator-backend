@@ -6,6 +6,7 @@ use Colligator\Collection;
 use Colligator\Document;
 use Colligator\Marc21Importer;
 use Colligator\Search\DocumentsIndex;
+use Colligator\Search\EntitiesIndex;
 use Scriptotek\Marc\Record;
 
 class ImportRecords extends Job
@@ -28,7 +29,7 @@ class ImportRecords extends Job
      * @param DocumentsIndex $docIndex
      * @param Marc21Importer $importer
      */
-    public function handle(DocumentsIndex $docIndex, Marc21Importer $importer)
+    public function handle(DocumentsIndex $docIndex, EntitiesIndex $entIndex, Marc21Importer $importer)
     {
         //        \DB::listen(function ($query) {
         //            print("$query->time : $query->sql\n\n");
@@ -50,8 +51,11 @@ class ImportRecords extends Job
                 } else {
                     \Log::info('Importing OAI record ' . $rec['oai_id']);
                     $marc = Record::fromString($rec['marc']);
-                    $doc = $this->importRecord($importer, $marc, $rec['oai_id']);
+
+                    list($doc, $updatedEntities) = $this->importRecord($importer, $marc, $rec['oai_id']);
+
                     $docIndex->index($doc);
+                    $entIndex->indexByIds($updatedEntities);
                 }
             } catch (\Error $exception) {
                 \Log::error("Failed to import MARC record {$rec['oai_id']}:\n{$exception->getMessage()}");
@@ -63,11 +67,11 @@ class ImportRecords extends Job
      * @param Marc21Importer $importer
      * @param Record $marc
      * @param string $oaiId
-     * @return Document
+     * @return array
      */
     public function importRecord(Marc21Importer $importer, Record $marc, string $oaiId)
     {
-        $docId = $importer->import($marc);
+        [$docId, $updatedEntities] = $importer->import($marc);
 
         // Load entities and cover because we will use that when indexing in ES later
         $doc = Document::with('entities', 'cover')->find($docId);
@@ -83,7 +87,7 @@ class ImportRecords extends Job
             $this->collection->documents()->attach($doc->id);
         }
 
-        return $doc;
+        return [$doc, $updatedEntities];
     }
 
     /**

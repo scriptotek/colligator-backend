@@ -16,6 +16,8 @@ use Illuminate\Http\Request;
 Route::resource('collections', 'CollectionsController');
 Route::resource('documents', 'DocumentsController',
     ['only' => ['index', 'show']]);
+Route::resource('entities', 'EntitiesController',
+    ['only' => ['index', 'show']]);
 Route::resource('ontosaurs', 'OntosaurController',
     ['only' => ['index', 'show']]);
 

@@ -3,10 +3,9 @@
 namespace Colligator\Http\Controllers;
 
 use Carbon\Carbon;
-use Colligator\Cover;
 use Colligator\Document;
 use Colligator\Exceptions\CannotFetchCover;
-use Colligator\Http\Requests\SearchDocumentsRequest;
+use Colligator\Http\Requests\ElasticSearchDocumentsRequest;
 use Colligator\Search\DocumentsIndex;
 use Colligator\Timing;
 use Illuminate\Http\Request;
@@ -16,19 +15,28 @@ class DocumentsController extends Controller
     /**
      * Display a listing of the resource.
      *
+     * @param ElasticSearchDocumentsRequest $request
+     * @param DocumentsIndex $se
      * @return Response
      */
-    public function index(SearchDocumentsRequest $request, DocumentsIndex $se)
+    public function index(ElasticSearchDocumentsRequest $request, DocumentsIndex $se)
     {
         $t0 = microtime(true);
 
         // Query ElasticSearch
-        $response = $se->search($request);
+        $response = $se->search(
+            $request->q,
+            $request->offset ?: 0,
+            $request->limit ?: 25,
+            $request->sort,
+            $request->order ?: 'asc'
+        );
 
         $t1 = microtime(true);
 
         // Build response, include pagination data
         $out = [
+            'query' => $request->q,
             'warnings' => $request->warnings,
             'offset'   => $response['offset'],
             'total'    => intval($response['hits']['total']),
