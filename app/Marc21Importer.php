@@ -108,8 +108,28 @@ class Marc21Importer
         $biblio = $rec->jsonSerialize();
         $biblio['electronic'] = $this->isElectronic($rec);
 
+        $biblio['creators'] = array_map(function($item) {
+            $out = $item->jsonSerialize();
+            $out['as_string'] = (string) $item;
+            return $out;
+        }, $rec->creators);
+
         $biblio['cover_image'] = $this->getCoverImage($rec);
         $biblio['description'] = $this->getDescription($rec);
+
+        $field = $rec->getField('264') ?: $rec->getField('260');
+        if ($field) {
+            $biblio['placeOfPublication'] = (string) $field->sf('a');
+            $biblio['publisher'] = (string) $field->sf('b');
+        }
+
+        $biblio['series'] = array_map(function($node) {
+            return [
+                'title' => $node->sf('a'),
+                'id' => preg_replace('/\(NO-TrBIB\)/', '', $node->sf('w')),
+                'volume' => $node->sf('v'),
+            ];
+        }, $rec->getFields('830'));
 
         return [$biblio, $holdings];
     }
@@ -187,6 +207,21 @@ class Marc21Importer
         }
         $doc->syncEntities(Entity::SUBJECT, $subjects);
         $doc->syncEntities(Entity::GENRE, $genres);
+
+        // Sync creators
+        $creators = [];
+        foreach ($biblio['creators'] as $value) {
+            if (!isset($value['as_string'])) {
+                continue;
+            }
+            $creators[] = [
+                'vocabulary' => 'all',
+                'term' => $value['as_string'],
+                'id' => array_get($value, 'id'),
+                'relationship' => array_get($value, 'relationship'),
+            ];
+        }
+        $doc->syncEntities(Entity::CREATOR, $creators);
 
         // Extract cover from bibliographic record if no local cover exists
         if (isset($biblio['cover_image']) && is_null($doc->cover)) {

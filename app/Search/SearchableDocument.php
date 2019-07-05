@@ -60,17 +60,28 @@ class SearchableDocument
             Entity::GENRE => 'genres',
             Entity::LOCAL_SUBJECT => 'local_subjects',
             Entity::LOCAL_GENRE => 'local_genres',
+            Entity::CREATOR => 'creators',
         ];
         foreach ($entityKeys as $key => $val) {
             $body[$val] = [];
         }
         foreach ($this->doc->entities as $entity) {
-            $body[$entityKeys[$entity->type]][$entity['vocabulary'] ?: 'keywords'][] = [
-                'id' => $entity->id,
-                'prefLabel' => str_replace('--', ' : ', $entity->term),
-                'type' => $entity->type,
-                'count' => $this->docIndex->getUsageCount($entity->id),
-            ];
+            if ($entity->type == Entity::CREATOR) {
+                $body[$entityKeys[$entity->type]][] = [
+                    'id' => $entity->id,
+                    'prefLabel' => str_replace('--', ' : ', $entity->term),
+                    'type' => $entity->type,
+                    'relationship' => $entity->pivot->relationship,
+                    'count' => $this->docIndex->getUsageCount($entity->id),
+                ];
+            } else {
+                $body[$entityKeys[$entity->type]][$entity['vocabulary'] ?: 'keywords'][] = [
+                    'id' => $entity->id,
+                    'prefLabel' => str_replace('--', ' : ', $entity->term),
+                    'type' => $entity->type,
+                    'count' => $this->docIndex->getUsageCount($entity->id),
+                ];
+            }
         }
 
         // Add holdings

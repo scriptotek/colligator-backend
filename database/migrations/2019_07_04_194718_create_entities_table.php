@@ -14,7 +14,12 @@ class CreateEntitiesTable extends Migration
     public function up()
     {
         DB::update('DELETE FROM entities');
-        DB::update('ALTER TABLE entities DROP COLUMN entity_type');
+
+        Schema::table('entities', function (Blueprint $table) {
+            $table->string('relationship', 20)->nullable();
+            $table->dropColumn('entity_type');
+        });
+
         DB::update('ALTER TABLE entities RENAME TO document_entity');
 
         Schema::create('entities', function (Blueprint $table) {
@@ -52,6 +57,7 @@ class CreateEntitiesTable extends Migration
 
         DB::update('ALTER TABLE document_entity RENAME TO entities');
         Schema::table('entities', function (Blueprint $table) {
+            $table->dropColumn('relationship');
             $table->string('entity_type', 20)->nullable()->index();
         });
     }

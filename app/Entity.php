@@ -10,7 +10,8 @@ class Entity extends Model
     const GENRE = 'genre';
     const LOCAL_SUBJECT = 'local_subject';
     const LOCAL_GENRE = 'local_genre';
-    const TYPES = ['subject', 'genre', 'local_subject', 'local_genre'];
+    const CREATOR = 'creator';
+    const TYPES = ['subject', 'genre', 'local_subject', 'local_genre', 'creator'];
 
     /**
      * The attributes that should be casted to native types.
@@ -33,7 +34,9 @@ class Entity extends Model
      */
     public function documents()
     {
-        return $this->belongsToMany('Colligator\Document')->withTimestamps();
+        return $this->belongsToMany('Colligator\Document')
+            ->withTimestamps()
+            ->withPivot('relationship');
     }
 
     public static function lookup($vocabulary, $term, $type)

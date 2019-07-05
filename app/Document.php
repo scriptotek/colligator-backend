@@ -31,7 +31,9 @@ class Document extends Model
      */
     public function entities()
     {
-        return $this->belongsToMany('Colligator\Entity')->withTimestamps();
+        return $this->belongsToMany('Colligator\Entity')
+            ->withTimestamps()
+            ->withPivot('relationship');
     }
 
     /**
@@ -121,6 +123,7 @@ class Document extends Model
 
         // 1. Find the ids of the entities
         $ids = [];
+        $pivots = [];
         foreach ($values as $value) {
             if (!isset($value['vocabulary']) || !isset($value['term'])) {
                 continue;
@@ -139,10 +142,16 @@ class Document extends Model
             }
             $ids[] = $entity->id;
 
+            $pivots[$entity->id] = [];
+            $pivots[$entity->id]['relationship'] = array_get($value, 'relationship');
         }
-
-        $toAttach = array_diff($ids, $currentIds);
+        $newIds = array_diff($ids, $currentIds);
+        $toAttach = [];
+        foreach ($newIds as $id) {
+            $toAttach[$id] = $pivots[$id];
+        }
         $toDetach = array_diff($currentIds, $ids);
+
 
         $this->entities()->attach($toAttach);
         $this->entities()->detach($toDetach);
